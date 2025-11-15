@@ -50,12 +50,12 @@ hr { border: 2px solid #EEEEEE; }
 a {outline: 0;}
 a img {border: 0px; text-decoration: none;}
 a:link, a:visited {
-    color: #C74350;
+    color: #0066cc;
     padding: 0 1px;
     text-decoration: underline;
 }
 a:hover, a:active {
-    background-color: #C74350;
+    background-color: #0066cc;
     color: #fff;
     text-decoration: none;
     text-shadow: 1px 1px 1px #333;
@@ -292,7 +292,7 @@ div.figure p.caption, figure p.caption { /* margin provided by figure */
 #extras ul {list-style: none; margin: 0;}
 #extras li {border-bottom: 1px solid #fff;}
 #extras h2 {
-    color: #C74350;
+    color: #0066cc;
     font-size: 1.429em;
     margin-bottom: .25em;
     padding: 0 3px;
@@ -340,7 +340,7 @@ div.figure p.caption, figure p.caption { /* margin provided by figure */
 }
 
 #about .primary {float: left; max-width: 165px;}
-#about .primary strong {color: #C64350; display: block; font-size: 1.286em;}
+#about .primary strong {color: #0066cc; display: block; font-size: 1.286em;}
 #about .photo {float: left; margin: 5px 20px;}
 
 #about .url:link, #about .url:visited {text-decoration: none;}
@@ -400,7 +400,7 @@ li:first-child .hentry, #content > .hentry {border: 0; margin: 0;}
 }
 
 #about-author strong {
-    color: #C64350;
+    color: #0066cc;
     clear: both;
     display: block;
     font-size: 1.429em;
