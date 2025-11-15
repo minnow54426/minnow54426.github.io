@@ -20,7 +20,7 @@
 
                 <aside id="featured" class="body">
                     <article>
-                        <h1 class="entry-title"><a href="https://minnow54426.github.io/2023/12.html">December 2023 Photo Gallery</a></h1>
+                        <h1 class="entry-title"><a href="https://minnow54426.github.io/2024/12.html">December 2024 Photo Gallery</a></h1>
 <footer class="post-info">
         <abbr class="published" title="2025-11-15T00:00:00+08:00">
                 Published: 六 15 11月 2025
@@ -30,19 +30,30 @@
                         By                                 <a class="url fn" href="https://minnow54426.github.io/author/cryptboy.html">Cryptboy</a>
                 </address>
         <p>In <a href="https://minnow54426.github.io/category/photography.html">Photography</a>.</p>
-<p>tags: <a href="https://minnow54426.github.io/tag/photos.html">photos</a> <a href="https://minnow54426.github.io/tag/gallery.html">gallery</a> <a href="https://minnow54426.github.io/tag/2023.html">2023</a> <a href="https://minnow54426.github.io/tag/december.html">december</a> </p>        
-</footer><!-- /.post-info --><p>Photos from December 2023.</p>
+<p>tags: <a href="https://minnow54426.github.io/tag/photos.html">photos</a> <a href="https://minnow54426.github.io/tag/gallery.html">gallery</a> <a href="https://minnow54426.github.io/tag/2024.html">2024</a> <a href="https://minnow54426.github.io/tag/december.html">december</a> </p>        
+</footer><!-- /.post-info --><p>Photos from December 2024.</p>
 <!-- PELICAN_END_SUMMARY -->
 
 <div class="photo-gallery">
   <div class="photo-item">
-    <img src="/photos/organized/2023/12/5a3a7a828154b331ee4d7f016d4d714c--export-by-date.jpg" alt="5a3a7a828154b331ee4d7f016d4d714c--export-by-date.jpg" />
+    <a href="/photos/organized/2024/12/DSCF5313--export-by-date.jpg" class="lightbox-link" data-lightbox="gallery">
+      <img src="/photography/2024/12/thumbnails/DSCF5313--export-by-date.jpg" alt="DSCF5313--export-by-date.jpg" />
+    </a>
   </div>
   <div class="photo-item">
-    <img src="/photos/organized/2023/12/a0b1cdd04125940172fbeb46288ed162--export-by-date.jpg" alt="a0b1cdd04125940172fbeb46288ed162--export-by-date.jpg" />
+    <a href="/photos/organized/2024/12/IMG_2286--export-by-date.HEIC" class="lightbox-link" data-lightbox="gallery">
+      <img src="/photography/2024/12/thumbnails/IMG_2286--export-by-date.HEIC" alt="IMG_2286--export-by-date.HEIC" />
+    </a>
   </div>
   <div class="photo-item">
-    <img src="/photos/organized/2023/12/IMG_8800--export-by-date.JPG" alt="IMG_8800--export-by-date.JPG" />
+    <a href="/photos/organized/2024/12/DSC04580--export-by-date.JPG" class="lightbox-link" data-lightbox="gallery">
+      <img src="/photography/2024/12/thumbnails/DSC04580--export-by-date.JPG" alt="DSC04580--export-by-date.JPG" />
+    </a>
+  </div>
+  <div class="photo-item">
+    <a href="/photos/organized/2024/12/DSCF5306--export-by-date.jpg" class="lightbox-link" data-lightbox="gallery">
+      <img src="/photography/2024/12/thumbnails/DSCF5306--export-by-date.jpg" alt="DSCF5306--export-by-date.jpg" />
+    </a>
   </div>
 </div>
 
@@ -70,36 +81,86 @@
   .photo-item img:hover {
     transform: scale(1.05);
   }
-</style>                    </article>
+
+  /* Lightbox styles */
+  .lightbox-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .lightbox-content {
+    max-width: 90%;
+    max-height: 90%;
+  }
+
+  .lightbox-content img {
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: 5px;
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  // Simple lightbox implementation
+  document.addEventListener('DOMContentLoaded', function() {
+    const lightboxLinks = document.querySelectorAll('.lightbox-link');
+    const lightboxOverlay = document.createElement('div');
+    lightboxOverlay.className = 'lightbox-overlay';
+    document.body.appendChild(lightboxOverlay);
+
+    const lightboxContent = document.createElement('div');
+    lightboxContent.className = 'lightbox-content';
+    lightboxOverlay.appendChild(lightboxContent);
+
+    const closeBtn = document.createElement('span');
+    closeBtn.className = 'lightbox-close';
+    closeBtn.innerHTML = '&times;';
+    lightboxOverlay.appendChild(closeBtn);
+
+    lightboxLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const imgSrc = this.href;
+        const img = document.createElement('img');
+        img.src = imgSrc;
+        lightboxContent.innerHTML = '';
+        lightboxContent.appendChild(img);
+        lightboxOverlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      });
+    });
+
+    closeBtn.addEventListener('click', function() {
+      lightboxOverlay.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    });
+
+    lightboxOverlay.addEventListener('click', function(e) {
+      if (e.target === lightboxOverlay) {
+        lightboxOverlay.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
+    });
+  });
+</script>                    </article>
                 </aside><!-- /#featured -->
-                    <section id="content" class="body">
-                        <h1>Other articles</h1>
-                        <hr />
-                        <ol id="posts-list" class="hfeed">
-
-                <li><article class="hentry">
-                    <header>
-                        <h1><a href="https://minnow54426.github.io/2024/12.html" rel="bookmark"
-                               title="Permalink to December 2024 Photo Gallery">December 2024 Photo Gallery</a></h1>
-                    </header>
-
-                    <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2025-11-15T00:00:00+08:00">
-                Published: 六 15 11月 2025
-        </abbr>
-
-                <address class="vcard author">
-                        By                                 <a class="url fn" href="https://minnow54426.github.io/author/cryptboy.html">Cryptboy</a>
-                </address>
-        <p>In <a href="https://minnow54426.github.io/category/photography.html">Photography</a>.</p>
-<p>tags: <a href="https://minnow54426.github.io/tag/photos.html">photos</a> <a href="https://minnow54426.github.io/tag/gallery.html">gallery</a> <a href="https://minnow54426.github.io/tag/2024.html">2024</a> <a href="https://minnow54426.github.io/tag/december.html">december</a> </p>        
-</footer><!-- /.post-info -->                        <p>Photos from December 2024</p>
-                        <a class="readmore" href="https://minnow54426.github.io/2024/12.html">read more</a>
-                    </div><!-- /.entry-content -->
-                </article></li>
-                    </ol><!-- /#posts-list -->
-                    </section><!-- /#content -->
 
         </body>
 </html>
