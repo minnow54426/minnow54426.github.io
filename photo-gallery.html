@@ -36,8 +36,15 @@
 </footer><!-- /.post-info -->      </header>
 
       <div class="entry-content">
-        <p>Welcome to my photo gallery! Here you'll find a collection of my favorite photographs capturing moments from everyday life.</p>
-<p>The gallery below showcases various scenes and subjects that I've had the pleasure of capturing through my lens. Each photo tells a unique story and represents a special moment in time.</p>
+        <p>Welcome to my photo gallery! This is a curated collection of moments captured through my lens, showcasing the beauty found in everyday life.</p>
+<p><strong>Featured Collection: Moments &amp; Memories</strong></p>
+<p>The gallery below features a carefully selected arrangement of my favorite photographs. Each image represents a unique story - from quiet landscapes to candid moments, from natural wonders to urban scenes. The masonry-style layout creates visual harmony while allowing each photo to shine in its own space.</p>
+<p><strong>Interactive Features:</strong>
+- <strong>Click any photo</strong> to view it in a beautiful lightbox
+- <strong>Responsive design</strong> adapts perfectly to your screen size
+- <strong>Dynamic layout</strong> creates an engaging visual experience
+- <strong>Hover effects</strong> reveal the subtle details in each image</p>
+<p><em>Showing {{ article.total_photos }} selected photographs from my collection. Click on any image to explore the full beauty and detail.</em></p>
         
         <div class="photo-gallery">
           <div class="photo-item">
@@ -534,28 +541,185 @@
   <style>
     .photo-gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      grid-gap: 20px;
-      margin-top: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-auto-rows: 250px;
+      grid-gap: 16px;
+      margin: 30px 0;
+      padding: 20px 0;
     }
-    
+
     .photo-item {
+      position: relative;
       overflow: hidden;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
     }
-    
+
+    .photo-item:nth-child(3n+1) {
+      grid-row: span 2;
+    }
+
+    .photo-item:nth-child(4n+2) {
+      grid-column: span 2;
+    }
+
+    .photo-item:nth-child(5n) {
+      grid-row: span 1;
+      grid-column: span 1;
+    }
+
     .photo-item img {
       width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: cover;
       display: block;
-      transition: transform 0.3s ease;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      filter: brightness(0.95);
     }
-    
-    .photo-item img:hover {
-      transform: scale(1.05);
+
+    .photo-item:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      z-index: 10;
+    }
+
+    .photo-item:hover img {
+      filter: brightness(1.05);
+      transform: scale(1.1);
+    }
+
+    .photo-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg,
+        rgba(255,255,255,0.1) 0%,
+        rgba(255,255,255,0) 50%,
+        rgba(0,0,0,0.1) 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .photo-item:hover::before {
+      opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+      .photo-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-auto-rows: 200px;
+        grid-gap: 12px;
+      }
+
+      .photo-item:nth-child(3n+1),
+      .photo-item:nth-child(4n+2),
+      .photo-item:nth-child(5n) {
+        grid-row: span 1;
+        grid-column: span 1;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .photo-gallery {
+        grid-template-columns: 1fr;
+        grid-auto-rows: 250px;
+        grid-gap: 16px;
+      }
     }
   </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add click-to-view functionality
+      const photoItems = document.querySelectorAll('.photo-item');
+
+      photoItems.forEach(item => {
+        item.addEventListener('click', function() {
+          const img = this.querySelector('img');
+          const src = img.src;
+
+          // Create lightbox
+          const lightbox = document.createElement('div');
+          lightbox.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+          `;
+
+          const lightboxImg = document.createElement('img');
+          lightboxImg.src = src;
+          lightboxImg.style.cssText = `
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: fadeInScale 0.3s ease;
+          `;
+
+          lightbox.appendChild(lightboxImg);
+          document.body.appendChild(lightbox);
+
+          // Add fade in animation
+          const style = document.createElement('style');
+          style.textContent = `
+            @keyframes fadeInScale {
+              from {
+                opacity: 0;
+                transform: scale(0.8);
+              }
+              to {
+                opacity: 1;
+                transform: scale(1);
+              }
+            }
+          `;
+          document.head.appendChild(style);
+
+          // Close on click
+          lightbox.addEventListener('click', function() {
+            lightbox.style.animation = 'fadeOutScale 0.3s ease';
+            setTimeout(() => {
+              document.body.removeChild(lightbox);
+              document.head.removeChild(style);
+            }, 300);
+          });
+        });
+      });
+
+      // Add close animation
+      const closeStyle = document.createElement('style');
+      closeStyle.textContent = `
+        @keyframes fadeOutScale {
+          from {
+            opacity: 1;
+            transform: scale(1);
+          }
+          to {
+            opacity: 0;
+            transform: scale(0.8);
+          }
+        }
+      `;
+      document.head.appendChild(closeStyle);
+    });
+  </script>
 
         </body>
 </html>
