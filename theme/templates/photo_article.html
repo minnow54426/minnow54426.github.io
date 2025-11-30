@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title|striptags }}{% endblock %}
+
+{% block content %}
+  <section id="content" class="body">
+    <article>
+      <header>
+        <h1 class="entry-title">
+          <a href="{{ SITEURL }}/{{ article.url }}" rel="bookmark"
+             title="Permalink to {{ article.title|striptags }}">{{ article.title }}</a></h1>
+        {% include 'article_infos.html' %}
+      </header>
+
+      <div class="entry-content">
+        {{ article.content }}
+        
+        {% if article.photos %}
+        <div class="photo-gallery">
+          {% for photo in article.photos %}
+          <div class="photo-item">
+            <img src="{{ SITEURL }}/photos/{{ photo }}" alt="{{ photo }}" />
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div><!-- /.entry-content -->
+    </article>
+  </section>
+  
+  <style>
+    .photo-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .photo-item {
+      overflow: hidden;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .photo-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+    
+    .photo-item img:hover {
+      transform: scale(1.05);
+    }
+  </style>
+{% endblock %}
