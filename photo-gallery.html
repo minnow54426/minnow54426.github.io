@@ -6,7 +6,6 @@
                         <meta name="generator" content="Pelican" />
                         <title>Photo Gallery</title>
                         <link rel="stylesheet" href="/theme/css/main.css" />
-    <meta name="description" content="A collection of my favorite photographs" />
         </head>
 
         <body id="index" class="home">
@@ -24,9 +23,6 @@
         <h1 class="entry-title">
           <a href="/photo-gallery.html" rel="bookmark"
              title="Permalink to Photo Gallery">Photo Gallery</a></h1>
-      </header>
-
-      <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2025-11-30T00:00:00+08:00">
                 Published: 日 30 11月 2025
@@ -37,12 +33,41 @@
                 </address>
         <p>In <a href="/category/photography.html">Photography</a>.</p>
 <p>tags: <a href="/tag/photos.html">photos</a> <a href="/tag/gallery.html">gallery</a> </p>        
-</footer><!-- /.post-info -->        <p>Welcome to my photo gallery! Here you'll find a collection of my favorite photographs capturing moments from everyday life.</p>
-<p>The gallery below showcases various scenes and subjects that I've had the pleasure of capturing through my lens. Each photo tells a unique story and represents a special moment in time.</p>
-      </div><!-- /.entry-content -->
+</footer><!-- /.post-info -->      </header>
 
+      <div class="entry-content">
+        <p>Welcome to my photo gallery! Here you'll find a collection of my favorite photographs capturing moments from everyday life.</p>
+<p>The gallery below showcases various scenes and subjects that I've had the pleasure of capturing through my lens. Each photo tells a unique story and represents a special moment in time.</p>
+        
+      </div><!-- /.entry-content -->
     </article>
   </section>
+  
+  <style>
+    .photo-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .photo-item {
+      overflow: hidden;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .photo-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+    
+    .photo-item img:hover {
+      transform: scale(1.05);
+    }
+  </style>
 
         </body>
 </html>
