@@ -4,7 +4,7 @@
                         <meta charset="utf-8" />
                         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                         <meta name="generator" content="Pelican" />
-                        <title>wonderonpathlesspath - Categories</title>
+                        <title>Photo Folders</title>
                         <link rel="stylesheet" href="https://minnow54426.github.io/theme/css/main.css" />
                                 <link href="https://minnow54426.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="wonderonpathlesspath Atom Feed" />
         </head>
@@ -13,18 +13,93 @@
                 <header id="banner" class="body">
                         <h1><a href="https://minnow54426.github.io/">wonderonpathlesspath</a></h1>
                         <nav><ul>
-                                                <li><a href="https://minnow54426.github.io/pages/photo-folders.html">Photo Folders</a></li>
+                                                <li class="active"><a href="https://minnow54426.github.io/pages/photo-folders.html">Photo Folders</a></li>
                                                 <li><a href="https://minnow54426.github.io/category/photography.html">Photography</a></li>
                         </ul></nav>
                 </header><!-- /#banner -->
+  <section id="content" class="body">
+    <h1 class="entry-title">Photo Folders</h1>
+    
+    <style>
+.folder-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+.folder-card {
+    background: #f0f0f0;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    transition: background 0.3s;
+}
+.folder-card:hover {
+    background: #e0e0e0;
+}
+.folder-card a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+}
+.folder-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+</style>
 
-    <section id="content" class="body">
-        <h1>Categories for wonderonpathlesspath</h1>
-        <ul>
-                <li><a href="https://minnow54426.github.io/category/photography.html">Photography</a> (5)</li>
-        </ul>
-    </section>
-
+<p>Browse photos organized by category folders:</p>
+<div class="folder-grid">
+    <div class="folder-card">
+        <a href="/photos/manual-categories/animals/">
+            <div class="folder-icon">🦁</div>
+            <div>Animals</div>
+        </a>
+    </div>
+    <div class="folder-card">
+        <a href="/photos/manual-categories/architecture/">
+            <div class="folder-icon">🏛️</div>
+            <div>Architecture</div>
+        </a>
+    </div>
+    <div class="folder-card">
+        <a href="/photos/manual-categories/food/">
+            <div class="folder-icon">🍕</div>
+            <div>Food</div>
+        </a>
+    </div>
+    <div class="folder-card">
+        <a href="/photos/manual-categories/nature/">
+            <div class="folder-icon">🌳</div>
+            <div>Nature</div>
+        </a>
+    </div>
+    <div class="folder-card">
+        <a href="/photos/manual-categories/people/">
+            <div class="folder-icon">👥</div>
+            <div>People</div>
+        </a>
+    </div>
+    <div class="folder-card">
+        <a href="/photos/manual-categories/sunset/">
+            <div class="folder-icon">🌅</div>
+            <div>Sunset</div>
+        </a>
+    </div>
+    <div class="folder-card">
+        <a href="/photos/manual-categories/travel/">
+            <div class="folder-icon">✈️</div>
+            <div>Travel</div>
+        </a>
+    </div>
+    <div class="folder-card">
+        <a href="/photos/manual-categories/urban/">
+            <div class="folder-icon">🏙️</div>
+            <div>Urban</div>
+        </a>
+    </div>
+</div>
+  </section>
                 <section id="extras" class="body">
                                 <div class="blogroll">
                                         <h2>links</h2>
