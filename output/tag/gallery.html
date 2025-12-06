@@ -4,9 +4,8 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="generator" content="Pelican" />
-        <title>Code Projects</title>
+        <title>wonderonpathlesspath - gallery</title>
         <link rel="stylesheet" href="/theme/css/main.css" />
-        <meta name="description" content="Programming projects and tutorials" />
 </head>
 
 <body id="index" class="home">
@@ -14,20 +13,15 @@
                 <h1><a href="/">wonderonpathlesspath</a></h1>
                 <nav><ul>
                     <li><a href="/pages/index.html">Welcome</a></li>
-                    <li class="active"><a href="/category/code.html">Code</a></li>
+                    <li><a href="/category/code.html">Code</a></li>
                     <li><a href="/category/music.html">Music</a></li>
                     <li><a href="/category/photography.html">Photography</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
-<section id="content" class="body">
-  <article>
-    <header>
-      <h1 class="entry-title">
-        <a href="/code.html" rel="bookmark"
-           title="Permalink to Code Projects">Code Projects</a></h1>
-    </header>
 
-    <div class="entry-content">
+            <aside id="featured" class="body">
+                <article>
+                    <h1 class="entry-title"><a href="/photography.html">Photography Gallery</a></h1>
 <footer class="post-info">
         <abbr class="published" title="2025-12-06T00:00:00+08:00">
                 Published: 六 06 12月 2025
@@ -36,19 +30,71 @@
         <address class="vcard author">
                 By                         <a class="url fn" href="/author/cryptboy.html">Cryptboy</a>
         </address>
-<p>In <a href="/category/code.html">Code</a>.</p>
-<p>tags: <a href="/tag/programming.html">programming</a> <a href="/tag/projects.html">projects</a> </p>
-</footer><!-- /.post-info -->      <p>Welcome to my code section!</p>
-<p>Here you'll find:
-- Programming projects
-- Tutorials and guides
-- Code snippets and utilities
-- Technical experiments</p>
-<p><em>Coming soon: Detailed project showcases and tutorials.</em></p>
-    </div><!-- /.entry-content -->
+<p>In <a href="/category/photography.html">Photography</a>.</p>
+<p>tags: <a href="/tag/photos.html">photos</a> <a href="/tag/gallery.html">gallery</a> </p>
+</footer><!-- /.post-info --><p>A curated collection of my photographs.</p>
+<!-- PELICAN_END_SUMMARY -->
 
-  </article>
-</section>
+<div class="photo-gallery">
+  <div class="photo-item">
+    <a href="/photos/DSC04956--export-by-date.JPG" class="lightbox-link" data-lightbox="gallery">
+      <img src="/photos/thumbnails/DSC04956--export-by-date.JPG" alt="Photo 1" />
+    </a>
+  </div>
+  <div class="photo-item">
+    <a href="/photos/DSC01504--export-by-date.jpg" class="lightbox-link" data-lightbox="gallery">
+      <img src="/photos/thumbnails/DSC01504--export-by-date.jpg" alt="Photo 2" />
+    </a>
+  </div>
+  <div class="photo-item">
+    <a href="/photos/DSC02552--export-by-date.JPG" class="lightbox-link" data-lightbox="gallery">
+      <img src="/photos/thumbnails/DSC02552--export-by-date.JPG" alt="Photo 3" />
+    </a>
+  </div>
+  <div class="photo-item">
+    <a href="/photos/DSC01309--export-by-date.JPG" class="lightbox-link" data-lightbox="gallery">
+      <img src="/photos/thumbnails/DSC01309--export-by-date.JPG" alt="Photo 4" />
+    </a>
+  </div>
+  <div class="photo-item">
+    <a href="/photos/DSC03905--export-by-date.JPG" class="lightbox-link" data-lightbox="gallery">
+      <img src="/photos/thumbnails/DSC03905--export-by-date.JPG" alt="Photo 5" />
+    </a>
+  </div>
+</div>
+
+<style>
+.photo-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 20px 0;
+}
+
+.photo-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.photo-item:hover {
+    transform: translateY(-5px);
+}
+
+.photo-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.photo-item:hover img {
+    transform: scale(1.05);
+}
+</style>                </article>
+            </aside><!-- /#featured -->
         <section id="extras" class="body">
                 <div class="blogroll">
                         <h2>links</h2>

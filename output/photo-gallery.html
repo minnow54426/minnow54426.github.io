@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Gallery</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background: #0066cc;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: #0052a3;
+        }
+
+        .photo-gallery {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          grid-auto-rows: 220px;
+          grid-gap: 2px;
+          margin: 20px 0;
+          padding: 10px 0;
+        }
+
+        .photo-item {
+          position: relative;
+          overflow: hidden;
+          border-radius: 12px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          cursor: pointer;
+          background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+        }
+
+        .photo-item:nth-child(3n+1) {
+          grid-row: span 2;
+        }
+
+        .photo-item:nth-child(4n+2) {
+          grid-column: span 2;
+        }
+
+        .photo-item:nth-child(5n) {
+          grid-row: span 1;
+          grid-column: span 1;
+        }
+
+        .photo-item:nth-child(7n+3) {
+          grid-row: span 1;
+          grid-column: span 2;
+        }
+
+        .photo-item:nth-child(8n+4) {
+          grid-row: span 2;
+          grid-column: span 1;
+        }
+
+        .photo-item img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          filter: brightness(0.95);
+        }
+
+        .photo-item:hover {
+          transform: translateY(-8px) scale(1.02);
+          box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+          z-index: 10;
+        }
+
+        .photo-item:hover img {
+          filter: brightness(1.05);
+          transform: scale(1.1);
+        }
+
+        .photo-item::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg,
+            rgba(255,255,255,0.1) 0%,
+            rgba(255,255,255,0) 50%,
+            rgba(0,0,0,0.1) 100%);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          pointer-events: none;
+        }
+
+        .photo-item:hover::before {
+          opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+          .photo-gallery {
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-auto-rows: 180px;
+            grid-gap: 2px;
+            margin: 15px 0;
+            padding: 8px 0;
+          }
+
+          .photo-item:nth-child(3n+1),
+          .photo-item:nth-child(4n+2),
+          .photo-item:nth-child(5n),
+          .photo-item:nth-child(7n+3),
+          .photo-item:nth-child(8n+4) {
+            grid-row: span 1;
+            grid-column: span 1;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .photo-gallery {
+            grid-template-columns: 1fr;
+            grid-auto-rows: 220px;
+            grid-gap: 2px;
+            margin: 15px 0;
+            padding: 8px 0;
+          }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="/" class="back-link">← Back to Home</a>
+
+    <div class="photo-gallery">
+      <div class="photo-item">
+        <img src="/photos/1--export-by-date (1).jpg" alt="1--export-by-date (1).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/1--export-by-date (2).jpg" alt="1--export-by-date (2).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/1--export-by-date (3).jpg" alt="1--export-by-date (3).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/1--export-by-date (4).jpg" alt="1--export-by-date (4).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/1--export-by-date (5).jpg" alt="1--export-by-date (5).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/1--export-by-date.jpg" alt="1--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/10--export-by-date (1).jpg" alt="10--export-by-date (1).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/10--export-by-date.jpg" alt="10--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/11--export-by-date (1).jpg" alt="11--export-by-date (1).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/11--export-by-date.jpg" alt="11--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/12--export-by-date (1).jpg" alt="12--export-by-date (1).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/12--export-by-date.jpg" alt="12--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/13--export-by-date (1).jpg" alt="13--export-by-date (1).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/13--export-by-date.jpg" alt="13--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/14--export-by-date.jpg" alt="14--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/2--export-by-date (1).jpg" alt="2--export-by-date (1).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/2--export-by-date (2).jpg" alt="2--export-by-date (2).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/2--export-by-date (3).jpg" alt="2--export-by-date (3).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/2--export-by-date (4).jpg" alt="2--export-by-date (4).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/2--export-by-date.jpg" alt="2--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/3--export-by-date (1).jpg" alt="3--export-by-date (1).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/3--export-by-date (2).jpg" alt="3--export-by-date (2).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/3--export-by-date (3).jpg" alt="3--export-by-date (3).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/3--export-by-date.jpg" alt="3--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/4--export-by-date (1).jpg" alt="4--export-by-date (1).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/4--export-by-date (2).jpg" alt="4--export-by-date (2).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/4--export-by-date (3).jpg" alt="4--export-by-date (3).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/4--export-by-date (4).jpg" alt="4--export-by-date (4).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/4--export-by-date.jpg" alt="4--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/5--export-by-date (1).jpg" alt="5--export-by-date (1).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/5--export-by-date (2).jpg" alt="5--export-by-date (2).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/5--export-by-date (3).jpg" alt="5--export-by-date (3).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/5--export-by-date.jpg" alt="5--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/6--export-by-date (1).jpg" alt="6--export-by-date (1).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/6--export-by-date (2).jpg" alt="6--export-by-date (2).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/6--export-by-date (3).jpg" alt="6--export-by-date (3).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/6--export-by-date.jpg" alt="6--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/7--export-by-date (1).jpg" alt="7--export-by-date (1).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/7--export-by-date.jpg" alt="7--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/8--export-by-date (1).jpg" alt="8--export-by-date (1).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/8--export-by-date (2).jpg" alt="8--export-by-date (2).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/8--export-by-date.jpg" alt="8--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/9--export-by-date (1).jpg" alt="9--export-by-date (1).jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/9--export-by-date.jpg" alt="9--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC00134--export-by-date.JPG" alt="DSC00134--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC00156--export-by-date.JPG" alt="DSC00156--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC00158--export-by-date.JPG" alt="DSC00158--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC00371--export-by-date.JPG" alt="DSC00371--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC00495--export-by-date.JPG" alt="DSC00495--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC00770--export-by-date.JPG" alt="DSC00770--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC00773--export-by-date.JPG" alt="DSC00773--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC00792--export-by-date.JPG" alt="DSC00792--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC00811--export-by-date.JPG" alt="DSC00811--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC00843--export-by-date.JPG" alt="DSC00843--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC00852--export-by-date.JPG" alt="DSC00852--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC00921--export-by-date.JPG" alt="DSC00921--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC00940--export-by-date.JPG" alt="DSC00940--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01058--export-by-date.JPG" alt="DSC01058--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01118--export-by-date.JPG" alt="DSC01118--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01127--export-by-date.JPG" alt="DSC01127--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01152--export-by-date.JPG" alt="DSC01152--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01157--export-by-date.JPG" alt="DSC01157--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01164--export-by-date.JPG" alt="DSC01164--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01167--export-by-date.JPG" alt="DSC01167--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01185--export-by-date.JPG" alt="DSC01185--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01186--export-by-date.JPG" alt="DSC01186--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01205--export-by-date.JPG" alt="DSC01205--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01206--export-by-date.JPG" alt="DSC01206--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01210--export-by-date.JPG" alt="DSC01210--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01211--export-by-date.JPG" alt="DSC01211--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01215--export-by-date.JPG" alt="DSC01215--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01216--export-by-date.JPG" alt="DSC01216--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01220--export-by-date.JPG" alt="DSC01220--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01221--export-by-date.JPG" alt="DSC01221--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01309--export-by-date.JPG" alt="DSC01309--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01311--export-by-date.JPG" alt="DSC01311--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01318--export-by-date.JPG" alt="DSC01318--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01416--export-by-date.JPG" alt="DSC01416--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01421--export-by-date.JPG" alt="DSC01421--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01442--export-by-date.JPG" alt="DSC01442--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01479--export-by-date.JPG" alt="DSC01479--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01486--export-by-date.JPG" alt="DSC01486--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01489--export-by-date.JPG" alt="DSC01489--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01504--export-by-date.jpg" alt="DSC01504--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01508--export-by-date.jpg" alt="DSC01508--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC01510--export-by-date.jpg" alt="DSC01510--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02454--export-by-date.JPG" alt="DSC02454--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02456--export-by-date.JPG" alt="DSC02456--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02457--export-by-date.JPG" alt="DSC02457--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02467--export-by-date.JPG" alt="DSC02467--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02492--export-by-date.JPG" alt="DSC02492--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02493--export-by-date.JPG" alt="DSC02493--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02496--export-by-date.JPG" alt="DSC02496--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02497--export-by-date.JPG" alt="DSC02497--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02498--export-by-date.JPG" alt="DSC02498--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02533--export-by-date.JPG" alt="DSC02533--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02552--export-by-date.JPG" alt="DSC02552--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02560--export-by-date.JPG" alt="DSC02560--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02570--export-by-date.JPG" alt="DSC02570--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02572--export-by-date.JPG" alt="DSC02572--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02602--export-by-date.JPG" alt="DSC02602--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02604--export-by-date.JPG" alt="DSC02604--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02607--export-by-date.JPG" alt="DSC02607--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02644--export-by-date.JPG" alt="DSC02644--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02658--export-by-date.JPG" alt="DSC02658--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02662--export-by-date.JPG" alt="DSC02662--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02806--export-by-date.JPG" alt="DSC02806--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02828--export-by-date.JPG" alt="DSC02828--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02857--export-by-date.JPG" alt="DSC02857--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC02989--export-by-date.JPG" alt="DSC02989--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03010--export-by-date.JPG" alt="DSC03010--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03044--export-by-date.JPG" alt="DSC03044--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03047--export-by-date.JPG" alt="DSC03047--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03116--export-by-date.JPG" alt="DSC03116--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03125--export-by-date.JPG" alt="DSC03125--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03142--export-by-date.JPG" alt="DSC03142--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03143--export-by-date.JPG" alt="DSC03143--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03145--export-by-date.JPG" alt="DSC03145--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03250--export-by-date.JPG" alt="DSC03250--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03253--export-by-date.JPG" alt="DSC03253--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03426--export-by-date.JPG" alt="DSC03426--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03515--export-by-date.JPG" alt="DSC03515--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03558--export-by-date.JPG" alt="DSC03558--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03583--export-by-date.JPG" alt="DSC03583--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03795--export-by-date.JPG" alt="DSC03795--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03872--export-by-date.JPG" alt="DSC03872--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03905--export-by-date.JPG" alt="DSC03905--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03979--export-by-date.JPG" alt="DSC03979--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC03990--export-by-date.JPG" alt="DSC03990--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04003--export-by-date.JPG" alt="DSC04003--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04006--export-by-date.JPG" alt="DSC04006--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04009--export-by-date.JPG" alt="DSC04009--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04068--export-by-date.JPG" alt="DSC04068--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04077--export-by-date.JPG" alt="DSC04077--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04085--export-by-date.JPG" alt="DSC04085--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04143--export-by-date.JPG" alt="DSC04143--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04147--export-by-date.JPG" alt="DSC04147--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04214--export-by-date.JPG" alt="DSC04214--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04233--export-by-date.JPG" alt="DSC04233--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04236--export-by-date.JPG" alt="DSC04236--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04237--export-by-date.JPG" alt="DSC04237--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04261--export-by-date.JPG" alt="DSC04261--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04580--export-by-date.JPG" alt="DSC04580--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04956--export-by-date.JPG" alt="DSC04956--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04971--export-by-date.JPG" alt="DSC04971--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC04978--export-by-date.JPG" alt="DSC04978--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC05591--export-by-date.JPG" alt="DSC05591--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC05727--export-by-date.JPG" alt="DSC05727--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC07300--export-by-date.JPG" alt="DSC07300--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC07759--export-by-date.JPG" alt="DSC07759--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC08979--export-by-date.JPG" alt="DSC08979--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC08991--export-by-date.JPG" alt="DSC08991--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC09026--export-by-date.JPG" alt="DSC09026--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC09181--export-by-date.JPG" alt="DSC09181--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSC09300--export-by-date.JPG" alt="DSC09300--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSCF5306--export-by-date.jpg" alt="DSCF5306--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/DSCF5313--export-by-date.jpg" alt="DSCF5313--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/IMG_2286--export-by-date.HEIC" alt="IMG_2286--export-by-date.HEIC" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/IMG_2928--export-by-date.JPG" alt="IMG_2928--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/IMG_4662--export-by-date.JPG" alt="IMG_4662--export-by-date.JPG" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/c85b37a6200c886343ebad56c820547f--export-by-date.jpg" alt="c85b37a6200c886343ebad56c820547f--export-by-date.jpg" />
+      </div>
+      <div class="photo-item">
+        <img src="/photos/f5de7c3f951cc027f4ef8241772122f4--export-by-date.jpg" alt="f5de7c3f951cc027f4ef8241772122f4--export-by-date.jpg" />
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Add click-to-view functionality
+        const photoItems = document.querySelectorAll('.photo-item');
+
+        photoItems.forEach(item => {
+          item.addEventListener('click', function() {
+            const img = this.querySelector('img');
+            const src = img.src;
+
+            // Create lightbox
+            const lightbox = document.createElement('div');
+            lightbox.style.cssText = `
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(0,0,0,0.9);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              z-index: 1000;
+              cursor: pointer;
+              backdrop-filter: blur(10px);
+            `;
+
+            const lightboxImg = document.createElement('img');
+            lightboxImg.src = src;
+            lightboxImg.style.cssText = `
+              max-width: 90%;
+              max-height: 90%;
+              object-fit: contain;
+              border-radius: 8px;
+              box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+              animation: fadeInScale 0.3s ease;
+            `;
+
+            lightbox.appendChild(lightboxImg);
+            document.body.appendChild(lightbox);
+
+            // Add fade in animation
+            const style = document.createElement('style');
+            style.textContent = `
+              @keyframes fadeInScale {
+                from {
+                  opacity: 0;
+                  transform: scale(0.8);
+                }
+                to {
+                  opacity: 1;
+                  transform: scale(1);
+                }
+              }
+            `;
+            document.head.appendChild(style);
+
+            // Close on click
+            lightbox.addEventListener('click', function() {
+              lightbox.style.animation = 'fadeOutScale 0.3s ease';
+              setTimeout(() => {
+                document.body.removeChild(lightbox);
+                document.head.removeChild(style);
+              }, 300);
+            });
+          });
+        });
+
+        // Add close animation
+        const closeStyle = document.createElement('style');
+        closeStyle.textContent = `
+          @keyframes fadeOutScale {
+            from {
+              opacity: 1;
+              transform: scale(1);
+            }
+            to {
+              opacity: 0;
+              transform: scale(0.8);
+            }
+          }
+        `;
+        document.head.appendChild(closeStyle);
+      });
+    </script>
+
+</body>
+</html>
