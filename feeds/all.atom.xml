@@ -816,7 +816,148 @@
 &lt;/div&gt;
 
 &lt;p&gt;&lt;link rel="stylesheet" href="/theme/css/gallery.css" /&gt;&lt;/p&gt;
-&lt;script src="/theme/js/gallery.js"&gt;&lt;/script&gt;</content><category term="Photography"/><category term="photos"/><category term="gallery"/><category term="2025"/><category term="november"/></entry><entry><title>Photo Gallery</title><link href="https://minnow54426.github.io/2025/photo-gallery" rel="alternate"/><published>2025-11-30T00:00:00+08:00</published><updated>2025-11-30T00:00:00+08:00</updated><author><name>Cryptboy</name></author><id>tag:minnow54426.github.io,2025-11-30:/2025/photo-gallery</id><summary type="html">&lt;p&gt;A curated collection of my favorite photographs&lt;/p&gt;</summary><content type="html">&lt;p&gt;Welcome to my photo gallery! This is a curated collection of moments captured through my lens, showcasing the beauty found in everyday life.&lt;/p&gt;
+&lt;script src="/theme/js/gallery.js"&gt;&lt;/script&gt;</content><category term="Photography"/><category term="photos"/><category term="gallery"/><category term="2025"/><category term="november"/></entry><entry><title>Animals Photos</title><link href="https://minnow54426.github.io/2025/animals" rel="alternate"/><published>2025-12-06T00:00:00+08:00</published><updated>2025-12-06T00:00:00+08:00</updated><author><name>Cryptboy</name></author><id>tag:minnow54426.github.io,2025-12-06:/2025/animals</id><summary type="html">&lt;p&gt;Animals photo collection&lt;/p&gt;</summary><content type="html">&lt;p&gt;A collection of Animals photographs.&lt;/p&gt;
+&lt;!-- PELICAN_END_SUMMARY --&gt;
+
+&lt;div class="photo-gallery"&gt;
+  &lt;div class="photo-item"&gt;
+    &lt;a href="/photos/manual-categories/animals/1--export-by-date (2).jpg" class="lightbox-link" data-lightbox="animals"&gt;
+      &lt;img src="/photography/thumbnails/1--export-by-date (2).jpg" alt="1--export-by-date (2).jpg" /&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+  &lt;div class="photo-item"&gt;
+    &lt;a href="/photos/manual-categories/animals/1--export-by-date (1).jpg" class="lightbox-link" data-lightbox="animals"&gt;
+      &lt;img src="/photography/thumbnails/1--export-by-date (1).jpg" alt="1--export-by-date (1).jpg" /&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;link rel="stylesheet" href="/theme/css/gallery.css" /&gt;&lt;/p&gt;
+&lt;script src="/theme/js/gallery.js"&gt;&lt;/script&gt;</content><category term="Photography"/><category term="photos"/><category term="gallery"/><category term="animals"/></entry><entry><title>Architecture Photos</title><link href="https://minnow54426.github.io/2025/architecture" rel="alternate"/><published>2025-12-06T00:00:00+08:00</published><updated>2025-12-06T00:00:00+08:00</updated><author><name>Cryptboy</name></author><id>tag:minnow54426.github.io,2025-12-06:/2025/architecture</id><summary type="html">&lt;p&gt;Architecture photo collection&lt;/p&gt;</summary><content type="html">&lt;p&gt;A collection of Architecture photographs.&lt;/p&gt;
+&lt;!-- PELICAN_END_SUMMARY --&gt;
+
+&lt;div class="photo-gallery"&gt;
+  &lt;div class="photo-item"&gt;
+    &lt;a href="/photos/manual-categories/architecture/1--export-by-date (5).jpg" class="lightbox-link" data-lightbox="architecture"&gt;
+      &lt;img src="/photography/thumbnails/1--export-by-date (5).jpg" alt="1--export-by-date (5).jpg" /&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+  &lt;div class="photo-item"&gt;
+    &lt;a href="/photos/manual-categories/architecture/1--export-by-date (4).jpg" class="lightbox-link" data-lightbox="architecture"&gt;
+      &lt;img src="/photography/thumbnails/1--export-by-date (4).jpg" alt="1--export-by-date (4).jpg" /&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+  &lt;div class="photo-item"&gt;
+    &lt;a href="/photos/manual-categories/architecture/2--export-by-date (1).jpg" class="lightbox-link" data-lightbox="architecture"&gt;
+      &lt;img src="/photography/thumbnails/2--export-by-date (1).jpg" alt="2--export-by-date (1).jpg" /&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;link rel="stylesheet" href="/theme/css/gallery.css" /&gt;&lt;/p&gt;
+&lt;script src="/theme/js/gallery.js"&gt;&lt;/script&gt;</content><category term="Photography"/><category term="photos"/><category term="gallery"/><category term="architecture"/></entry><entry><title>Food Photos</title><link href="https://minnow54426.github.io/2025/food" rel="alternate"/><published>2025-12-06T00:00:00+08:00</published><updated>2025-12-06T00:00:00+08:00</updated><author><name>Cryptboy</name></author><id>tag:minnow54426.github.io,2025-12-06:/2025/food</id><summary type="html">&lt;p&gt;Food photo collection&lt;/p&gt;</summary><content type="html">&lt;p&gt;A collection of Food photographs.&lt;/p&gt;
+&lt;!-- PELICAN_END_SUMMARY --&gt;
+
+&lt;div class="photo-gallery"&gt;
+  &lt;div class="photo-item"&gt;
+    &lt;a href="/photos/manual-categories/food/3--export-by-date (1).jpg" class="lightbox-link" data-lightbox="food"&gt;
+      &lt;img src="/photography/thumbnails/3--export-by-date (1).jpg" alt="3--export-by-date (1).jpg" /&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+  &lt;div class="photo-item"&gt;
+    &lt;a href="/photos/manual-categories/food/2--export-by-date.jpg" class="lightbox-link" data-lightbox="food"&gt;
+      &lt;img src="/photography/thumbnails/2--export-by-date.jpg" alt="2--export-by-date.jpg" /&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+  &lt;div class="photo-item"&gt;
+    &lt;a href="/photos/manual-categories/food/3--export-by-date (2).jpg" class="lightbox-link" data-lightbox="food"&gt;
+      &lt;img src="/photography/thumbnails/3--export-by-date (2).jpg" alt="3--export-by-date (2).jpg" /&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;link rel="stylesheet" href="/theme/css/gallery.css" /&gt;&lt;/p&gt;
+&lt;script src="/theme/js/gallery.js"&gt;&lt;/script&gt;</content><category term="Photography"/><category term="photos"/><category term="gallery"/><category term="food"/></entry><entry><title>Photo Categories</title><link href="https://minnow54426.github.io/2025/photo-categories" rel="alternate"/><published>2025-12-06T00:00:00+08:00</published><updated>2025-12-06T00:00:00+08:00</updated><author><name>Cryptboy</name></author><id>tag:minnow54426.github.io,2025-12-06:/2025/photo-categories</id><summary type="html">&lt;p&gt;Browse photos by category&lt;/p&gt;</summary><content type="html">&lt;p&gt;Browse my photo collection by category.&lt;/p&gt;
+&lt;!-- PELICAN_END_SUMMARY --&gt;
+
+&lt;div class="category-grid"&gt;
+  &lt;div class="category-card"&gt;
+    &lt;a href="/photography/animals/" class="category-link"&gt;
+      &lt;img src="/photos/manual-categories/animals/DSC04971--export-by-date.JPG" alt="Animals" /&gt;
+      &lt;div class="category-info"&gt;
+        &lt;h3&gt;Animals&lt;/h3&gt;
+        &lt;span class="photo-count"&gt;2 photos&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+  &lt;div class="category-card"&gt;
+    &lt;a href="/photography/architecture/" class="category-link"&gt;
+      &lt;img src="/photos/manual-categories/architecture/DSC04147--export-by-date.JPG" alt="Architecture" /&gt;
+      &lt;div class="category-info"&gt;
+        &lt;h3&gt;Architecture&lt;/h3&gt;
+        &lt;span class="photo-count"&gt;3 photos&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+  &lt;div class="category-card"&gt;
+    &lt;a href="/photography/food/" class="category-link"&gt;
+
+      &lt;div class="category-info"&gt;
+        &lt;h3&gt;Food&lt;/h3&gt;
+        &lt;span class="photo-count"&gt;3 photos&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;style&gt;
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .category-card {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .category-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .category-link img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .category-info {
+    padding: 15px;
+    background: white;
+  }
+
+  .category-info h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.2em;
+  }
+
+  .photo-count {
+    color: #666;
+    font-size: 0.9em;
+  }
+&lt;/style&gt;</content><category term="Photography"/><category term="photos"/><category term="categories"/></entry><entry><title>Photo Gallery</title><link href="https://minnow54426.github.io/2025/photo-gallery" rel="alternate"/><published>2025-11-30T00:00:00+08:00</published><updated>2025-11-30T00:00:00+08:00</updated><author><name>Cryptboy</name></author><id>tag:minnow54426.github.io,2025-11-30:/2025/photo-gallery</id><summary type="html">&lt;p&gt;A curated collection of my favorite photographs&lt;/p&gt;</summary><content type="html">&lt;p&gt;Welcome to my photo gallery! This is a curated collection of moments captured through my lens, showcasing the beauty found in everyday life.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Featured Collection: Moments &amp;amp; Memories&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;The gallery below features a carefully selected arrangement of my favorite photographs. Each image represents a unique story - from quiet landscapes to candid moments, from natural wonders to urban scenes. The masonry-style layout creates visual harmony while allowing each photo to shine in its own space.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Interactive Features:&lt;/strong&gt;
