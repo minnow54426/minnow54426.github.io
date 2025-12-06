@@ -12,9 +12,6 @@ include:
 
 # Exclude unnecessary files
 exclude:
-  - content/
-  - output/
-  - script/
   - .DS_Store
   - README.md
   - CLAUDE.md
