@@ -558,45 +558,230 @@
         }
 
         // Load photos into galleries
-        function loadGallery(folderId, folderPath) {
+        function loadGallery(folderId) {
           const gallery = document.getElementById(folderId + '-gallery');
 
-          // Get list of photos from folder
-          fetch(`photos/${folderPath}/`)
-            .then(response => response.text())
-            .then(html => {
-              const parser = new DOMParser();
-              const doc = parser.parseFromString(html, 'text/html');
-              const links = doc.querySelectorAll('a[href$=".jpg"], a[href$=".JPG"], a[href$=".HEIC"]');
+          // Photo data by folder
+          const folderPhotos = {
+            'animals': [
+              'photos/animals/3--export-by-date (2).jpg',
+              'photos/animals/5--export-by-date (2).jpg',
+              'photos/animals/DSC00792--export-by-date.JPG',
+              'photos/animals/DSC00843--export-by-date.JPG',
+              'photos/animals/DSC00852--export-by-date.JPG',
+              'photos/animals/DSC00921--export-by-date.JPG',
+              'photos/animals/DSC00940--export-by-date.JPG',
+              'photos/animals/DSC01058--export-by-date.JPG',
+              'photos/animals/DSC03979--export-by-date.JPG',
+              'photos/animals/DSC03990--export-by-date.JPG',
+              'photos/animals/DSC04003--export-by-date.JPG',
+              'photos/animals/DSC04009--export-by-date.JPG',
+              'photos/animals/DSC04068--export-by-date.JPG',
+              'photos/animals/DSC04077--export-by-date.JPG',
+              'photos/animals/DSC04085--export-by-date.JPG',
+              'photos/animals/DSC04143--export-by-date.JPG',
+              'photos/animals/DSC04147--export-by-date.JPG',
+              'photos/animals/DSC04214--export-by-date.JPG',
+              'photos/animals/DSC04233--export-by-date.JPG',
+              'photos/animals/DSC04236--export-by-date.JPG',
+              'photos/animals/DSC04237--export-by-date.JPG',
+              'photos/animals/DSC04261--export-by-date.JPG',
+              'photos/animals/DSC09181--export-by-date.JPG'
+            ],
+            'shanghai': [
+              'photos/shang hai/DSC01309--export-by-date.JPG',
+              'photos/shang hai/DSC01311--export-by-date.JPG',
+              'photos/shang hai/DSC01318--export-by-date.JPG',
+              'photos/shang hai/DSC01416--export-by-date.JPG',
+              'photos/shang hai/DSC01421--export-by-date.JPG',
+              'photos/shang hai/DSC01442--export-by-date.JPG',
+              'photos/shang hai/DSC01479--export-by-date.JPG',
+              'photos/shang hai/DSC01486--export-by-date.JPG',
+              'photos/shang hai/DSC01489--export-by-date.JPG',
+              'photos/shang hai/DSC01504--export-by-date.jpg',
+              'photos/shang hai/DSC01508--export-by-date.jpg',
+              'photos/shang hai/DSC01510--export-by-date.jpg',
+              'photos/shang hai/DSC02806--export-by-date.JPG',
+              'photos/shang hai/DSC02828--export-by-date.JPG',
+              'photos/shang hai/DSC02857--export-by-date.JPG',
+              'photos/shang hai/DSC02989--export-by-date.JPG',
+              'photos/shang hai/DSC03010--export-by-date.JPG',
+              'photos/shang hai/DSC03044--export-by-date.JPG',
+              'photos/shang hai/DSC03047--export-by-date.JPG',
+              'photos/shang hai/DSC03116--export-by-date.JPG',
+              'photos/shang hai/DSC03125--export-by-date.JPG',
+              'photos/shang hai/DSC03142--export-by-date.JPG',
+              'photos/shang hai/DSC03143--export-by-date.JPG',
+              'photos/shang hai/DSC03145--export-by-date.JPG',
+              'photos/shang hai/DSC04006--export-by-date.JPG'
+            ],
+            'jiu-zhai-gou': [
+              'photos/jiu zhai gou/DSC02454--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02456--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02457--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02467--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02492--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02493--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02496--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02497--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02498--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02533--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02552--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02560--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02570--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02572--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02602--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02604--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02607--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02644--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02658--export-by-date.JPG',
+              'photos/jiu zhai gou/DSC02662--export-by-date.JPG'
+            ],
+            'zhang-jia-jie': [
+              'photos/zhang jia jie/1--export-by-date (1).jpg',
+              'photos/zhang jia jie/10--export-by-date (1).jpg',
+              'photos/zhang jia jie/11--export-by-date (1).jpg',
+              'photos/zhang jia jie/12--export-by-date (1).jpg',
+              'photos/zhang jia jie/13--export-by-date (1).jpg',
+              'photos/zhang jia jie/14--export-by-date.jpg',
+              'photos/zhang jia jie/2--export-by-date (3).jpg',
+              'photos/zhang jia jie/3--export-by-date (3).jpg',
+              'photos/zhang jia jie/4--export-by-date (3).jpg',
+              'photos/zhang jia jie/6--export-by-date.jpg',
+              'photos/zhang jia jie/7--export-by-date.jpg',
+              'photos/zhang jia jie/8--export-by-date (2).jpg',
+              'photos/zhang jia jie/9--export-by-date (1).jpg'
+            ],
+            'hu-pao-gong-yuan': [
+              'photos/hu pao gong yuan/DSC01152--export-by-date.JPG',
+              'photos/hu pao gong yuan/DSC01157--export-by-date.JPG',
+              'photos/hu pao gong yuan/DSC01164--export-by-date.JPG',
+              'photos/hu pao gong yuan/DSC01167--export-by-date.JPG',
+              'photos/hu pao gong yuan/DSC01185--export-by-date.JPG',
+              'photos/hu pao gong yuan/DSC01186--export-by-date.JPG',
+              'photos/hu pao gong yuan/DSC01205--export-by-date.JPG',
+              'photos/hu pao gong yuan/DSC01206--export-by-date.JPG',
+              'photos/hu pao gong yuan/DSC01210--export-by-date.JPG',
+              'photos/hu pao gong yuan/DSC01211--export-by-date.JPG',
+              'photos/hu pao gong yuan/DSC01215--export-by-date.JPG',
+              'photos/hu pao gong yuan/DSC01216--export-by-date.JPG',
+              'photos/hu pao gong yuan/DSC01220--export-by-date.JPG',
+              'photos/hu pao gong yuan/DSC01221--export-by-date.JPG'
+            ],
+            'gong-qing-sen-lin-gong-yuan': [
+              'photos/gong qing sen lin gong yuan/1--export-by-date (5).jpg',
+              'photos/gong qing sen lin gong yuan/2--export-by-date (1).jpg',
+              'photos/gong qing sen lin gong yuan/3--export-by-date.jpg',
+              'photos/gong qing sen lin gong yuan/4--export-by-date (4).jpg',
+              'photos/gong qing sen lin gong yuan/4--export-by-date.jpg',
+              'photos/gong qing sen lin gong yuan/5--export-by-date (1).jpg',
+              'photos/gong qing sen lin gong yuan/DSC04580--export-by-date.JPG',
+              'photos/gong qing sen lin gong yuan/DSC09300--export-by-date.JPG',
+              'photos/gong qing sen lin gong yuan/DSCF5306--export-by-date.jpg',
+              'photos/gong qing sen lin gong yuan/DSCF5313--export-by-date.jpg'
+            ],
+            'nan-xun-gu-zhen': [
+              'photos/nan xun gu zhen/DSC04956--export-by-date.JPG',
+              'photos/nan xun gu zhen/DSC04971--export-by-date.JPG',
+              'photos/nan xun gu zhen/DSC04978--export-by-date.JPG',
+              'photos/nan xun gu zhen/DSC05591--export-by-date.JPG',
+              'photos/nan xun gu zhen/DSC05727--export-by-date.JPG',
+              'photos/nan xun gu zhen/DSC07300--export-by-date.JPG',
+              'photos/nan xun gu zhen/DSC07759--export-by-date.JPG',
+              'photos/nan xun gu zhen/DSC08979--export-by-date.JPG',
+              'photos/nan xun gu zhen/DSC08991--export-by-date.JPG',
+              'photos/nan xun gu zhen/DSC09026--export-by-date.JPG'
+            ],
+            'qian-dao-hu': [
+              'photos/qian dao hu/DSC03250--export-by-date.JPG',
+              'photos/qian dao hu/DSC03253--export-by-date.JPG',
+              'photos/qian dao hu/DSC03426--export-by-date.JPG',
+              'photos/qian dao hu/DSC03515--export-by-date.JPG',
+              'photos/qian dao hu/DSC03558--export-by-date.JPG',
+              'photos/qian dao hu/DSC03583--export-by-date.JPG',
+              'photos/qian dao hu/DSC03795--export-by-date.JPG',
+              'photos/qian dao hu/DSC03872--export-by-date.JPG',
+              'photos/qian dao hu/DSC03905--export-by-date.JPG',
+              'photos/qian dao hu/f5de7c3f951cc027f4ef8241772122f4--export-by-date.jpg'
+            ],
+            'shi-ji-gong-yuan': [
+              'photos/shi ji gong yuan/1--export-by-date (2).jpg',
+              'photos/shi ji gong yuan/DSC00134--export-by-date.JPG',
+              'photos/shi ji gong yuan/DSC00156--export-by-date.JPG',
+              'photos/shi ji gong yuan/DSC00158--export-by-date.JPG',
+              'photos/shi ji gong yuan/DSC00371--export-by-date.JPG',
+              'photos/shi ji gong yuan/DSC00495--export-by-date.JPG',
+              'photos/shi ji gong yuan/DSC00770--export-by-date.JPG',
+              'photos/shi ji gong yuan/DSC00773--export-by-date.JPG'
+            ],
+            'ao-men': [
+              'photos/ao men/10--export-by-date.jpg',
+              'photos/ao men/2--export-by-date (4).jpg',
+              'photos/ao men/5--export-by-date (3).jpg',
+              'photos/ao men/6--export-by-date (1).jpg',
+              'photos/ao men/7--export-by-date (1).jpg',
+              'photos/ao men/8--export-by-date (1).jpg',
+              'photos/ao men/9--export-by-date.jpg'
+            ],
+            'zhu-jia-jiao-gu-zhen': [
+              'photos/zhu jia jiao gu zhen/1--export-by-date.jpg',
+              'photos/zhu jia jiao gu zhen/2--export-by-date (2).jpg',
+              'photos/zhu jia jiao gu zhen/4--export-by-date (1).jpg',
+              'photos/zhu jia jiao gu zhen/5--export-by-date.jpg',
+              'photos/zhu jia jiao gu zhen/6--export-by-date (2).jpg',
+              'photos/zhu jia jiao gu zhen/8--export-by-date.jpg'
+            ],
+            'on-road': [
+              'photos/on road/1--export-by-date (3).jpg',
+              'photos/on road/2--export-by-date.jpg',
+              'photos/on road/3--export-by-date (1).jpg',
+              'photos/on road/DSC00811--export-by-date.JPG'
+            ],
+            'guitar': [
+              'photos/guitar/DSC01118--export-by-date.JPG',
+              'photos/guitar/DSC01127--export-by-date.JPG',
+              'photos/guitar/c85b37a6200c886343ebad56c820547f--export-by-date.jpg'
+            ],
+            'yang-cheng-hu': [
+              'photos/yang cheng hu/1--export-by-date (4).jpg',
+              'photos/yang cheng hu/4--export-by-date (2).jpg',
+              'photos/yang cheng hu/6--export-by-date (3).jpg'
+            ],
+            'zhu-hai': [
+              'photos/zhu hai/11--export-by-date.jpg',
+              'photos/zhu hai/12--export-by-date.jpg',
+              'photos/zhu hai/13--export-by-date.jpg'
+            ],
+            'others': [
+              'photos/others/IMG_2928--export-by-date.JPG',
+              'photos/others/IMG_4662--export-by-date.JPG'
+            ]
+          };
 
-              links.forEach(link => {
-                const imgPath = `photos/${folderPath}/${link.getAttribute('href')}`;
-                gallery.appendChild(createPhotoItem(imgPath));
-              });
-            })
-            .catch(error => {
-              console.log('Folder not accessible:', error);
-            });
+          const photos = folderPhotos[folderId] || [];
+          photos.forEach(photoPath => {
+            gallery.appendChild(createPhotoItem(photoPath));
+          });
         }
 
         
         // Initialize galleries
-        loadGallery('animals', 'animals');
-        loadGallery('shanghai', 'shang hai');
-        loadGallery('jiu-zhai-gou', 'jiu zhai gou');
-        loadGallery('zhang-jia-jie', 'zhang jia jie');
-        loadGallery('hu-pao-gong-yuan', 'hu pao gong yuan');
-        loadGallery('gong-qing-sen-lin-gong-yuan', 'gong qing sen lin gong yuan');
-        loadGallery('nan-xun-gu-zhen', 'nan xun gu zhen');
-        loadGallery('qian-dao-hu', 'qian dao hu');
-        loadGallery('shi-ji-gong-yuan', 'shi ji gong yuan');
-        loadGallery('ao-men', 'ao men');
-        loadGallery('zhu-jia-jiao-gu-zhen', 'zhu jia jiao gu zhen');
-        loadGallery('on-road', 'on road');
-        loadGallery('guitar', 'guitar');
-        loadGallery('yang-cheng-hu', 'yang cheng hu');
-        loadGallery('zhu-hai', 'zhu hai');
-        loadGallery('others', 'others');
+        loadGallery('animals');
+        loadGallery('shanghai');
+        loadGallery('jiu-zhai-gou');
+        loadGallery('zhang-jia-jie');
+        loadGallery('hu-pao-gong-yuan');
+        loadGallery('gong-qing-sen-lin-gong-yuan');
+        loadGallery('nan-xun-gu-zhen');
+        loadGallery('qian-dao-hu');
+        loadGallery('shi-ji-gong-yuan');
+        loadGallery('ao-men');
+        loadGallery('zhu-jia-jiao-gu-zhen');
+        loadGallery('on-road');
+        loadGallery('guitar');
+        loadGallery('yang-cheng-hu');
+        loadGallery('zhu-hai');
+        loadGallery('others');
 
         // Add close animation
         const closeStyle = document.createElement('style');
