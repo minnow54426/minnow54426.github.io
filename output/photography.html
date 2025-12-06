@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photography - wonderonpathlesspath</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .back-link {
+            margin-bottom: 20px;
+        }
+        .back-link a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .photo-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .photo-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .photo-item:hover {
+            transform: translateY(-5px);
+        }
+        .photo-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        .photo-item:hover img {
+            transform: scale(1.05);
+        }
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            cursor: pointer;
+        }
+        .lightbox.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            font-size: 40px;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="back-link"><a href="/">← Back to Home</a></div>
+    <h1>Photography Gallery</h1>
+
+    <div class="photo-gallery">
+        <!-- Dynamically generate photo items -->
+    </div>
+
+    <div class="lightbox" id="lightbox">
+        <span class="lightbox-close">&times;</span>
+        <img src="" alt="" id="lightbox-img">
+    </div>
+
+    <script>
+        // Generate photo gallery dynamically
+        const photos = [
+            'DSC04956--export-by-date.JPG',
+            'DSC01504--export-by-date.jpg',
+            'DSC02552--export-by-date.JPG',
+            'DSC01309--export-by-date.JPG',
+            'DSC03905--export-by-date.JPG',
+            'DSC03872--export-by-date.JPG',
+            '1--export-by-date (3).jpg',
+            'DSC01311--export-by-date.JPG',
+            '3--export-by-date (1).jpg',
+            'DSC00495--export-by-date.JPG',
+            '2--export-by-date (4).jpg',
+            'IMG_4662--export-by-date.JPG',
+            'DSC03515--export-by-date.JPG',
+            'DSC09300--export-by-date.JPG',
+            'DSC04068--export-by-date.JPG',
+            '5--export-by-date (2).jpg',
+            'DSC01421--export-by-date.JPG',
+            '7--export-by-date (1).jpg',
+            '5--export-by-date (3).jpg',
+            'DSC04077--export-by-date.JPG'
+        ];
+
+        const gallery = document.querySelector('.photo-gallery');
+        photos.forEach(photo => {
+            const item = document.createElement('div');
+            item.className = 'photo-item';
+            item.innerHTML = `
+                <a href="/photos/${photo}" class="lightbox-link">
+                    <img src="/photos/thumbnails/${photo}" alt="${photo}">
+                </a>
+            `;
+            gallery.appendChild(item);
+        });
+
+        // Lightbox functionality
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxLinks = document.querySelectorAll('.lightbox-link');
+
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+        }
+
+        lightboxLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                openLightbox(link.href);
+            });
+        });
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                closeLightbox();
+            }
+        });
+
+        document.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+    </script>
+</body>
+</html>
