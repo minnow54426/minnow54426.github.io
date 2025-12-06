@@ -1,0 +1,20 @@
+# GitHub Pages configuration
+theme: jekyll-theme-minimal
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Include directories and files
+include:
+  - photos/
+  - photo-gallery.html
+  - index.html
+
+# Exclude unnecessary files
+exclude:
+  - content/
+  - output/
+  - script/
+  - .DS_Store
+  - README.md
+  - CLAUDE.md
