@@ -277,3 +277,4 @@ If deployment fails:
 - **No Build Process**: Changes are immediately reflected after push
 - **Clean Structure**: No duplicate directories or build artifacts
 - **GitHub Pages Optimized**: Proper configuration for immediate deployment
+- **Legacy Content**: The `/content/` folder was removed as it was from old Pelican setup; the site uses direct `/photos/` and `/paint/` folders
