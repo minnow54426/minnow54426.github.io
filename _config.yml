@@ -9,6 +9,8 @@ include:
   - photos/
   - photo-gallery.html
   - index.html
+  - paint.html
+  - paint/
 
 # Exclude unnecessary files
 exclude:
