@@ -456,77 +456,82 @@
 <script>
     // Enhanced markdown parser with better code block handling
     function parseMarkdown(markdown) {
-        let html = markdown;
+        try {
+            let html = markdown;
 
-        // Process code blocks first to avoid interference with other parsing
-        html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, language, code) {
-            const langClass = language ? ` class="language-${language}"` : '';
-            const langAttr = language ? ` data-language="${language}"` : '';
+            // Process code blocks first to avoid interference with other parsing
+            html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, language, code) {
+                const langClass = language ? ` class="language-${language}"` : '';
+                const langAttr = language ? ` data-language="${language}"` : '';
 
-            // Apply syntax highlighting for Rust
-            let processedCode = escapeHtml(code.trim());
-            if (language === 'rust') {
-                processedCode = highlightRust(code.trim());
-            }
+                // Apply syntax highlighting for Rust
+                let processedCode = escapeHtml(code.trim());
+                if (language === 'rust') {
+                    processedCode = highlightRust(code.trim());
+                }
 
-            return `<pre><code${langClass}${langAttr}>${processedCode}</code></pre>`;
-        });
+                return `<pre><code${langClass}${langAttr}>${processedCode}</code></pre>`;
+            });
 
-        // Inline code
-        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+            // Inline code
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-        // Headers
-        html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
-        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+            // Headers
+            html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
 
-        // Bold and italic
-        html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            // Bold and italic
+            html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
 
-        // Links
-        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+            // Links
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
 
-        // Lists (handle both ordered and unordered)
-        html = html.replace(/^\d+\. (.+)$/gim, '<li>$1</li>');
-        html = html.replace(/^\* (.+)$/gim, '<li>$1</li>');
-        html = html.replace(/^- (.+)$/gim, '<li>$1</li>');
+            // Lists (handle both ordered and unordered)
+            html = html.replace(/^\d+\. (.+)$/gim, '<li>$1</li>');
+            html = html.replace(/^\* (.+)$/gim, '<li>$1</li>');
+            html = html.replace(/^- (.+)$/gim, '<li>$1</li>');
 
-        // Group consecutive list items
-        html = html.replace(/(<li>.*<\/li>)(\s*<li>.*<\/li>)*/gim, '<ul>$&</ul>');
+            // Group consecutive list items
+            html = html.replace(/(<li>.*<\/li>)(\s*<li>.*<\/li>)*/gim, '<ul>$&</ul>');
 
-        // Blockquotes
-        html = html.replace(/^> (.+)$/gim, '<blockquote>$1</blockquote>');
-        html = html.replace(/^> (.+)$/gim, '<blockquote>$1</blockquote>');
+            // Blockquotes
+            html = html.replace(/^> (.+)$/gim, '<blockquote>$1</blockquote>');
+            html = html.replace(/^> (.+)$/gim, '<blockquote>$1</blockquote>');
 
-        // Handle multiple blockquotes
-        html = html.replace(/(<blockquote>.*<\/blockquote>)(\s*<blockquote>.*<\/blockquote>)*/gim, function(match) {
-            return match.replace(/<\/blockquote>\s*<blockquote>/g, '<br>');
-        });
+            // Handle multiple blockquotes
+            html = html.replace(/(<blockquote>.*<\/blockquote>)(\s*<blockquote>.*<\/blockquote>)*/gim, function(match) {
+                return match.replace(/<\/blockquote>\s*<blockquote>/g, '<br>');
+            });
 
-        // Line breaks and paragraphs
-        html = html.replace(/\n\n/g, '</p><p>');
-        html = '<p>' + html + '</p>';
+            // Line breaks and paragraphs
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = '<p>' + html + '</p>';
 
-        // Clean up extra paragraphs around block elements
-        const blockElements = ['h1', 'h2', 'h3', 'h4', 'pre', 'ul', 'ol', 'blockquote'];
-        blockElements.forEach(tag => {
-            html = html.replace(new RegExp(`<p>(<${tag}>`, 'g'), '$1');
-            html = html.replace(new RegExp(`</${tag}>)</p>`, 'g'), '$1');
-        });
+            // Clean up extra paragraphs around block elements
+            const blockElements = ['h1', 'h2', 'h3', 'h4', 'pre', 'ul', 'ol', 'blockquote'];
+            blockElements.forEach(tag => {
+                html = html.replace(new RegExp(`<p>(<${tag}>`, 'g'), '$1');
+                html = html.replace(new RegExp(`</${tag}>)</p>`, 'g'), '$1');
+            });
 
-        // Fix empty paragraphs
-        html = html.replace(/<p><\/p>/g, '');
-        html = html.replace(/<p>\s*<\/p>/g, '');
-        html = html.replace(/<p>\s+<\/p>/g, '');
+            // Fix empty paragraphs
+            html = html.replace(/<p><\/p>/g, '');
+            html = html.replace(/<p>\s*<\/p>/g, '');
+            html = html.replace(/<p>\s+<\/p>/g, '');
 
-        // Clean up extra whitespace
-        html = html.replace(/\s+/g, ' ').trim();
-        html = html.replace(/<\/p>\s*<p>/g, '</p><p>');
+            // Clean up extra whitespace
+            html = html.replace(/\s+/g, ' ').trim();
+            html = html.replace(/<\/p>\s*<p>/g, '</p><p>');
 
-        return html;
+            return html;
+        } catch (error) {
+            console.error('Error parsing markdown:', error);
+            return `<pre>${escapeHtml(markdown)}</pre>`; // Fallback to plain text
+        }
     }
 
     // Helper function to escape HTML
@@ -538,56 +543,61 @@
 
     // Basic Rust syntax highlighting
     function highlightRust(code) {
-        // Rust keywords
-        const keywords = [
-            'fn', 'let', 'mut', 'const', 'static', 'if', 'else', 'match', 'for', 'while', 'loop',
-            'break', 'continue', 'return', 'struct', 'enum', 'impl', 'trait', 'mod', 'use', 'pub',
-            'crate', 'where', 'move', 'ref', 'unsafe', 'async', 'await', 'type', 'as', 'in'
-        ];
+        try {
+            // Rust keywords
+            const keywords = [
+                'fn', 'let', 'mut', 'const', 'static', 'if', 'else', 'match', 'for', 'while', 'loop',
+                'break', 'continue', 'return', 'struct', 'enum', 'impl', 'trait', 'mod', 'use', 'pub',
+                'crate', 'where', 'move', 'ref', 'unsafe', 'async', 'await', 'type', 'as', 'in'
+            ];
 
-        // Rust types
-        const types = [
-            'u8', 'u16', 'u32', 'u64', 'u128', 'i8', 'i16', 'i32', 'i64', 'i128', 'f32', 'f64',
-            'bool', 'char', 'str', 'String', 'Vec', 'Option', 'Result', 'Box', 'Rc', 'Arc',
-            'HashMap', 'HashSet', 'BTreeMap', 'BTreeSet', 'slice', 'array', 'tuple', 'self', 'Self'
-        ];
+            // Rust types
+            const types = [
+                'u8', 'u16', 'u32', 'u64', 'u128', 'i8', 'i16', 'i32', 'i64', 'i128', 'f32', 'f64',
+                'bool', 'char', 'str', 'String', 'Vec', 'Option', 'Result', 'Box', 'Rc', 'Arc',
+                'HashMap', 'HashSet', 'BTreeMap', 'BTreeSet', 'slice', 'array', 'tuple', 'self', 'Self'
+            ];
 
-        let highlighted = code;
+            let highlighted = code;
 
-        // Comments (line and block)
-        highlighted = highlighted.replace(/\/\/.*$/gm, '<span class="comment">$&</span>');
-        highlighted = highlighted.replace(/\/\*[\s\S]*?\*\//g, '<span class="comment">$&</span>');
+            // Comments (line and block)
+            highlighted = highlighted.replace(/\/\/.*$/gm, '<span class="comment">$&</span>');
+            highlighted = highlighted.replace(/\/\*[\s\S]*?\*\//g, '<span class="comment">$&</span>');
 
-        // Strings (including raw strings)
-        highlighted = highlighted.replace(/r?"([^"\\]|\\.)*"/g, '<span class="string">$&</span>');
-        highlighted = highlighted.replace(/r#*"([^"#]|\\.)*"#*/g, '<span class="string">$&</span>');
-        highlighted = highlighted.replace(/'([^'\\]|\\.)*'/g, '<span class="string">$&</span>');
+            // Strings (including raw strings)
+            highlighted = highlighted.replace(/r?"([^"\\]|\\.)*"/g, '<span class="string">$&</span>');
+            highlighted = highlighted.replace(/r#*"([^"#]|\\.)*"#*/g, '<span class="string">$&</span>');
+            highlighted = highlighted.replace(/'([^'\\]|\\.)*'/g, '<span class="string">$&</span>');
 
-        // Numbers
-        highlighted = highlighted.replace(/\b\d+\.?\d*\b/g, '<span class="number">$&</span>');
+            // Numbers
+            highlighted = highlighted.replace(/\b\d+\.?\d*\b/g, '<span class="number">$&</span>');
 
-        // Keywords
-        keywords.forEach(keyword => {
-            const regex = new RegExp(`\\b${keyword}\\b`, 'g');
-            highlighted = highlighted.replace(regex, `<span class="keyword">${keyword}</span>`);
-        });
+            // Keywords
+            keywords.forEach(keyword => {
+                const regex = new RegExp(`\\b${keyword}\\b`, 'g');
+                highlighted = highlighted.replace(regex, `<span class="keyword">${keyword}</span>`);
+            });
 
-        // Types
-        types.forEach(typeName => {
-            const regex = new RegExp(`\\b${typeName}\\b`, 'g');
-            highlighted = highlighted.replace(regex, `<span class="type">${typeName}</span>`);
-        });
+            // Types
+            types.forEach(typeName => {
+                const regex = new RegExp(`\\b${typeName}\\b`, 'g');
+                highlighted = highlighted.replace(regex, `<span class="type">${typeName}</span>`);
+            });
 
-        // Attributes
-        highlighted = highlighted.replace(/#\[([^\]]+)\]/g, '<span class="attribute">#$&</span>');
+            // Attributes
+            highlighted = highlighted.replace(/#\[([^\]]+)\]/g, '<span class="attribute">#$&</span>');
 
-        // Macros
-        highlighted = highlighted.replace(/\b\w+!\s*/g, '<span class="macro">$&</span>');
+            // Macros
+            highlighted = highlighted.replace(/\b\w+!\s*/g, '<span class="macro">$&</span>');
 
-        // Lifetimes
-        highlighted = highlighted.replace(/\'\w+/g, '<span class="lifetime">$&</span>');
+            // Lifetimes
+            highlighted = highlighted.replace(/\'\w+/g, '<span class="lifetime">$&</span>');
 
-        return highlighted;
+            return highlighted;
+        } catch (error) {
+            console.error('Error in Rust syntax highlighting:', error);
+            return code; // Return original code if highlighting fails
+        }
     }
 
     function loadMarkdown(filePath, fileName) {
@@ -632,8 +642,10 @@
     });
 
     // Folder toggle functionality
-    function toggleFolder(element) {
-        event.stopPropagation();
+    function toggleFolder(element, event) {
+        if (event) {
+            event.stopPropagation();
+        }
         const folder = element.closest('.folder');
         if (folder) {
             // Only toggle the direct folder, not its children
@@ -658,13 +670,13 @@
             if (e.target.classList.contains('folder-name')) {
                 e.preventDefault();
                 e.stopPropagation();
-                toggleFolder(e.target);
+                toggleFolder(e.target, e);
             }
             // Handle folder icon clicks
             else if (e.target.classList.contains('folder-icon')) {
                 e.preventDefault();
                 e.stopPropagation();
-                toggleFolder(e.target);
+                toggleFolder(e.target, e);
             }
         });
     });
