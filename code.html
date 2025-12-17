@@ -76,6 +76,11 @@
             margin-left: 24px;
             border-left: 1px solid #ddd;
             padding-left: 8px;
+            display: none;
+        }
+
+        .folder.open > .folder-content {
+            display: block;
         }
 
         .folder-icon {
@@ -272,7 +277,7 @@
         <h2>📁 Code Projects</h2>
         <div class="file-tree">
             <div class="folder">
-                <span class="folder-icon">📂</span>
+                <span class="folder-icon">📁</span>
                 <span class="folder-name">zero_knowledge_proof_learn</span>
                 <div class="folder-content">
                     <div class="file">
@@ -280,21 +285,63 @@
                         <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/ZK_learning_plan.md', 'ZK_learning_plan.md')">ZK_learning_plan.md</a>
                     </div>
                     <div class="folder">
-                        <span class="folder-icon">📂</span>
+                        <span class="folder-icon">📁</span>
                         <span class="folder-name">week1</span>
                         <div class="folder-content">
                             <div class="folder">
-                                <span class="folder-icon">📂</span>
+                                <span class="folder-icon">📁</span>
                                 <span class="folder-name">code</span>
                                 <div class="folder-content">
                                     <div class="file">
                                         <span class="file-icon">📄</span>
                                         <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/prompt.md', 'prompt.md')">prompt.md</a>
                                     </div>
+                                    <div class="folder">
+                                        <span class="folder-icon">📁</span>
+                                        <span class="folder-name">rust-protocol-basics</span>
+                                        <div class="folder-content">
+                                            <div class="file">
+                                                <span class="file-icon">📄</span>
+                                                <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/rust-protocol-basics/Cargo.toml', 'Cargo.toml')">Cargo.toml</a>
+                                            </div>
+                                            <div class="folder">
+                                                <span class="folder-icon">📁</span>
+                                                <span class="folder-name">src</span>
+                                                <div class="folder-content">
+                                                    <div class="file">
+                                                        <span class="file-icon">🦀</span>
+                                                        <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/rust-protocol-basics/src/lib.rs', 'lib.rs')">lib.rs</a>
+                                                    </div>
+                                                    <div class="file">
+                                                        <span class="file-icon">🦀</span>
+                                                        <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/rust-protocol-basics/src/hash.rs', 'hash.rs')">hash.rs</a>
+                                                    </div>
+                                                    <div class="file">
+                                                        <span class="file-icon">🦀</span>
+                                                        <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/rust-protocol-basics/src/types.rs', 'types.rs')">types.rs</a>
+                                                    </div>
+                                                    <div class="file">
+                                                        <span class="file-icon">🦀</span>
+                                                        <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/rust-protocol-basics/src/bytes.rs', 'bytes.rs')">bytes.rs</a>
+                                                    </div>
+                                                    <div class="folder">
+                                                        <span class="folder-icon">📁</span>
+                                                        <span class="folder-name">bin</span>
+                                                        <div class="folder-content">
+                                                            <div class="file">
+                                                                <span class="file-icon">🦀</span>
+                                                                <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/rust-protocol-basics/src/bin/hash-cli.rs', 'hash-cli.rs')">hash-cli.rs</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="folder">
-                                <span class="folder-icon">📂</span>
+                                <span class="folder-icon">📁</span>
                                 <span class="folder-name">note</span>
                             </div>
                         </div>
@@ -432,6 +479,44 @@
         if (e.target === this) {
             closeMarkdownViewer();
         }
+    });
+
+    // Folder toggle functionality
+    function toggleFolder(element) {
+        event.stopPropagation();
+        const folder = element.closest('.folder');
+        if (folder) {
+            // Only toggle the direct folder, not its children
+            const wasOpen = folder.classList.contains('open');
+            folder.classList.remove('open');
+            if (!wasOpen) {
+                folder.classList.add('open');
+            }
+
+            // Update icon for this specific folder
+            const icon = folder.querySelector('.folder-icon');
+            if (icon) {
+                icon.textContent = folder.classList.contains('open') ? '📂' : '📁';
+            }
+        }
+    }
+
+    // Add click listeners to all folder names and icons
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle folder name clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('folder-name')) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleFolder(e.target);
+            }
+            // Handle folder icon clicks
+            else if (e.target.classList.contains('folder-icon')) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleFolder(e.target);
+            }
+        });
     });
 </script>
 </body>
