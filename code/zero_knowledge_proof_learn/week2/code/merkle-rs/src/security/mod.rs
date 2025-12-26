@@ -12,6 +12,7 @@ pub mod attack_simulator;
 pub mod property_based_harness;
 pub mod statistical_analysis;
 pub mod security_properties;
+pub mod advanced_attacks;
 
 pub use collision_tester::CollisionTester;
 pub use binding_property_tester::BindingPropertyTester;
@@ -19,6 +20,7 @@ pub use attack_simulator::AttackSimulator;
 pub use property_based_harness::PropertyBasedHarness;
 pub use statistical_analysis::StatisticalAnalyzer;
 pub use security_properties::SecurityProperties;
+pub use advanced_attacks::{AdvancedAttackSimulator, AdvancedAttackConfig};
 
 /// Configuration for security testing
 #[derive(Debug, Clone)]
@@ -55,6 +57,8 @@ pub struct SecurityTestResults {
     pub failures: Vec<String>,
     /// Performance metrics
     pub metrics: SecurityMetrics,
+    /// Advanced attack results (if available)
+    pub advanced_results: Option<crate::security::advanced_attacks::AdvancedAttackResults>,
 }
 
 /// Performance and statistical metrics
@@ -78,6 +82,7 @@ pub struct SecurityTestSuite {
     attack_simulator: AttackSimulator,
     harness: PropertyBasedHarness,
     analyzer: StatisticalAnalyzer,
+    advanced_attacks: Option<AdvancedAttackSimulator>,
 }
 
 impl SecurityTestSuite {
@@ -88,12 +93,40 @@ impl SecurityTestSuite {
 
     /// Create a new security test suite with custom configuration
     pub fn with_config(config: SecurityTestConfig) -> Self {
+        let advanced_config = AdvancedAttackConfig {
+            attack_attempts: config.test_iterations / 2, // Fewer attempts for advanced attacks
+            max_budget: config.test_iterations * 10,
+            seed: config.seed,
+            quantum_simulation: config.exhaustive, // Only quantum if exhaustive testing
+        };
+
         Self {
             collision_tester: CollisionTester::new(&config),
             binding_tester: BindingPropertyTester::new(&config),
             attack_simulator: AttackSimulator::new(&config),
             harness: PropertyBasedHarness::new(&config),
             analyzer: StatisticalAnalyzer::new(&config),
+            advanced_attacks: Some(AdvancedAttackSimulator::new(advanced_config)),
+            config,
+        }
+    }
+
+    /// Create a new security test suite with advanced attacks enabled
+    pub fn with_advanced_attacks(config: SecurityTestConfig, quantum_enabled: bool) -> Self {
+        let advanced_config = AdvancedAttackConfig {
+            attack_attempts: config.test_iterations / 2,
+            max_budget: config.test_iterations * 10,
+            seed: config.seed,
+            quantum_simulation: quantum_enabled,
+        };
+
+        Self {
+            collision_tester: CollisionTester::new(&config),
+            binding_tester: BindingPropertyTester::new(&config),
+            attack_simulator: AttackSimulator::new(&config),
+            harness: PropertyBasedHarness::new(&config),
+            analyzer: StatisticalAnalyzer::new(&config),
+            advanced_attacks: Some(AdvancedAttackSimulator::new(advanced_config)),
             config,
         }
     }
@@ -110,6 +143,7 @@ impl SecurityTestSuite {
                 binding_strength: 0.0,
                 randomness_quality: 0.0,
             },
+            advanced_results: None,
         };
 
         // Run collision resistance tests
@@ -130,10 +164,21 @@ impl SecurityTestSuite {
         results.failed += attack_results.failed;
         results.failures.extend(attack_results.failures);
 
+        // Run advanced attacks if available
+        if let Some(ref advanced_simulator) = self.advanced_attacks {
+            let advanced_results = advanced_simulator.run_advanced_attacks();
+            results.advanced_results = Some(advanced_results);
+        }
+
         // Run statistical analysis
         results.metrics = self.analyzer.analyze_properties();
 
         results
+    }
+
+    /// Run only advanced attacks
+    pub fn run_advanced_attacks_only(&self) -> Option<crate::security::advanced_attacks::AdvancedAttackResults> {
+        self.advanced_attacks.as_ref().map(|simulator| simulator.run_advanced_attacks())
     }
 
     /// Get current configuration
