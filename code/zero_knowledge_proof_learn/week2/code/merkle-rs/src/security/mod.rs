@@ -13,6 +13,7 @@ pub mod property_based_harness;
 pub mod statistical_analysis;
 pub mod security_properties;
 pub mod advanced_attacks;
+pub mod dashboard;
 
 pub use collision_tester::CollisionTester;
 pub use binding_property_tester::BindingPropertyTester;
@@ -21,6 +22,7 @@ pub use property_based_harness::PropertyBasedHarness;
 pub use statistical_analysis::StatisticalAnalyzer;
 pub use security_properties::SecurityProperties;
 pub use advanced_attacks::{AdvancedAttackSimulator, AdvancedAttackConfig};
+pub use dashboard::{SecurityDashboard, DashboardConfig};
 
 /// Configuration for security testing
 #[derive(Debug, Clone)]
