@@ -162,6 +162,11 @@ pub fn hash_internal(left: &Hash32, right: &Hash32) -> Hash32 {
     MerkleTree::hash_node(left, right)
 }
 
+/// Convenience function for hashing leaves
+pub fn hash_leaf(data: &[u8]) -> Hash32 {
+    MerkleTree::hash_leaf(data)
+}
+
 /// Include the security analysis module
 pub mod security;
 

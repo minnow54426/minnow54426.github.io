@@ -3,7 +3,7 @@
 //! This module defines the formal security properties that a Merkle tree
 //! should satisfy and provides methods to verify them.
 
-use crate::{MerkleTree, Hash32, verify};
+use crate::{MerkleTree, verify};
 
 /// Core security properties for Merkle trees
 #[derive(Debug, Clone)]

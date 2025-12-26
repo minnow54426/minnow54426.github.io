@@ -3,10 +3,9 @@
 //! This module provides statistical analysis capabilities including randomness
 //! quality testing, avalanche effect measurement, and distribution analysis.
 
-use crate::{MerkleTree, Hash32, hash_leaf};
+use crate::{hash_leaf};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
-use statrs::statistics::*;
 
 /// Statistical analyzer for Merkle tree security properties
 pub struct StatisticalAnalyzer {

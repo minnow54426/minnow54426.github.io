@@ -3,7 +3,7 @@
 //! This module simulates various attack vectors against Merkle trees to test
 //! their resistance to known vulnerabilities and attack patterns.
 
-use crate::{MerkleTree, Hash32, verify};
+use crate::{MerkleTree, verify};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
@@ -121,7 +121,7 @@ impl AttackSimulator {
 
             // Try to find different leaves that produce the same root
             // In practice, this should be computationally infeasible
-            for attempt in 0..100 { // Limited attempts for practical testing
+            for _attempt in 0..100 { // Limited attempts for practical testing
                 let alt_leaves: Vec<Vec<u8>> = (0..leaf_count)
                     .map(|_| {
                         let size = rng.gen_range(1..=20);
@@ -129,7 +129,7 @@ impl AttackSimulator {
                     })
                     .collect();
 
-                let alt_tree = MerkleTree::from_leaves(alt_leaves);
+                let alt_tree = MerkleTree::from_leaves(alt_leaves.clone());
                 if alt_tree.root() == target_root && alt_leaves != leaves {
                     return Ok(true); // Attack succeeded!
                 }
@@ -155,38 +155,36 @@ impl AttackSimulator {
             let tree = MerkleTree::from_leaves(leaves.clone());
             let root = tree.root();
             let leaf_index = rng.gen_range(0..leaves.len());
-            let mut proof = tree.prove(leaf_index);
+            let proof = tree.prove(leaf_index);
 
             // Try to manipulate the proof to verify a different leaf
             let fake_leaf: Vec<u8> = (0..20).map(|_| rng.gen()).collect();
 
             // Various manipulation attempts
-            let manipulations = vec![
-                // Flip bits in siblings
-                || {
-                    for sibling in &mut proof.siblings {
-                        sibling[0] ^= 0x01;
-                    }
-                },
-                // Modify path bits
-                || {
-                    for bit in &mut proof.path_bits {
-                        *bit = !*bit;
-                    }
-                },
-                // Remove siblings
-                || {
-                    proof.siblings.pop();
-                },
-                // Add fake siblings
-                || {
-                    proof.siblings.push([0u8; 32]);
-                },
-            ];
+            let manipulation_types = ["flip_bits", "modify_path", "remove_sibling", "add_fake_sibling"];
 
-            for manipulation in manipulations {
+            for manipulation_type in manipulation_types {
                 let mut test_proof = proof.clone();
-                manipulation();
+
+                match manipulation_type {
+                    "flip_bits" => {
+                        for sibling in &mut test_proof.siblings {
+                            sibling[0] ^= 0x01;
+                        }
+                    }
+                    "modify_path" => {
+                        for bit in &mut test_proof.path_bits {
+                            *bit = !*bit;
+                        }
+                    }
+                    "remove_sibling" => {
+                        test_proof.siblings.pop();
+                    }
+                    "add_fake_sibling" => {
+                        test_proof.siblings.push([0u8; 32]);
+                    }
+                    _ => continue,
+                }
 
                 if verify(root, &fake_leaf, test_proof) {
                     return Ok(true); // Attack succeeded!

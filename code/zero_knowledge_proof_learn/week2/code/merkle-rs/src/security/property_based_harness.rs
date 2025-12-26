@@ -1,10 +1,11 @@
 //! Property-based testing harness for Merkle trees
 //!
-//! This module provides property-based testing capabilities using proptest
+//! This module provides property-based testing capabilities using random generation
 //! to systematically test Merkle tree properties across a wide range of inputs.
 
-use crate::{MerkleTree, Hash32, verify};
-use proptest::prelude::*;
+use crate::{MerkleTree, verify};
+use rand::{Rng, SeedableRng};
+use rand_chacha::ChaCha8Rng;
 
 /// Property-based testing harness
 pub struct PropertyBasedHarness {
@@ -67,45 +68,89 @@ impl PropertyBasedHarness {
     }
 
     /// Test that Merkle root is deterministic
-    fn test_root_determinism(&self) -> Result<(), TestCaseError> {
-        proptest!(|(leaves in prop::collection::vec(prop::collection::vec(any::<u8>(), 1..=50), 1..=10))| {
+    fn test_root_determinism(&self) -> Result<(), String> {
+        let mut rng = self.create_rng();
+
+        for _ in 0..self.config.test_cases.min(100) {
+            let leaves: Vec<Vec<u8>> = (0..rng.gen_range(1..=10))
+                .map(|_| {
+                    let size = rng.gen_range(1..=50);
+                    (0..size).map(|_| rng.gen()).collect()
+                })
+                .collect();
+
             let tree1 = MerkleTree::from_leaves(leaves.clone());
             let tree2 = MerkleTree::from_leaves(leaves);
-            prop_assert_eq!(tree1.root(), tree2.root());
-        });
+
+            if tree1.root() != tree2.root() {
+                return Err("Non-deterministic root detected".to_string());
+            }
+        }
 
         Ok(())
     }
 
     /// Test proof verification property
-    fn test_proof_verification(&self) -> Result<(), TestCaseError> {
-        proptest!(|(leaves in prop::collection::vec(prop::collection::vec(any::<u8>(), 1..=50), 1..=10))| {
+    fn test_proof_verification(&self) -> Result<(), String> {
+        let mut rng = self.create_rng();
+
+        for _ in 0..self.config.test_cases.min(100) {
+            let leaves: Vec<Vec<u8>> = (0..rng.gen_range(1..=10))
+                .map(|_| {
+                    let size = rng.gen_range(1..=50);
+                    (0..size).map(|_| rng.gen()).collect()
+                })
+                .collect();
+
             let tree = MerkleTree::from_leaves(leaves.clone());
             let root = tree.root();
 
             // All leaves should have valid proofs
             for (i, leaf) in leaves.iter().enumerate() {
                 let proof = tree.prove(i);
-                prop_assert!(verify(root, leaf, proof));
+                if !verify(root, leaf, proof) {
+                    return Err(format!("Proof verification failed for leaf {}", i));
+                }
             }
-        });
+        }
 
         Ok(())
     }
 
     /// Test tree construction consistency
-    fn test_tree_consistency(&self) -> Result<(), TestCaseError> {
-        proptest!(|(leaves in prop::collection::vec(prop::collection::vec(any::<u8>(), 1..=50), 2..=10))| {
-            let tree = MerkleTree::from_leaves(leaves.clone());
+    fn test_tree_consistency(&self) -> Result<(), String> {
+        let mut rng = self.create_rng();
+
+        for _ in 0..self.config.test_cases.min(100) {
+            let leaves: Vec<Vec<u8>> = (0..rng.gen_range(2..=10))
+                .map(|_| {
+                    let size = rng.gen_range(1..=50);
+                    (0..size).map(|_| rng.gen()).collect()
+                })
+                .collect();
+
+            let tree = MerkleTree::from_leaves(leaves);
 
             // Tree should have at least one level (the leaves)
-            prop_assert!(!tree.leaves().is_empty());
+            if tree.leaves().is_empty() {
+                return Err("Empty tree detected".to_string());
+            }
 
             // Root should not be all zeros (unless by extreme coincidence)
-            prop_assert!(tree.root() != [0u8; 32]);
-        });
+            if tree.root() == [0u8; 32] {
+                return Err("Zero root detected (unlikely coincidence)".to_string());
+            }
+        }
 
         Ok(())
+    }
+
+    /// Create random number generator with configured seed
+    fn create_rng(&self) -> ChaCha8Rng {
+        match self.config.seed {
+            Some(seed) => ChaCha8Rng::seed_from_u64(seed),
+            None => ChaCha8Rng::from_entropy(),
+        }
     }
 }
 

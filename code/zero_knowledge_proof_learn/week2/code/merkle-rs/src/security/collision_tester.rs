@@ -235,8 +235,8 @@ impl CollisionTester {
             let leaf1 = crate::hash_leaf(&data1);
             let leaf2 = crate::hash_leaf(&data2);
 
-            // Internal hash
-            let internal = crate::hash_internal(&data1, &data2);
+            // Internal hash (hash the leaf hashes, not the raw data)
+            let internal = crate::hash_internal(&leaf1, &leaf2);
 
             // Internal hash should not match any individual leaf hash
             if internal == leaf1 || internal == leaf2 {
@@ -275,7 +275,7 @@ impl CollisionTester {
     fn truncate_hash(&self, hash: &Hash32, bits: usize) -> u32 {
         let bytes_needed = (bits + 7) / 8;
         let mut result = 0u32;
-        for (i, &byte) in hash.0.iter().take(bytes_needed).enumerate() {
+        for (i, &byte) in hash.iter().take(bytes_needed).enumerate() {
             result |= (byte as u32) << (i * 8);
         }
         let mask = (1u32 << bits.min(32)) - 1;

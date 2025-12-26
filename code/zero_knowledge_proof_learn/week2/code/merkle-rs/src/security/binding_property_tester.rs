@@ -7,6 +7,7 @@
 use crate::{MerkleTree, Hash32};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
+use rand::seq::SliceRandom;
 
 /// Results from binding property testing
 #[derive(Debug)]
@@ -117,7 +118,7 @@ impl BindingPropertyTester {
             // Create tree with shuffled order
             let mut shuffled_leaves = leaves.clone();
             shuffled_leaves.shuffle(&mut rng);
-            let tree2 = MerkleTree::from_leaves(shuffled_leaves);
+            let tree2 = MerkleTree::from_leaves(shuffled_leaves.clone());
             let root2 = tree2.root();
 
             // Roots should be different unless order is identical
@@ -202,7 +203,7 @@ impl BindingPropertyTester {
     /// Attempt to find alternative leaf sets that produce the same root
     fn test_alternative_leaf_sets(&self) -> Result<(), String> {
         let mut rng = self.create_rng();
-        let mut seen_roots = std::collections::HashMap::new();
+        let mut seen_roots: std::collections::HashMap<Hash32, Vec<Vec<u8>>> = std::collections::HashMap::new();
 
         // Generate many random trees and look for collisions
         for _ in 0..self.config.test_attempts {
