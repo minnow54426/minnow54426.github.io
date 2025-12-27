@@ -8,10 +8,10 @@ class PolynomialPlotter {
         this.polynomials = [];
         this.colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57'];
         this.plotRange = {
-            xMin: -10,
-            xMax: 10,
-            yMin: -10,
-            yMax: 10
+            xMin: -100,
+            xMax: 100,
+            yMin: -100,
+            yMax: 100
         };
         this.init();
     }
