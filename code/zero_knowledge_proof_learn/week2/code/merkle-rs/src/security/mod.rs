@@ -22,7 +22,7 @@ pub use property_based_harness::PropertyBasedHarness;
 pub use statistical_analysis::StatisticalAnalyzer;
 pub use security_properties::SecurityProperties;
 pub use advanced_attacks::{AdvancedAttackSimulator, AdvancedAttackConfig};
-pub use dashboard::{SecurityDashboard, DashboardConfig};
+pub use dashboard::{SecurityDashboard, DashboardConfig, DashboardError};
 
 /// Configuration for security testing
 #[derive(Debug, Clone)]

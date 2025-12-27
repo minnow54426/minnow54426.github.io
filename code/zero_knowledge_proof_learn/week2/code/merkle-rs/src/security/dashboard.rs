@@ -644,24 +644,26 @@ impl SecurityDashboard {
     }
 
     fn get_user_choice(&self) -> DashboardResult<MenuChoice> {
-        print!("Enter your choice (0-7): ");
-        io::stdout().flush().unwrap();
+        loop {
+            print!("Enter your choice (0-7): ");
+            io::stdout().flush().unwrap();
 
-        let mut input = String::new();
-        io::stdin().read_line(&mut input)?;
+            let mut input = String::new();
+            io::stdin().read_line(&mut input)?;
 
-        match input.trim() {
-            "1" => Ok(MenuChoice::QuickTest),
-            "2" => Ok(MenuChoice::ComprehensiveTest),
-            "3" => Ok(MenuChoice::AdvancedAttacks),
-            "4" => Ok(MenuChoice::CustomConfig),
-            "5" => Ok(MenuChoice::ViewHistory),
-            "6" => Ok(MenuChoice::EducationalMode),
-            "7" => Ok(MenuChoice::ExportResults),
-            "0" => Ok(MenuChoice::Exit),
-            _ => {
-                println!("Invalid choice. Please try again.");
-                self.get_user_choice()
+            match input.trim() {
+                "1" => return Ok(MenuChoice::QuickTest),
+                "2" => return Ok(MenuChoice::ComprehensiveTest),
+                "3" => return Ok(MenuChoice::AdvancedAttacks),
+                "4" => return Ok(MenuChoice::CustomConfig),
+                "5" => return Ok(MenuChoice::ViewHistory),
+                "6" => return Ok(MenuChoice::EducationalMode),
+                "7" => return Ok(MenuChoice::ExportResults),
+                "0" => return Ok(MenuChoice::Exit),
+                _ => {
+                    println!("Invalid choice. Please try again.");
+                    // Loop continues automatically
+                }
             }
         }
     }
@@ -917,11 +919,11 @@ enum MenuChoice {
 }
 
 /// Dashboard result type
-type DashboardResult<T> = Result<T, DashboardError>;
+pub type DashboardResult<T> = Result<T, DashboardError>;
 
 /// Dashboard error type
 #[derive(Debug)]
-enum DashboardError {
+pub enum DashboardError {
     IoError(std::io::Error),
     InvalidInput(String),
 }
