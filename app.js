@@ -16,6 +16,71 @@ class PolynomialPlotter {
         this.init();
     }
 
+    showMessage(message, type = 'info') {
+        // Create toast container if it doesn't exist
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 1000;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            `;
+            document.body.appendChild(toastContainer);
+        }
+
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            max-width: 300px;
+            word-wrap: break-word;
+        `;
+
+        // Set background color based on type
+        const colors = {
+            error: '#dc3545',
+            warning: '#ffc107',
+            success: '#28a745',
+            info: '#17a2b8'
+        };
+        toast.style.backgroundColor = colors[type] || colors.info;
+        toast.textContent = message;
+
+        // Add to container
+        toastContainer.appendChild(toast);
+
+        // Animate in
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+        });
+
+        // Auto remove after 4 seconds
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 4000);
+    }
+
     init() {
         this.setupEventListeners();
         this.updatePlot();
@@ -25,7 +90,12 @@ class PolynomialPlotter {
         const addButton = document.getElementById('add-polynomial');
         if (addButton) {
             addButton.addEventListener('click', () => {
-                this.addPolynomial();
+                try {
+                    this.addPolynomial();
+                } catch (error) {
+                    console.error('Error adding polynomial:', error);
+                    this.showMessage('Error adding polynomial. Please try again.', 'error');
+                }
             });
         }
 
@@ -33,7 +103,12 @@ class PolynomialPlotter {
             const element = document.getElementById(id);
             if (element) {
                 element.addEventListener('change', (e) => {
-                    this.updatePlotRange();
+                    try {
+                        this.updatePlotRange();
+                    } catch (error) {
+                        console.error('Error updating plot range:', error);
+                        this.showMessage('Error updating plot range. Please check your input values.', 'error');
+                    }
                 });
             }
         });
@@ -41,7 +116,7 @@ class PolynomialPlotter {
 
     addPolynomial() {
         if (this.polynomials.length >= this.MAX_POLYNOMIALS) {
-            alert(`Maximum ${this.MAX_POLYNOMIALS} polynomials allowed`);
+            this.showMessage(`Maximum ${this.MAX_POLYNOMIALS} polynomials allowed`, 'warning');
             return;
         }
 
@@ -57,20 +132,27 @@ class PolynomialPlotter {
     }
 
     removePolynomial(id) {
-        this.polynomials = this.polynomials.filter(p => p.id !== id);
-        const element = document.getElementById(`polynomial-${id}`);
-        if (element) {
-            element.remove();
+        try {
+            this.polynomials = this.polynomials.filter(p => p.id !== id);
+            const element = document.getElementById(`polynomial-${id}`);
+            if (element) {
+                element.remove();
+            }
+            this.updatePlot();
+        } catch (error) {
+            console.error('Error removing polynomial:', error);
+            this.showMessage('Error removing polynomial. Please refresh the page.', 'error');
         }
-        this.updatePlot();
     }
 
     createPolynomialControls(polynomial) {
-        const container = document.getElementById('polynomials-list');
-        if (!container) {
-            console.error('Polynomials list container not found');
-            return;
-        }
+        try {
+            const container = document.getElementById('polynomials-list');
+            if (!container) {
+                console.error('Polynomials list container not found');
+                this.showMessage('Error: Cannot find polynomials container', 'error');
+                return;
+            }
 
         const card = document.createElement('div');
         card.className = 'polynomial-card';
@@ -91,8 +173,17 @@ class PolynomialPlotter {
         const removeButton = card.querySelector('.remove-polynomial');
         if (removeButton) {
             removeButton.addEventListener('click', (e) => {
-                const polynomialId = parseInt(e.target.dataset.polynomialId);
-                this.removePolynomial(polynomialId);
+                try {
+                    const polynomialId = parseInt(e.target.dataset.polynomialId);
+                    if (!isNaN(polynomialId)) {
+                        this.removePolynomial(polynomialId);
+                    } else {
+                        this.showMessage('Invalid polynomial ID', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error removing polynomial:', error);
+                    this.showMessage('Error removing polynomial. Please try again.', 'error');
+                }
             });
         }
 
@@ -101,17 +192,26 @@ class PolynomialPlotter {
             const slider = card.querySelector(`#coeff-${polynomial.id}-${i}`);
             if (slider) {
                 slider.addEventListener('input', (e) => {
-                    const value = parseFloat(e.target.value);
-                    if (!isNaN(value)) {
-                        polynomial.coefficients[i] = value;
-                        this.updateEquation(polynomial);
-                        this.updatePlot();
+                    try {
+                        const value = parseFloat(e.target.value);
+                        if (!isNaN(value)) {
+                            polynomial.coefficients[i] = value;
+                            this.updateEquation(polynomial);
+                            this.updatePlot();
+                        }
+                    } catch (error) {
+                        console.error('Error updating coefficient:', error);
+                        this.showMessage('Error updating coefficient value', 'error');
                     }
                 });
             }
         }
 
-        this.updateEquation(polynomial);
+            this.updateEquation(polynomial);
+        } catch (error) {
+            console.error('Error creating polynomial controls:', error);
+            this.showMessage('Error creating polynomial controls. Please refresh the page.', 'error');
+        }
     }
 
     createCoefficientSliders(polynomial) {
@@ -145,22 +245,22 @@ class PolynomialPlotter {
         const yMax = parseFloat(document.getElementById('y-max').value);
 
         if (isNaN(xMin) || isNaN(xMax) || isNaN(yMin) || isNaN(yMax)) {
-            alert('Please enter valid numbers for all range values');
+            this.showMessage('Please enter valid numbers for all range values', 'error');
             return false;
         }
 
         if (xMin >= xMax) {
-            alert('X minimum must be less than X maximum');
+            this.showMessage('X minimum must be less than X maximum', 'error');
             return false;
         }
 
         if (yMin >= yMax) {
-            alert('Y minimum must be less than Y maximum');
+            this.showMessage('Y minimum must be less than Y maximum', 'error');
             return false;
         }
 
         if (Math.abs(xMax - xMin) > 1000 || Math.abs(yMax - yMin) > 1000) {
-            alert('Range values are too large. Please use smaller ranges for better performance.');
+            this.showMessage('Range values are too large. Please use smaller ranges for better performance.', 'warning');
             return false;
         }
 
@@ -245,19 +345,34 @@ class PolynomialPlotter {
 
     updatePlotRange() {
         if (!this.validateRangeInputs()) {
-            // Reset to previous valid values
-            document.getElementById('x-min').value = this.plotRange.xMin;
-            document.getElementById('x-max').value = this.plotRange.xMax;
-            document.getElementById('y-min').value = this.plotRange.yMin;
-            document.getElementById('y-max').value = this.plotRange.yMax;
+            // Reset to previous valid values with null checks
+            const xMinElement = document.getElementById('x-min');
+            const xMaxElement = document.getElementById('x-max');
+            const yMinElement = document.getElementById('y-min');
+            const yMaxElement = document.getElementById('y-max');
+
+            if (xMinElement) xMinElement.value = this.plotRange.xMin;
+            if (xMaxElement) xMaxElement.value = this.plotRange.xMax;
+            if (yMinElement) yMinElement.value = this.plotRange.yMin;
+            if (yMaxElement) yMaxElement.value = this.plotRange.yMax;
             return;
         }
 
-        this.plotRange.xMin = parseFloat(document.getElementById('x-min').value);
-        this.plotRange.xMax = parseFloat(document.getElementById('x-max').value);
-        this.plotRange.yMin = parseFloat(document.getElementById('y-min').value);
-        this.plotRange.yMax = parseFloat(document.getElementById('y-max').value);
-        this.updatePlot();
+        const xMinElement = document.getElementById('x-min');
+        const xMaxElement = document.getElementById('x-max');
+        const yMinElement = document.getElementById('y-min');
+        const yMaxElement = document.getElementById('y-max');
+
+        // Only update if all elements exist
+        if (xMinElement && xMaxElement && yMinElement && yMaxElement) {
+            this.plotRange.xMin = parseFloat(xMinElement.value);
+            this.plotRange.xMax = parseFloat(xMaxElement.value);
+            this.plotRange.yMin = parseFloat(yMinElement.value);
+            this.plotRange.yMax = parseFloat(yMaxElement.value);
+            this.updatePlot();
+        } else {
+            this.showMessage('Error accessing plot range controls', 'error');
+        }
     }
 
     evaluatePolynomial(coefficients, x) {
@@ -604,10 +719,19 @@ class PolynomialPlotter {
         };
 
         try {
-            Plotly.newPlot('plot', traces, layout, {responsive: true});
+            const plotElement = document.getElementById('plot');
+            if (plotElement) {
+                Plotly.newPlot('plot', traces, layout, {responsive: true});
+            } else {
+                this.showMessage('Error: Plot container not found', 'error');
+            }
         } catch (error) {
             console.error('Error creating plot:', error);
-            document.getElementById('plot').innerHTML = '<div style="padding: 20px; color: red;">Error creating plot. Please refresh the page.</div>';
+            const plotElement = document.getElementById('plot');
+            if (plotElement) {
+                plotElement.innerHTML = '<div style="padding: 20px; color: red; text-align: center; font-family: sans-serif;">Error creating plot. Please refresh the page.<br><small>If the problem persists, try using a different browser.</small></div>';
+            }
+            this.showMessage('Error creating plot. Please refresh the page.', 'error');
         }
     }
 }
@@ -615,5 +739,10 @@ class PolynomialPlotter {
 // Initialize the application
 let plotter;
 document.addEventListener('DOMContentLoaded', () => {
-    plotter = new PolynomialPlotter();
+    try {
+        plotter = new PolynomialPlotter();
+    } catch (error) {
+        console.error('Error initializing application:', error);
+        document.body.innerHTML = '<div style="padding: 40px; text-align: center; font-family: sans-serif; color: red;">Error loading application. Please refresh the page.<br><small>If the problem persists, check your browser console for details.</small></div>';
+    }
 });
