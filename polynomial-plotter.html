@@ -4,31 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Polynomial Plotter</title>
+    <meta name="description" content="Interactive polynomial plotter for visualizing mathematical functions">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="plot-section">
-            <div id="plot"></div>
-        </div>
-        <div class="controls-section">
-            <div class="polynomial-manager">
-                <h2>Polynomials</h2>
-                <button id="add-polynomial">Add Polynomial</button>
-                <div id="polynomials-list"></div>
+    <article class="article-container">
+        <header class="article-header">
+            <h1>Understanding Polynomial Functions</h1>
+            <p class="article-subtitle">An Interactive Exploration of Mathematical Curves</p>
+        </header>
+
+        <section class="article-content">
+            <div class="article-intro">
+                <p>Polynomial functions are fundamental building blocks in mathematics, appearing everywhere from physics to engineering. These functions are expressed as sums of terms with non-negative integer exponents, such as f(x) = ax² + bx + c.</p>
+
+                <p>The interactive tool below allows you to explore how different coefficients affect the shape and behavior of polynomial curves. By adjusting the parameters, you can observe how polynomials transform and understand their key properties like roots, turning points, and end behavior.</p>
             </div>
-            <div class="range-controls">
-                <h3>Plot Range</h3>
-                <div class="range-inputs">
-                    <label>X Min: <input type="number" id="x-min" value="-10" step="1"></label>
-                    <label>X Max: <input type="number" id="x-max" value="10" step="1"></label>
-                    <label>Y Min: <input type="number" id="y-min" value="-10" step="1"></label>
-                    <label>Y Max: <input type="number" id="y-max" value="10" step="1"></label>
+
+            <div class="plotter-component">
+                <h2>Interactive Polynomial Plotter</h2>
+                <div class="plotter-container">
+                    <section class="plot-section">
+                        <div id="plot" role="img" aria-label="Interactive polynomial plot"></div>
+                    </section>
+                    <aside class="controls-section">
+                        <section class="polynomial-manager">
+                            <h3>Polynomials</h3>
+                            <button id="add-polynomial" aria-label="Add new polynomial to plot">Add Polynomial</button>
+                            <div id="polynomials-list"></div>
+                        </section>
+                        <section class="range-controls">
+                            <h3>Plot Range</h3>
+                            <div class="range-inputs">
+                                <label for="x-min">X Min:</label>
+                                <input type="number" id="x-min" value="-10" step="1">
+                                <label for="x-max">X Max:</label>
+                                <input type="number" id="x-max" value="10" step="1">
+                                <label for="y-min">Y Min:</label>
+                                <input type="number" id="y-min" value="-10" step="1">
+                                <label for="y-max">Y Max:</label>
+                                <input type="number" id="y-max" value="10" step="1">
+                            </div>
+                        </section>
+                    </aside>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+
+        <footer class="article-footer">
+            <section class="article-conclusion">
+                <h3>Key Takeaways</h3>
+                <ul>
+                    <li><strong>Degree determines shape:</strong> The highest exponent (degree) dictates the polynomial's fundamental shape and behavior.</li>
+                    <li><strong>Coefficients control transformations:</strong> Positive coefficients maintain orientation, while negative coefficients reflect the curve.</li>
+                    <li><strong>Multiple polynomials:</strong> Compare different functions simultaneously to understand their relative behaviors.</li>
+                    <li><strong>Real-world applications:</strong> Polynomials model everything from projectile motion to economic trends.</li>
+                </ul>
+
+                <p>Continue experimenting with different polynomial combinations to deepen your understanding of these versatile mathematical functions. The more you explore, the more intuitive these concepts become!</p>
+            </section>
+        </footer>
+    </article>
     <script src="app.js"></script>
 </body>
 </html>

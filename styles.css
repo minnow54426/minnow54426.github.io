@@ -41,12 +41,116 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    height: 100vh;
-    overflow: hidden;
     color: var(--text-primary);
     background-color: var(--bg-primary);
+    line-height: 1.6;
 }
 
+/* Article Layout */
+.article-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.article-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid var(--border-light);
+}
+
+.article-header h1 {
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.article-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.article-content {
+    margin-bottom: 3rem;
+}
+
+.article-intro {
+    max-width: 800px;
+    margin: 0 auto 3rem;
+    text-align: center;
+}
+
+.article-intro p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.plotter-component {
+    margin: 0 auto;
+}
+
+.plotter-component h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+    font-size: 1.8rem;
+}
+
+.plotter-container {
+    display: grid;
+    grid-template-columns: 65% 35%;
+    max-width: 900px;
+    height: 500px;
+    margin: 0 auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.article-footer {
+    background: var(--bg-secondary);
+    padding: 2rem;
+    border-radius: var(--radius-md);
+    margin-top: 3rem;
+}
+
+.article-conclusion h3 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.article-conclusion ul {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+.article-conclusion li {
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.article-conclusion li::before {
+    content: "•";
+    color: var(--primary-color);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
+.article-conclusion p {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Legacy container class for backward compatibility */
 .container {
     display: grid;
     grid-template-columns: 70% 30%;
@@ -54,7 +158,7 @@ body {
 }
 
 .plot-section {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
     border-right: 1px solid var(--border-color);
     background: var(--bg-secondary);
 }
@@ -68,25 +172,28 @@ body {
 }
 
 .controls-section {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
     overflow-y: auto;
     background: var(--bg-primary);
+    font-size: 0.9rem;
 }
 
 .polynomial-manager h2, .range-controls h3 {
-    margin-bottom: var(--spacing-md);
+    margin-bottom: calc(var(--spacing-md) * 0.8);
     color: var(--text-primary);
+    font-size: 1.1rem;
 }
 
 #add-polynomial {
     background: var(--primary-color);
     color: var(--bg-primary);
     border: none;
-    padding: var(--spacing-sm) calc(var(--spacing-sm) * 2);
+    padding: calc(var(--spacing-sm) * 0.8) calc(var(--spacing-sm) * 1.5);
     border-radius: var(--radius-sm);
     cursor: pointer;
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: calc(var(--spacing-lg) * 0.8);
     transition: background-color var(--transition-fast);
+    font-size: 0.85rem;
 }
 
 #add-polynomial:hover,
@@ -102,24 +209,25 @@ body {
 .range-inputs {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-md);
+    gap: calc(var(--spacing-sm) * 0.8);
+    margin-bottom: calc(var(--spacing-md) * 0.8);
 }
 
 .range-inputs label {
     display: block;
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: calc(var(--spacing-xs) * 0.8);
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500;
 }
 
 .range-inputs input {
     width: 100%;
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding: calc(var(--spacing-xs) * 0.8) calc(var(--spacing-sm) * 0.8);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    font-size: 12px;
 }
 
 .range-inputs input:focus {
@@ -131,8 +239,8 @@ body {
 .polynomial-card {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
+    padding: calc(var(--spacing-md) * 0.8);
+    margin-bottom: calc(var(--spacing-md) * 0.8);
     background: var(--bg-secondary);
     transition: box-shadow var(--transition-normal);
 }
@@ -145,17 +253,17 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: calc(var(--spacing-sm) * 0.8);
 }
 
 .equation {
     font-family: 'Courier New', monospace;
-    font-size: 14px;
-    margin-bottom: var(--spacing-md);
-    padding: var(--spacing-sm);
+    font-size: 11px;
+    margin-bottom: calc(var(--spacing-md) * 0.8);
+    padding: calc(var(--spacing-sm) * 0.8);
     background: var(--bg-primary);
     border-radius: var(--radius-sm);
-    border-left: 4px solid currentColor;
+    border-left: 3px solid currentColor;
     color: var(--text-primary);
 }
 
@@ -163,10 +271,10 @@ body {
     background: var(--danger-color);
     color: var(--bg-primary);
     border: none;
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding: calc(var(--spacing-xs) * 0.8) calc(var(--spacing-sm) * 0.8);
     border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 12px;
+    font-size: 10px;
     transition: background-color var(--transition-fast);
 }
 
@@ -181,21 +289,21 @@ body {
 }
 
 .coefficient-slider {
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: calc(var(--spacing-sm) * 0.8);
 }
 
 .coefficient-slider label {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--spacing-xs);
-    font-size: 14px;
+    margin-bottom: calc(var(--spacing-xs) * 0.8);
+    font-size: 11px;
     color: var(--text-secondary);
 }
 
 .coefficient-slider input[type="range"] {
     width: 100%;
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: calc(var(--spacing-xs) * 0.8);
     cursor: pointer;
 }
 
@@ -206,18 +314,53 @@ body {
 .coefficient-value {
     font-family: 'Courier New', monospace;
     font-weight: bold;
-    min-width: 40px;
+    min-width: 35px;
     text-align: right;
     color: var(--text-primary);
+    font-size: 11px;
 }
 
 @media (max-width: 768px) {
+    .article-container {
+        padding: 1rem;
+    }
+
+    .article-header h1 {
+        font-size: 2rem;
+    }
+
+    .article-subtitle {
+        font-size: 1rem;
+    }
+
+    .article-intro p {
+        font-size: 1rem;
+    }
+
+    .plotter-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: 300px auto;
+        height: auto;
+        max-height: 600px;
+    }
+
+    .plot-section {
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: var(--spacing-sm);
+    }
+
+    .controls-section {
+        padding: var(--spacing-sm);
+    }
+
+    /* Legacy container class for backward compatibility */
     .container {
         grid-template-columns: 1fr;
         grid-template-rows: 60% 40%;
     }
 
-    .plot-section {
+    .container .plot-section {
         border-right: none;
         border-bottom: 1px solid var(--border-color);
     }
