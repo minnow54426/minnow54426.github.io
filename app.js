@@ -138,18 +138,78 @@ class PolynomialPlotter {
         return html;
     }
 
-    updateEquation(polynomial) {
-        const equation = this.formatEquation(polynomial.coefficients);
-        const equationElement = document.getElementById(`equation-${polynomial.id}`);
-        if (equationElement) {
-            equationElement.textContent = equation;
+    validateRangeInputs() {
+        const xMin = parseFloat(document.getElementById('x-min').value);
+        const xMax = parseFloat(document.getElementById('x-max').value);
+        const yMin = parseFloat(document.getElementById('y-min').value);
+        const yMax = parseFloat(document.getElementById('y-max').value);
+
+        if (isNaN(xMin) || isNaN(xMax) || isNaN(yMin) || isNaN(yMax)) {
+            alert('Please enter valid numbers for all range values');
+            return false;
         }
 
-        // Update coefficient value displays
-        for (let i = 0; i < this.COEFFICIENT_COUNT; i++) {
-            const valueElement = document.getElementById(`value-${polynomial.id}-${i}`);
-            if (valueElement) {
-                valueElement.textContent = polynomial.coefficients[i].toFixed(1);
+        if (xMin >= xMax) {
+            alert('X minimum must be less than X maximum');
+            return false;
+        }
+
+        if (yMin >= yMax) {
+            alert('Y minimum must be less than Y maximum');
+            return false;
+        }
+
+        if (Math.abs(xMax - xMin) > 1000 || Math.abs(yMax - yMin) > 1000) {
+            alert('Range values are too large. Please use smaller ranges for better performance.');
+            return false;
+        }
+
+        return true;
+    }
+
+    handleCoefficientOverflow(coefficients) {
+        // Check for very large values that might cause overflow
+        const maxCoeff = Math.max(...coefficients.map(Math.abs));
+        if (maxCoeff > 1000) {
+            return {
+                hasOverflow: true,
+                message: 'Large coefficient values detected. Consider using smaller values or adjusting the plot range.'
+            };
+        }
+        return { hasOverflow: false };
+    }
+
+    sanitizeEquationDisplay(coefficients) {
+        // Handle edge cases in equation display
+        const degree = this.getDegree(coefficients);
+
+        if (degree === 0 && Math.abs(coefficients[0]) < 0.001) {
+            return '0';
+        }
+
+        return this.formatEquation(coefficients);
+    }
+
+    updateEquation(polynomial) {
+        try {
+            const equation = this.sanitizeEquationDisplay(polynomial.coefficients);
+            const equationElement = document.getElementById(`equation-${polynomial.id}`);
+            if (equationElement) {
+                equationElement.textContent = equation;
+            }
+
+            // Update coefficient value displays
+            for (let i = 0; i < this.COEFFICIENT_COUNT; i++) {
+                const valueElement = document.getElementById(`value-${polynomial.id}-${i}`);
+                if (valueElement) {
+                    valueElement.textContent = polynomial.coefficients[i].toFixed(1);
+                }
+            }
+        } catch (error) {
+            console.error('Error updating equation:', error);
+            const equationElement = document.getElementById(`equation-${polynomial.id}`);
+            if (equationElement) {
+                equationElement.textContent = 'Error displaying equation';
             }
         }
     }
@@ -184,37 +244,20 @@ class PolynomialPlotter {
     }
 
     updatePlotRange() {
-        const xMinElement = document.getElementById('x-min');
-        const xMaxElement = document.getElementById('x-max');
-        const yMinElement = document.getElementById('y-min');
-        const yMaxElement = document.getElementById('y-max');
-
-        // Validate and parse input values
-        const xMin = xMinElement ? parseFloat(xMinElement.value) : this.plotRange.xMin;
-        const xMax = xMaxElement ? parseFloat(xMaxElement.value) : this.plotRange.xMax;
-        const yMin = yMinElement ? parseFloat(yMinElement.value) : this.plotRange.yMin;
-        const yMax = yMaxElement ? parseFloat(yMaxElement.value) : this.plotRange.yMax;
-
-        // Only update if all values are valid numbers
-        if (!isNaN(xMin) && !isNaN(xMax) && !isNaN(yMin) && !isNaN(yMax)) {
-            // Validate range logic
-            if (xMin < xMax && yMin < yMax) {
-                this.plotRange.xMin = xMin;
-                this.plotRange.xMax = xMax;
-                this.plotRange.yMin = yMin;
-                this.plotRange.yMax = yMax;
-                this.updatePlot();
-            } else {
-                console.error('Invalid range: minimum values must be less than maximum values');
-                // Reset input fields to current valid values
-                if (xMinElement) xMinElement.value = this.plotRange.xMin;
-                if (xMaxElement) xMaxElement.value = this.plotRange.xMax;
-                if (yMinElement) yMinElement.value = this.plotRange.yMin;
-                if (yMaxElement) yMaxElement.value = this.plotRange.yMax;
-            }
-        } else {
-            console.error('Invalid input: please enter valid numbers for all range values');
+        if (!this.validateRangeInputs()) {
+            // Reset to previous valid values
+            document.getElementById('x-min').value = this.plotRange.xMin;
+            document.getElementById('x-max').value = this.plotRange.xMax;
+            document.getElementById('y-min').value = this.plotRange.yMin;
+            document.getElementById('y-max').value = this.plotRange.yMax;
+            return;
         }
+
+        this.plotRange.xMin = parseFloat(document.getElementById('x-min').value);
+        this.plotRange.xMax = parseFloat(document.getElementById('x-max').value);
+        this.plotRange.yMin = parseFloat(document.getElementById('y-min').value);
+        this.plotRange.yMax = parseFloat(document.getElementById('y-max').value);
+        this.updatePlot();
     }
 
     evaluatePolynomial(coefficients, x) {
@@ -440,70 +483,100 @@ class PolynomialPlotter {
     }
 
     updatePlot() {
-        const plotElement = document.getElementById('plot');
-        if (!plotElement) {
-            console.error('Plot element not found');
-            return;
-        }
-
         const traces = [];
 
         this.polynomials.forEach(polynomial => {
-            const xValues = [];
-            const yValues = [];
-
-            // Generate points for the curve
-            for (let x = this.plotRange.xMin; x <= this.plotRange.xMax; x += this.PLOT_STEP) {
-                xValues.push(x);
-                yValues.push(this.evaluatePolynomial(polynomial.coefficients, x));
+            // Check for coefficient overflow
+            const overflowCheck = this.handleCoefficientOverflow(polynomial.coefficients);
+            if (overflowCheck.hasOverflow) {
+                console.warn(overflowCheck.message);
+                // Still plot but with warning
             }
 
-            traces.push({
-                x: xValues,
-                y: yValues,
-                type: 'scatter',
-                mode: 'lines',
-                name: `Polynomial ${this.polynomials.indexOf(polynomial) + 1}`,
-                line: {
-                    color: polynomial.color,
-                    width: 2
-                }
-            });
+            try {
+                const xValues = [];
+                const yValues = [];
 
-            // Add roots as scatter points
-            const roots = this.findRoots(polynomial.coefficients);
-            if (roots.length > 0) {
+                // Generate points for the curve with error handling
+                for (let x = this.plotRange.xMin; x <= this.plotRange.xMax; x += this.PLOT_STEP) {
+                    xValues.push(x);
+                    const y = this.evaluatePolynomial(polynomial.coefficients, x);
+
+                    // Check for NaN or Infinity
+                    if (!isNaN(y) && isFinite(y)) {
+                        yValues.push(y);
+                    } else {
+                        yValues.push(null); // Break in the line
+                    }
+                }
+
                 traces.push({
-                    x: roots.map(r => r.x),
-                    y: roots.map(r => r.y),
+                    x: xValues,
+                    y: yValues,
                     type: 'scatter',
-                    mode: 'markers',
-                    name: `Roots ${this.polynomials.indexOf(polynomial) + 1}`,
-                    marker: {
+                    mode: 'lines',
+                    name: `Polynomial ${this.polynomials.indexOf(polynomial) + 1}`,
+                    line: {
                         color: polynomial.color,
-                        symbol: 'x',
-                        size: 10,
-                        line: { width: 2 }
+                        width: 2
                     }
                 });
-            }
 
-            // Add extrema as scatter points
-            const extrema = this.findExtrema(polynomial.coefficients);
-            if (extrema.length > 0) {
-                extrema.forEach(point => {
-                    traces.push({
-                        x: [point.x],
-                        y: [point.y],
-                        type: 'scatter',
-                        mode: 'markers',
-                        name: `${point.type} ${this.polynomials.indexOf(polynomial) + 1}`,
-                        marker: {
-                            color: polynomial.color,
-                            symbol: point.type === 'maximum' ? 'triangle-down' : 'triangle-up',
-                            size: 8
-                        }
-                    });
+                // Add roots with error handling
+                try {
+                    const roots = this.findRoots(polynomial.coefficients);
+                    if (roots.length > 0) {
+                        traces.push({
+                            x: roots.map(r => r.x),
+                            y: roots.map(r => r.y),
+                            type: 'scatter',
+                            mode: 'markers',
+                            name: `Roots ${this.polynomials.indexOf(polynomial) + 1}`,
+                            marker: {
+                                color: polynomial.color,
+                                symbol: 'x',
+                                size: 10,
+                                line: { width: 2 }
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.warn('Error calculating roots:', error);
+                }
+
+                // Add extrema with error handling
+                try {
+                    const extrema = this.findExtrema(polynomial.coefficients);
+                    if (extrema.length > 0) {
+                        extrema.forEach(point => {
+                            traces.push({
+                                x: [point.x],
+                                y: [point.y],
+                                type: 'scatter',
+                                mode: 'markers',
+                                name: `${point.type} ${this.polynomials.indexOf(polynomial) + 1}`,
+                                marker: {
+                                    color: polynomial.color,
+                                    symbol: point.type === 'maximum' ? 'triangle-down' : 'triangle-up',
+                                    size: 8
+                                }
+                            });
+                        });
+                    }
+                } catch (error) {
+                    console.warn('Error calculating extrema:', error);
+                }
+
+            } catch (error) {
+                console.error('Error plotting polynomial:', error);
+                // Add a trace indicating error
+                traces.push({
+                    x: [],
+                    y: [],
+                    type: 'scatter',
+                    mode: 'text',
+                    text: ['Error plotting polynomial'],
+                    showlegend: false
                 });
             }
         });
@@ -533,7 +606,8 @@ class PolynomialPlotter {
         try {
             Plotly.newPlot('plot', traces, layout, {responsive: true});
         } catch (error) {
-            console.error('Error updating plot:', error);
+            console.error('Error creating plot:', error);
+            document.getElementById('plot').innerHTML = '<div style="padding: 20px; color: red;">Error creating plot. Please refresh the page.</div>';
         }
     }
 }
