@@ -11,6 +11,8 @@ include:
   - index.html
   - paint.html
   - paint/
+  - cryptography.html
+  - cryptography/
 
 # Exclude unnecessary files
 exclude:
