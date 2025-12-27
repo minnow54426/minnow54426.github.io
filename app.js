@@ -226,11 +226,28 @@ class PolynomialPlotter {
         return result;
     }
 
+    getRelativeTolerance(coefficients) {
+        // Calculate tolerance based on coefficient scales
+        const maxCoeff = Math.max(...coefficients.map(Math.abs));
+        const minCoeff = Math.min(...coefficients.map(Math.abs).filter(c => c > 0));
+        return maxCoeff > 0 ? Math.max(1e-10, maxCoeff * 1e-12) : 1e-10;
+    }
+
     findRoots(coefficients) {
         const roots = [];
+        const tolerance = this.getRelativeTolerance(coefficients);
 
         // For linear polynomials
         if (this.getDegree(coefficients) === 1) {
+            // Check if coefficient of x (coefficients[1]) is zero
+            if (Math.abs(coefficients[1]) < tolerance) {
+                // This is actually a constant polynomial, no roots unless constant is zero
+                if (Math.abs(coefficients[0]) < tolerance) {
+                    // Infinite roots - represent as no specific points
+                    return [];
+                }
+                return []; // Constant non-zero polynomial has no roots
+            }
             const root = -coefficients[0] / coefficients[1];
             if (this.isInPlotRange(root, 0)) {
                 roots.push({x: root, y: 0});
@@ -242,17 +259,39 @@ class PolynomialPlotter {
             const b = coefficients[1];
             const c = coefficients[0];
 
-            const discriminant = b * b - 4 * a * c;
-            if (discriminant >= 0) {
-                const sqrtDisc = Math.sqrt(discriminant);
-                const root1 = (-b + sqrtDisc) / (2 * a);
-                const root2 = (-b - sqrtDisc) / (2 * a);
-
-                if (this.isInPlotRange(root1, 0)) {
-                    roots.push({x: root1, y: 0});
+            // Handle near-zero coefficient 'a' - treat as linear
+            if (Math.abs(a) < tolerance) {
+                if (Math.abs(b) < tolerance) {
+                    // Both a and b are near zero, treat as constant
+                    if (Math.abs(c) < tolerance) {
+                        return []; // Infinite roots case
+                    }
+                    return []; // Constant non-zero polynomial
                 }
-                if (this.isInPlotRange(root2, 0) && Math.abs(root2 - root1) > 0.001) {
-                    roots.push({x: root2, y: 0});
+                // Linear case: bx + c = 0
+                const root = -c / b;
+                if (this.isInPlotRange(root, 0)) {
+                    roots.push({x: root, y: 0});
+                }
+            } else {
+                // Standard quadratic formula
+                const discriminant = b * b - 4 * a * c;
+                if (discriminant >= -tolerance) {
+                    // Handle near-zero discriminant
+                    const adjustedDiscriminant = Math.max(0, discriminant);
+                    const sqrtDisc = Math.sqrt(adjustedDiscriminant);
+                    const denominator = 2 * a;
+
+                    const root1 = (-b + sqrtDisc) / denominator;
+                    const root2 = (-b - sqrtDisc) / denominator;
+
+                    if (this.isInPlotRange(root1, 0)) {
+                        roots.push({x: root1, y: 0});
+                    }
+                    // Check if second root is distinct and in range
+                    if (this.isInPlotRange(root2, 0) && Math.abs(root2 - root1) > tolerance) {
+                        roots.push({x: root2, y: 0});
+                    }
                 }
             }
         }
@@ -292,13 +331,38 @@ class PolynomialPlotter {
         return roots;
     }
 
-    bisectionMethod(coefficients, a, b, tolerance = 0.001) {
+    bisectionMethod(coefficients, a, b, tolerance = null) {
+        // Validate input: ensure a < b
+        if (a >= b) {
+            // Swap if a > b
+            [a, b] = [b, a];
+        }
+
+        // Use relative tolerance if not provided
+        if (tolerance === null) {
+            tolerance = this.getRelativeTolerance(coefficients);
+        }
+
         let fa = this.evaluatePolynomial(coefficients, a);
         let fb = this.evaluatePolynomial(coefficients, b);
 
-        if (fa * fb > 0) return null;
+        // Check for sign change or zero values
+        if (fa * fb > 0) {
+            // No sign change, check if either endpoint is a root
+            if (Math.abs(fa) < tolerance) return a;
+            if (Math.abs(fb) < tolerance) return b;
+            return null; // No root in interval
+        }
 
-        while (Math.abs(b - a) > tolerance) {
+        // Handle cases where one endpoint is exactly a root
+        if (Math.abs(fa) < tolerance) return a;
+        if (Math.abs(fb) < tolerance) return b;
+
+        // Maximum iterations to prevent infinite loops
+        const maxIterations = 100;
+        let iteration = 0;
+
+        while (Math.abs(b - a) > tolerance && iteration < maxIterations) {
             const c = (a + b) / 2;
             const fc = this.evaluatePolynomial(coefficients, c);
 
@@ -311,8 +375,10 @@ class PolynomialPlotter {
                 a = c;
                 fa = fc;
             }
+            iteration++;
         }
 
+        // Return the midpoint if max iterations reached
         return (a + b) / 2;
     }
 
@@ -359,8 +425,9 @@ class PolynomialPlotter {
     }
 
     getDegree(coefficients) {
+        const tolerance = this.getRelativeTolerance(coefficients);
         for (let i = coefficients.length - 1; i >= 0; i--) {
-            if (Math.abs(coefficients[i]) > 0.001) {
+            if (Math.abs(coefficients[i]) > tolerance) {
                 return i;
             }
         }
