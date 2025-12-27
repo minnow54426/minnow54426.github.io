@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Polynomial Plotter</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="plot-section">
+            <div id="plot"></div>
+        </div>
+        <div class="controls-section">
+            <div class="polynomial-manager">
+                <h2>Polynomials</h2>
+                <button id="add-polynomial">Add Polynomial</button>
+                <div id="polynomials-list"></div>
+            </div>
+            <div class="range-controls">
+                <h3>Plot Range</h3>
+                <div class="range-inputs">
+                    <label>X Min: <input type="number" id="x-min" value="-10" step="1"></label>
+                    <label>X Max: <input type="number" id="x-max" value="10" step="1"></label>
+                    <label>Y Min: <input type="number" id="y-min" value="-10" step="1"></label>
+                    <label>Y Max: <input type="number" id="y-max" value="10" step="1"></label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
