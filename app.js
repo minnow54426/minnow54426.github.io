@@ -226,6 +226,152 @@ class PolynomialPlotter {
         return result;
     }
 
+    findRoots(coefficients) {
+        const roots = [];
+
+        // For linear polynomials
+        if (this.getDegree(coefficients) === 1) {
+            const root = -coefficients[0] / coefficients[1];
+            if (this.isInPlotRange(root, 0)) {
+                roots.push({x: root, y: 0});
+            }
+        }
+        // For quadratic polynomials
+        else if (this.getDegree(coefficients) === 2) {
+            const a = coefficients[2];
+            const b = coefficients[1];
+            const c = coefficients[0];
+
+            const discriminant = b * b - 4 * a * c;
+            if (discriminant >= 0) {
+                const sqrtDisc = Math.sqrt(discriminant);
+                const root1 = (-b + sqrtDisc) / (2 * a);
+                const root2 = (-b - sqrtDisc) / (2 * a);
+
+                if (this.isInPlotRange(root1, 0)) {
+                    roots.push({x: root1, y: 0});
+                }
+                if (this.isInPlotRange(root2, 0) && Math.abs(root2 - root1) > 0.001) {
+                    roots.push({x: root2, y: 0});
+                }
+            }
+        }
+        // For higher degrees, use numerical methods
+        else {
+            const numericalRoots = this.findNumericalRoots(coefficients);
+            roots.push(...numericalRoots);
+        }
+
+        return roots;
+    }
+
+    findNumericalRoots(coefficients) {
+        const roots = [];
+        const step = 0.1;
+        let prevY = this.evaluatePolynomial(coefficients, this.plotRange.xMin);
+
+        for (let x = this.plotRange.xMin + step; x <= this.plotRange.xMax; x += step) {
+            const y = this.evaluatePolynomial(coefficients, x);
+
+            // Check for sign change (root between prevX and x)
+            if (prevY === 0) {
+                roots.push({x: x - step, y: 0});
+            } else if (y === 0) {
+                roots.push({x: x, y: 0});
+            } else if (prevY * y < 0) {
+                // Use bisection method for refinement
+                const root = this.bisectionMethod(coefficients, x - step, x);
+                if (root !== null) {
+                    roots.push({x: root, y: 0});
+                }
+            }
+
+            prevY = y;
+        }
+
+        return roots;
+    }
+
+    bisectionMethod(coefficients, a, b, tolerance = 0.001) {
+        let fa = this.evaluatePolynomial(coefficients, a);
+        let fb = this.evaluatePolynomial(coefficients, b);
+
+        if (fa * fb > 0) return null;
+
+        while (Math.abs(b - a) > tolerance) {
+            const c = (a + b) / 2;
+            const fc = this.evaluatePolynomial(coefficients, c);
+
+            if (Math.abs(fc) < tolerance) return c;
+
+            if (fa * fc < 0) {
+                b = c;
+                fb = fc;
+            } else {
+                a = c;
+                fa = fc;
+            }
+        }
+
+        return (a + b) / 2;
+    }
+
+    findExtrema(coefficients) {
+        const extrema = [];
+        const degree = this.getDegree(coefficients);
+
+        if (degree < 2) return extrema;
+
+        // Calculate derivative coefficients
+        const derivativeCoeffs = [];
+        for (let i = 1; i < coefficients.length; i++) {
+            derivativeCoeffs.push(i * coefficients[i]);
+        }
+
+        // Find critical points (roots of derivative)
+        const criticalPoints = this.findRoots(derivativeCoeffs);
+
+        // Evaluate second derivative to classify as max/min
+        criticalPoints.forEach(point => {
+            const secondDerivValue = this.evaluateSecondDerivative(coefficients, point.x);
+            const yValue = this.evaluatePolynomial(coefficients, point.x);
+
+            if (this.isInPlotRange(point.x, yValue)) {
+                extrema.push({
+                    x: point.x,
+                    y: yValue,
+                    type: secondDerivValue < 0 ? 'maximum' : 'minimum'
+                });
+            }
+        });
+
+        return extrema;
+    }
+
+    evaluateSecondDerivative(coefficients, x) {
+        // Calculate second derivative coefficients
+        const secondDerivCoeffs = [];
+        for (let i = 2; i < coefficients.length; i++) {
+            secondDerivCoeffs.push(i * (i - 1) * coefficients[i]);
+        }
+
+        return this.evaluatePolynomial(secondDerivCoeffs, x);
+    }
+
+    getDegree(coefficients) {
+        for (let i = coefficients.length - 1; i >= 0; i--) {
+            if (Math.abs(coefficients[i]) > 0.001) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    isInPlotRange(x, y) {
+        return x >= this.plotRange.xMin && x <= this.plotRange.xMax &&
+               y >= this.plotRange.yMin && y <= this.plotRange.yMax;
+    }
+
     updatePlot() {
         const plotElement = document.getElementById('plot');
         if (!plotElement) {
@@ -256,6 +402,43 @@ class PolynomialPlotter {
                     width: 2
                 }
             });
+
+            // Add roots as scatter points
+            const roots = this.findRoots(polynomial.coefficients);
+            if (roots.length > 0) {
+                traces.push({
+                    x: roots.map(r => r.x),
+                    y: roots.map(r => r.y),
+                    type: 'scatter',
+                    mode: 'markers',
+                    name: `Roots ${this.polynomials.indexOf(polynomial) + 1}`,
+                    marker: {
+                        color: polynomial.color,
+                        symbol: 'x',
+                        size: 10,
+                        line: { width: 2 }
+                    }
+                });
+            }
+
+            // Add extrema as scatter points
+            const extrema = this.findExtrema(polynomial.coefficients);
+            if (extrema.length > 0) {
+                extrema.forEach(point => {
+                    traces.push({
+                        x: [point.x],
+                        y: [point.y],
+                        type: 'scatter',
+                        mode: 'markers',
+                        name: `${point.type} ${this.polynomials.indexOf(polynomial) + 1}`,
+                        marker: {
+                            color: polynomial.color,
+                            symbol: point.type === 'maximum' ? 'triangle-down' : 'triangle-up',
+                            size: 8
+                        }
+                    });
+                });
+            }
         });
 
         const layout = {
@@ -264,13 +447,15 @@ class PolynomialPlotter {
                 title: 'x',
                 range: [this.plotRange.xMin, this.plotRange.xMax],
                 gridcolor: '#e0e0e0',
-                zerolinecolor: '#666'
+                zerolinecolor: '#666',
+                zerolinewidth: 2
             },
             yaxis: {
                 title: 'y',
                 range: [this.plotRange.yMin, this.plotRange.yMax],
                 gridcolor: '#e0e0e0',
-                zerolinecolor: '#666'
+                zerolinecolor: '#666',
+                zerolinewidth: 2
             },
             plot_bgcolor: '#f8f9fa',
             paper_bgcolor: 'white',
