@@ -61,6 +61,274 @@
         .coming-soon p {
             font-size: 1.2em;
         }
+
+        .file-tree {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .folder {
+            margin-left: 0;
+        }
+
+        .folder-content {
+            margin-left: 24px;
+            border-left: 1px solid #ddd;
+            padding-left: 8px;
+            display: none;
+        }
+
+        .folder.open > .folder-content {
+            display: block;
+        }
+
+        .folder-icon {
+            cursor: pointer;
+            user-select: none;
+            margin-right: 8px;
+        }
+
+        .folder-name {
+            font-weight: 500;
+            color: #0066cc;
+        }
+
+        .folder:hover .folder-name {
+            text-decoration: underline;
+        }
+
+        .file {
+            margin: 4px 0;
+            padding-left: 24px;
+        }
+
+        .file-icon {
+            margin-right: 8px;
+        }
+
+        .file-link {
+            color: #333;
+            text-decoration: none;
+        }
+
+        .file-link:hover {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .project-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .project-card h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+
+        .project-card ul {
+            margin: 10px 0;
+        }
+
+        .markdown-viewer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .markdown-content {
+            background: white;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 40px;
+            border-radius: 8px;
+            position: relative;
+            min-height: calc(100vh - 80px);
+        }
+
+        .close-viewer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            background: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .close-viewer:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3 {
+            color: #0066cc;
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+
+        .markdown-content h1 {
+            font-size: 2em;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .markdown-content h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .markdown-content h3 {
+            font-size: 1.2em;
+        }
+
+        .markdown-content pre {
+            background: #f5f5f5;
+            padding: 16px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .markdown-content code {
+            background: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+        }
+
+        .markdown-content pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .markdown-content ul,
+        .markdown-content ol {
+            margin-left: 24px;
+            line-height: 1.6;
+        }
+
+        .markdown-content li {
+            margin: 8px 0;
+        }
+
+        .markdown-content p {
+            line-height: 1.6;
+            margin: 16px 0;
+        }
+
+        .markdown-content blockquote {
+            border-left: 4px solid #0066cc;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #666;
+            font-style: italic;
+        }
+
+        .markdown-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+
+        .markdown-content th,
+        .markdown-content td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .markdown-content th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+
+        /* Syntax highlighting for Rust code */
+        .markdown-content pre code {
+            display: block;
+            overflow-x: auto;
+            padding: 1em;
+            background: #2b2b2b;
+            color: #f8f8f2;
+            border-radius: 4px;
+        }
+
+        .markdown-content .language-rust {
+            color: #f8f8f2;
+        }
+
+        /* Rust syntax highlighting (basic) */
+        .markdown-content code .keyword {
+            color: #ff79c6;
+            font-weight: bold;
+        }
+
+        .markdown-content code .string {
+            color: #f1fa8c;
+        }
+
+        .markdown-content code .number {
+            color: #bd93f9;
+        }
+
+        .markdown-content code .comment {
+            color: #6272a4;
+            font-style: italic;
+        }
+
+        .markdown-content code .function {
+            color: #50fa7b;
+        }
+
+        .markdown-content code .type {
+            color: #8be9fd;
+        }
+
+        .markdown-content code .macro {
+            color: #f1fa8c;
+        }
+
+        .markdown-content code .attribute {
+            color: #ff79c6;
+        }
+
+        .markdown-content code .lifetime {
+            color: #ff79c6;
+            font-style: italic;
+        }
+
+        /* Better inline code styling */
+        .markdown-content :not(pre) > code {
+            background: #f1f3f4;
+            color: #d73a49;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 85%;
+        }
     </style>
 </head>
 <body>
@@ -68,33 +336,360 @@
 
     <h1>💻 Code</h1>
 
-    <div class="coming-soon">
-        <h2>Coming Soon</h2>
-        <p>Code projects, tutorials, and experiments are currently being prepared.</p>
-        <p>Check back later for programming content and technical showcases.</p>
+    <div class="section">
+        <h2>📁 Code Projects</h2>
+        <div class="file-tree">
+            <div class="folder">
+                <span class="folder-icon">📁</span>
+                <span class="folder-name">christmas_tree</span>
+                <div class="folder-content">
+                    <div class="file">
+                        <span class="file-icon">🌲</span>
+                        <a href="code/christmas_tree/index.html" class="file-link" target="_blank">Christmas Tree 🎄</a>
+                    </div>
+                </div>
+            </div>
+            <div class="folder">
+                <span class="folder-icon">📁</span>
+                <span class="folder-name">zero_knowledge_proof_learn</span>
+                <div class="folder-content">
+                    <div class="file">
+                        <span class="file-icon">📄</span>
+                        <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/ZK_learning_plan.md', 'ZK_learning_plan.md')">ZK_learning_plan.md</a>
+                    </div>
+                    <div class="folder">
+                        <span class="folder-icon">📁</span>
+                        <span class="folder-name">week1</span>
+                        <div class="folder-content">
+                            <div class="folder">
+                                <span class="folder-icon">📁</span>
+                                <span class="folder-name">code</span>
+                                <div class="folder-content">
+                                    <div class="file">
+                                        <span class="file-icon">📄</span>
+                                        <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/prompt.md', 'prompt.md')">prompt.md</a>
+                                    </div>
+                                    <div class="folder">
+                                        <span class="folder-icon">📁</span>
+                                        <span class="folder-name">rust-protocol-basics</span>
+                                        <div class="folder-content">
+                                            <div class="file">
+                                                <span class="file-icon">📄</span>
+                                                <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/rust-protocol-basics/Cargo.toml', 'Cargo.toml')">Cargo.toml</a>
+                                            </div>
+                                            <div class="folder">
+                                                <span class="folder-icon">📁</span>
+                                                <span class="folder-name">src</span>
+                                                <div class="folder-content">
+                                                    <div class="file">
+                                                        <span class="file-icon">🦀</span>
+                                                        <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/rust-protocol-basics/src/lib.rs', 'lib.rs')">lib.rs</a>
+                                                    </div>
+                                                    <div class="file">
+                                                        <span class="file-icon">🦀</span>
+                                                        <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/rust-protocol-basics/src/hash.rs', 'hash.rs')">hash.rs</a>
+                                                    </div>
+                                                    <div class="file">
+                                                        <span class="file-icon">🦀</span>
+                                                        <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/rust-protocol-basics/src/types.rs', 'types.rs')">types.rs</a>
+                                                    </div>
+                                                    <div class="file">
+                                                        <span class="file-icon">🦀</span>
+                                                        <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/rust-protocol-basics/src/bytes.rs', 'bytes.rs')">bytes.rs</a>
+                                                    </div>
+                                                    <div class="folder">
+                                                        <span class="folder-icon">📁</span>
+                                                        <span class="folder-name">bin</span>
+                                                        <div class="folder-content">
+                                                            <div class="file">
+                                                                <span class="file-icon">🦀</span>
+                                                                <a href="javascript:void(0)" class="file-link" onclick="loadMarkdown('code/zero_knowledge_proof_learn/week1/code/rust-protocol-basics/src/bin/hash-cli.rs', 'hash-cli.rs')">hash-cli.rs</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="folder">
+                                <span class="folder-icon">📁</span>
+                                <span class="folder-name">note</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="section">
-        <h2>What to Expect</h2>
-        <ul>
-            <li>Programming projects and showcases</li>
-            <li>Tutorials and technical guides</li>
-            <li>Code snippets and utilities</li>
-            <li>Open source contributions</li>
-            <li>Technical experiments and prototypes</li>
-        </ul>
+        <h2>📝 Featured Content</h2>
+        <div class="project-card">
+            <h3>🔐 Zero Knowledge Proofs Learning Plan</h3>
+            <p>A comprehensive 12-week plan to learn Blockchain and Zero Knowledge Proofs in Rust.</p>
+            <p><strong>Topics covered:</strong></p>
+            <ul>
+                <li>Rust foundations for crypto & protocol code</li>
+                <li>Cryptographic primitives and data structures</li>
+                <li>State transition functions and consensus</li>
+                <li>ZK theory, constraints, and proving systems</li>
+                <li>ZK gadgets and applications</li>
+            </ul>
+            <p><em>Time commitment: 10 hours/week for 3 months</em></p>
+        </div>
     </div>
 
     <div class="section">
         <h2>Technologies</h2>
-        <p>This section will feature projects in:</p>
+        <p>This section features projects in:</p>
         <ul>
-            <li>Python</li>
-            <li>JavaScript</li>
-            <li>Web Development</li>
-            <li>Data Science</li>
-            <li>And more...</li>
+            <li>🦀 Rust</li>
+            <li>🔗 Blockchain</li>
+            <li>🔐 Zero Knowledge Proofs</li>
+            <li>🐍 Python</li>
+            <li>📜 JavaScript</li>
+            <li>🌐 Web Development</li>
+            <li>📊 Data Science</li>
         </ul>
     </div>
+
+<!-- Markdown Viewer -->
+<div id="markdownViewer" class="markdown-viewer">
+    <div class="markdown-content">
+        <button class="close-viewer" onclick="closeMarkdownViewer()">✕</button>
+        <div id="markdownContent"></div>
+    </div>
+</div>
+
+<script>
+    // Enhanced markdown parser with better code block handling
+    function parseMarkdown(markdown) {
+        try {
+            let html = markdown;
+
+            // Process code blocks first to avoid interference with other parsing
+            html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, language, code) {
+                const langClass = language ? ` class="language-${language}"` : '';
+                const langAttr = language ? ` data-language="${language}"` : '';
+
+                // Apply syntax highlighting for Rust
+                let processedCode = escapeHtml(code.trim());
+                if (language === 'rust') {
+                    processedCode = highlightRust(code.trim());
+                }
+
+                return `<pre><code${langClass}${langAttr}>${processedCode}</code></pre>`;
+            });
+
+            // Inline code
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // Headers
+            html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+            // Bold and italic
+            html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+            // Links
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+            // Lists (handle both ordered and unordered)
+            html = html.replace(/^\d+\. (.+)$/gim, '<li>$1</li>');
+            html = html.replace(/^\* (.+)$/gim, '<li>$1</li>');
+            html = html.replace(/^- (.+)$/gim, '<li>$1</li>');
+
+            // Group consecutive list items
+            html = html.replace(/(<li>.*<\/li>)(\s*<li>.*<\/li>)*/gim, '<ul>$&</ul>');
+
+            // Blockquotes
+            html = html.replace(/^> (.+)$/gim, '<blockquote>$1</blockquote>');
+            html = html.replace(/^> (.+)$/gim, '<blockquote>$1</blockquote>');
+
+            // Handle multiple blockquotes
+            html = html.replace(/(<blockquote>.*<\/blockquote>)(\s*<blockquote>.*<\/blockquote>)*/gim, function(match) {
+                return match.replace(/<\/blockquote>\s*<blockquote>/g, '<br>');
+            });
+
+            // Line breaks and paragraphs
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = '<p>' + html + '</p>';
+
+            // Clean up extra paragraphs around block elements
+            const blockElements = ['h1', 'h2', 'h3', 'h4', 'pre', 'ul', 'ol', 'blockquote'];
+            blockElements.forEach(tag => {
+                html = html.replace(new RegExp(`<p>(<${tag}>`, 'g'), '$1');
+                html = html.replace(new RegExp(`</${tag}>)</p>`, 'g'), '$1');
+            });
+
+            // Fix empty paragraphs
+            html = html.replace(/<p><\/p>/g, '');
+            html = html.replace(/<p>\s*<\/p>/g, '');
+            html = html.replace(/<p>\s+<\/p>/g, '');
+
+            // Clean up extra whitespace
+            html = html.replace(/\s+/g, ' ').trim();
+            html = html.replace(/<\/p>\s*<p>/g, '</p><p>');
+
+            return html;
+        } catch (error) {
+            console.error('Error parsing markdown:', error);
+            return `<pre>${escapeHtml(markdown)}</pre>`; // Fallback to plain text
+        }
+    }
+
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Basic Rust syntax highlighting
+    function highlightRust(code) {
+        try {
+            // Rust keywords
+            const keywords = [
+                'fn', 'let', 'mut', 'const', 'static', 'if', 'else', 'match', 'for', 'while', 'loop',
+                'break', 'continue', 'return', 'struct', 'enum', 'impl', 'trait', 'mod', 'use', 'pub',
+                'crate', 'where', 'move', 'ref', 'unsafe', 'async', 'await', 'type', 'as', 'in'
+            ];
+
+            // Rust types
+            const types = [
+                'u8', 'u16', 'u32', 'u64', 'u128', 'i8', 'i16', 'i32', 'i64', 'i128', 'f32', 'f64',
+                'bool', 'char', 'str', 'String', 'Vec', 'Option', 'Result', 'Box', 'Rc', 'Arc',
+                'HashMap', 'HashSet', 'BTreeMap', 'BTreeSet', 'slice', 'array', 'tuple', 'self', 'Self'
+            ];
+
+            let highlighted = code;
+
+            // Comments (line and block)
+            highlighted = highlighted.replace(/\/\/.*$/gm, '<span class="comment">$&</span>');
+            highlighted = highlighted.replace(/\/\*[\s\S]*?\*\//g, '<span class="comment">$&</span>');
+
+            // Strings (including raw strings)
+            highlighted = highlighted.replace(/r?"([^"\\]|\\.)*"/g, '<span class="string">$&</span>');
+            highlighted = highlighted.replace(/r#*"([^"#]|\\.)*"#*/g, '<span class="string">$&</span>');
+            highlighted = highlighted.replace(/'([^'\\]|\\.)*'/g, '<span class="string">$&</span>');
+
+            // Numbers
+            highlighted = highlighted.replace(/\b\d+\.?\d*\b/g, '<span class="number">$&</span>');
+
+            // Keywords
+            keywords.forEach(keyword => {
+                const regex = new RegExp(`\\b${keyword}\\b`, 'g');
+                highlighted = highlighted.replace(regex, `<span class="keyword">${keyword}</span>`);
+            });
+
+            // Types
+            types.forEach(typeName => {
+                const regex = new RegExp(`\\b${typeName}\\b`, 'g');
+                highlighted = highlighted.replace(regex, `<span class="type">${typeName}</span>`);
+            });
+
+            // Attributes
+            highlighted = highlighted.replace(/#\[([^\]]+)\]/g, '<span class="attribute">#$&</span>');
+
+            // Macros
+            highlighted = highlighted.replace(/\b\w+!\s*/g, '<span class="macro">$&</span>');
+
+            // Lifetimes
+            highlighted = highlighted.replace(/\'\w+/g, '<span class="lifetime">$&</span>');
+
+            return highlighted;
+        } catch (error) {
+            console.error('Error in Rust syntax highlighting:', error);
+            return code; // Return original code if highlighting fails
+        }
+    }
+
+    function loadMarkdown(filePath, fileName) {
+        fetch(filePath)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('File not found');
+                }
+                return response.text();
+            })
+            .then(markdown => {
+                const html = parseMarkdown(markdown);
+                document.getElementById('markdownContent').innerHTML = html;
+                document.getElementById('markdownViewer').style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            })
+            .catch(error => {
+                document.getElementById('markdownContent').innerHTML =
+                    '<h2>File not found</h2><p>The file "' + fileName + '" could not be loaded.</p>';
+                document.getElementById('markdownViewer').style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            });
+    }
+
+    function closeMarkdownViewer() {
+        document.getElementById('markdownViewer').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    // Close on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeMarkdownViewer();
+        }
+    });
+
+    // Close on background click
+    document.getElementById('markdownViewer').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeMarkdownViewer();
+        }
+    });
+
+    // Folder toggle functionality
+    function toggleFolder(element, event) {
+        if (event) {
+            event.stopPropagation();
+        }
+        const folder = element.closest('.folder');
+        if (folder) {
+            // Only toggle the direct folder, not its children
+            const wasOpen = folder.classList.contains('open');
+            folder.classList.remove('open');
+            if (!wasOpen) {
+                folder.classList.add('open');
+            }
+
+            // Update icon for this specific folder
+            const icon = folder.querySelector('.folder-icon');
+            if (icon) {
+                icon.textContent = folder.classList.contains('open') ? '📂' : '📁';
+            }
+        }
+    }
+
+    // Add click listeners to all folder names and icons
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle folder name clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('folder-name')) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleFolder(e.target, e);
+            }
+            // Handle folder icon clicks
+            else if (e.target.classList.contains('folder-icon')) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleFolder(e.target, e);
+            }
+        });
+    });
+</script>
 </body>
 </html>

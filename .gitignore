@@ -9,3 +9,6 @@ Thumbs.db
 
 # Video files
 paint/water_color/christmas_snowman_compressed.mp4
+
+# Git worktrees
+.worktrees/

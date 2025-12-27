@@ -148,8 +148,19 @@ ls -lh videos/
 │   ├── jiu\ zhai\ gou/    # Jiu Zhai Gou photos
 │   └── [other folders]/   # Additional photo categories
 ├── paint/                  # Art and video collection
-│   ├── water_color/       # Watercolor paintings and videos
-│   └── README.md          # Video upload instructions
+│   └── water_color/       # Watercolor videos (12 videos total)
+│       ├── christmas_snowman.mp4
+│       ├── single_leaf.mp4
+│       ├── mountain.mp4
+│       ├── leaf_on_water.mp4
+│       ├── flower.mp4
+│       ├── autumn_leave.mp4
+│       ├── rose.mp4
+│       ├── peach.mp4
+│       ├── cherry_blossoms.mp4
+│       ├── swan.mp4
+│       ├── flower_bed.mp4
+│       └── whale.mp4
 ├── _config.yml            # Jekyll/GitHub Pages configuration
 ├── .nojekyll              # Disable Jekyll processing
 ├── .gitignore             # Files to exclude from git
@@ -174,12 +185,13 @@ ls -lh videos/
 - "← Back to Home" link for navigation
 
 ### Paint Gallery (`paint.html`)
-- Folder-based navigation similar to photo gallery
-- Video support with optimized playback
-- Expandable watercolor and other art categories
-- Responsive video grid layout
-- Advanced seeking support for .mov files
+- Folder-based navigation with 12 watercolor videos
+- Video support with optimized compression (all under 10MB)
+- Clean filenames without compression suffixes
+- Responsive video grid layout with hover effects
+- Advanced seeking support for smooth playback
 - "← Back to Home" link for navigation
+- Total of 12 videos: Christmas Snowman, Single Leaf, Mountain, Leaf on Water, Flower, Autumn Leave, Rose, Peach, Cherry Blossoms, Swan, Flower Bed, Whale
 
 ### Photo Layout
 - Grid system with `repeat(auto-fill, minmax(250px, 1fr))`
