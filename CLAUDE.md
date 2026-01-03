@@ -1,17 +1,59 @@
 # CLAUDE.md
 
-Personal photography website with GitHub Pages, featuring a clean photo gallery with compact layout.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+Personal portfolio website with GitHub Pages, featuring photography, code projects (including Zero Knowledge Proof learning), and interactive cryptography visualizations.
 
 ## Key Commands
 
 ### Development & Testing
 ```bash
-# Start local development server
+# Start local development server (from repository root)
 python -m http.server 8001
 
 # View local site
 # Main page: http://localhost:8001/
 # Photo gallery: http://localhost:8001/photo-gallery.html
+# Paint gallery: http://localhost:8001/paint.html
+# Code projects: http://localhost:8001/code.html
+# Cryptography: http://localhost:8001/cryptography.html
+# Music: http://localhost:8001/music.html
+```
+
+### Rust Projects (Zero Knowledge Proof Learning)
+```bash
+# Navigate to specific week's project
+cd code/zero_knowledge_proof_learn/week1/code/rust-protocol-basics
+
+# Build the project
+cargo build
+
+# Run tests
+cargo test
+
+# Run tests with output
+cargo test -- --nocapture
+
+# Run specific test
+cargo test test_name
+
+# Run clippy for linting
+cargo clippy
+
+# Format code
+cargo fmt
+
+# Run binary (hash-cli example)
+cargo run --bin hash-cli "hello world"
+
+# Run examples
+cargo run --example basic_usage
+
+# Generate documentation
+cargo doc --open
+
+# Run benchmarks
+cargo bench
 ```
 
 ### Git Workflow (Complete Guide)
@@ -140,28 +182,30 @@ ls -lh videos/
 ├── index.html              # Main page with navigation sections
 ├── photo-gallery.html      # Photo gallery with folder navigation
 ├── paint.html              # Paint gallery with video support
-├── code.html               # Code projects page
+├── code.html               # Code projects page with file tree navigation
 ├── music.html              # Music projects page
-├── photos/                 # Photography collection
-│   ├── animals/           # Animal photos
-│   ├── shang\ hai/        # Shanghai photos
-│   ├── jiu\ zhai\ gou/    # Jiu Zhai Gou photos
-│   └── [other folders]/   # Additional photo categories
+├── cryptography.html       # Cryptography learning page
+├── polynomial-plotter.html # Standalone polynomial plotter
+├── app.js                  # Main JavaScript for site interactions
+├── styles.css              # Global styles
+├── photos/                 # Photography collection (18 categories)
 ├── paint/                  # Art and video collection
-│   └── water_color/       # Watercolor videos (12 videos total)
-│       ├── christmas_snowman.mp4
-│       ├── single_leaf.mp4
-│       ├── mountain.mp4
-│       ├── leaf_on_water.mp4
-│       ├── flower.mp4
-│       ├── autumn_leave.mp4
-│       ├── rose.mp4
-│       ├── peach.mp4
-│       ├── cherry_blossoms.mp4
-│       ├── swan.mp4
-│       ├── flower_bed.mp4
-│       └── whale.mp4
-├── _config.yml            # Jekyll/GitHub Pages configuration
+│   └── water_color/       # Watercolor videos (12 videos)
+├── code/                   # Code projects directory
+│   ├── christmas_tree/    # Christmas tree project
+│   ├── interactiva_panel/ # Interactive panel with polynomial plotter
+│   └── zero_knowledge_proof_learn/  # ZK learning journey (12-week plan)
+│       ├── ZK_learning_plan.md      # Master learning plan
+│       ├── week1/         # Rust foundations
+│       │   └── code/rust-protocol-basics/  # Hashing, serialization
+│       ├── week2/         # Merkle trees
+│       │   └── code/merkle-rs/
+│       └── week3/         # (TBD)
+├── cryptography/           # Cryptography interactive tools
+│   ├── app.js             # Polynomial plotter logic
+│   ├── polynomial-plotter.html
+│   └── styles.css
+├── _config.yml            # GitHub Pages configuration
 ├── .nojekyll              # Disable Jekyll processing
 ├── .gitignore             # Files to exclude from git
 ├── README.md              # Project documentation
@@ -172,9 +216,50 @@ ls -lh videos/
 
 ### Main Page (`index.html`)
 - Clean, elegant design with centered layout
-- Three main sections: Photography, Code, Music
+- Four main sections: Photography, Code, Music, Cryptography
 - Navigation buttons with hover effects
-- Links directly to `/photo-gallery.html`
+- Links to specialized sub-pages
+
+### Code Projects Page (`code.html`)
+- File tree navigation for browsing code projects
+- Expandable/collapsible folder structure
+- Organized by project type:
+  - `christmas_tree/` - Christmas tree visualization
+  - `interactiva_panel/` - Interactive visualization panel
+  - `zero_knowledge_proof_learn/` - 12-week ZK learning journey
+
+### Cryptography Page (`cryptography.html`)
+- Interactive cryptographic tools and visualizations
+- Links to ZK-SNARK polynomial plotter
+- Educational content about Zero Knowledge Proofs
+- Applications and real-world use cases
+
+### Zero Knowledge Proof Learning Journey
+Located in `code/zero_knowledge_proof_learn/`, this is a structured 12-week learning plan covering:
+
+**Week 1: Rust Protocol Basics** (`week1/code/rust-protocol-basics/`)
+- Core cryptographic operations: hashing, serialization, hex encoding
+- Type-safe wrappers for cryptographic data
+- Comprehensive test suite (23 unit tests)
+- CLI tool for hashing operations
+- Key modules:
+  - `bytes.rs` - Hex encoding/decoding, binary serialization
+  - `hash.rs` - SHA-256 hashing
+  - `types.rs` - Type-safe wrappers (Hash32)
+  - `lib.rs` - Library exports and organization
+- Dependencies: hex, bincode, serde, sha2, anyhow, clap
+- All tests pass with zero clippy warnings
+
+**Week 2: Merkle Trees** (`week2/code/merkle-rs/`)
+- Merkle tree implementation in Rust
+- Security analysis documentation
+
+**Week 3+**: Future weeks planned (see `ZK_learning_plan.md` for full curriculum)
+
+**Key Learning Resources:**
+- `ZK_learning_plan.md` - Master 12-week curriculum plan
+- Individual week README files with detailed instructions
+- Focus on blockchain + ZK proofs in Rust
 
 ### Photo Gallery (`photo-gallery.html`)
 - Minimal design with no header text
@@ -237,56 +322,107 @@ ls -lh videos/
 
 ## Tech Stack
 
+### Web Frontend
 - **HTML5/CSS3** - Modern web standards
 - **CSS Grid** - Photo gallery layout
-- **JavaScript** - Lightbox functionality
+- **JavaScript** - Interactive galleries and visualizations
 - **GitHub Pages** - Static hosting
 - **Git** - Version control and deployment
 
-## Photo Gallery Features
+### Rust Projects
+- **Rust 2021 Edition** - Modern Rust with latest features
+- **Cargo** - Package manager and build system
+- **Key Crates**:
+  - `hex` - Hex encoding/decoding
+  - `bincode` - Binary serialization
+  - `serde` - Serialization framework
+  - `sha2` - SHA-256 hashing
+  - `anyhow` - Error handling
+  - `clap` - CLI argument parsing
+  - `criterion` - Benchmarking
 
-- **Compact Layout**: 2px spacing between photos
-- **Responsive Design**: Adapts to all screen sizes
-- **Lightbox**: Click photos for full-screen viewing
-- **Hover Effects**: Subtle animations on interaction
-- **Masonry Grid**: Dynamic, Pinterest-style layout
+## Code Architecture
 
-## User Guide (Updated Workflow)
+### Web Site Structure
+The site is organized as a static HTML site with no build process:
+- Each major section has its own HTML page
+- JavaScript in `app.js` handles interactive elements
+- `styles.css` provides global styling
+- Media files (photos, videos) in organized directories
+- Code projects in `/code/` with subdirectories for each project
 
-### Standard Update Process
-Every time you change something:
-1. Start the local server: `python -m http.server 8001`
-2. Test changes at http://localhost:8001/
-3. Review the changes thoroughly (all pages, links, functionality)
-4. If satisfied, say "do it" to push to remote
-5. I will commit and push the changes to ALL GitHub Pages branches
+### Rust Project Architecture (ZK Learning)
 
-### For Large Media Files
-1. Compress videos/images before adding
-2. Test locally with compressed versions
-3. If push fails due to size, use manual upload via GitHub web interface
-4. Update HTML to reference uploaded file
+**Module Organization** (using Week 1 as example):
+```
+rust-protocol-basics/
+├── src/
+│   ├── lib.rs           # Public API exports
+│   ├── bytes.rs         # Hex encoding/decoding
+│   ├── hash.rs          # SHA-256 hashing
+│   ├── types.rs         # Type-safe wrappers
+│   └── bin/
+│       └── hash-cli.rs  # CLI tool
+├── examples/
+│   └── basic_usage.rs   # Usage examples
+├── benches/             # Criterion benchmarks
+├── tests/               # Integration tests
+└── Cargo.toml           # Project config
+```
 
-### Adding New Content Sections
-1. Create new HTML page (e.g., new-section.html)
-2. Update index.html to add navigation
-3. Update _config.yml to include new page
-4. Test all navigation links
-5. Commit and push to all branches
+**Key Architectural Patterns**:
+1. **Library + Binary Pattern**: Each crate has library code (`src/`) and optional binaries (`src/bin/`)
+2. **Type Safety**: Newtype pattern for cryptographic types (e.g., `Hash32`)
+3. **Error Handling**: `anyhow::Result<T>` for application errors
+4. **Testing**: Comprehensive unit tests in each module, doctests for examples
+5. **Documentation**: Rust doc comments with examples
+6. **Serialization**: `serde` + `bincode` for deterministic binary encoding
 
-### Emergency Recovery
-If deployment fails:
-1. Check which branch GitHub Pages uses: `git remote show origin`
-2. Ensure files are in _config.yml include list
-3. Verify file sizes are under GitHub limits
-4. Try manual upload for large files
-5. Clear browser cache and wait 2-5 minutes
+**Working with ZK Learning Projects**:
+- Each week is a standalone Rust project
+- Navigate to the specific week's directory before running cargo commands
+- Each project has its own `Cargo.toml` with specific dependencies
+- README files in each project explain the learning objectives
+- Tests are the primary way to verify understanding
+- Clippy is used to ensure code quality
+
+## Development Workflow
+
+### Adding New Web Content
+1. Create HTML file in root directory
+2. Add navigation links in `index.html`
+3. Update `_config.yml` to include new file for GitHub Pages
+4. Test locally with `python -m http.server 8001`
+5. Commit and push to all branches (main, master, gh-pages)
+
+### Adding New Rust Code (ZK Learning)
+1. Navigate to appropriate week's directory
+2. Write code following existing patterns
+3. Add comprehensive tests
+4. Run `cargo test` to verify
+5. Run `cargo clippy` to check code quality
+6. Format with `cargo fmt`
+7. Update README with new functionality
+8. Commit changes
+
+### Working with Polynomial Plotter
+The polynomial plotter exists in two locations:
+- `/polynomial-plotter.html` - Standalone version
+- `/code/interactiva_panel/polynomial-plotter.html` - Interactive panel version
+- `/cryptography/polynomial-plotter.html` - Cryptography section version
+
+All versions share similar logic for visualizing polynomials and ZK-SNARK concepts.
 
 ## Important Notes
 
-- **No Pelican**: This is now a static HTML site, not Pelican-based
-- **Direct Deployment**: Files are served directly from the root directory
-- **No Build Process**: Changes are immediately reflected after push
-- **Clean Structure**: No duplicate directories or build artifacts
-- **GitHub Pages Optimized**: Proper configuration for immediate deployment
-- **Legacy Content**: The `/content/` folder was removed as it was from old Pelican setup; the site uses direct `/photos/` and `/paint/` folders
+- **Multi-purpose Repository**: This serves as both a personal portfolio website AND a learning workspace for ZK proofs
+- **No Build Process for Web**: Static HTML files are served directly; changes appear immediately after push
+- **Rust Projects Are Independent**: Each week's ZK learning project has its own Cargo.toml and dependencies
+- **Test-Driven Learning**: The ZK learning path emphasizes writing tests to verify understanding of cryptographic concepts
+- **GitHub Pages Multi-Branch**: Always push to main, master, and gh-pages branches to ensure deployment works
+
+## Legacy Content Notes
+
+- The `/content/` folder was removed (old Pelican setup); the site now uses direct `/photos/` and `/paint/` folders
+- No Pelican build process; this is a pure static HTML site
+- All HTML files are served directly from the root directory
