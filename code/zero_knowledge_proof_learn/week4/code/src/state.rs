@@ -1,10 +1,12 @@
 // State module placeholder
 
+use anyhow::Result;
+use ed25519_dalek::PublicKey;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use ed25519_dalek::PublicKey;
-use tx_rs::{Transaction, SignedTransaction, sign};
-use anyhow::Result;
+use tx_rs::SignedTransaction;
+#[allow(unused_imports)]
+use tx_rs::{Transaction, sign};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Account {
@@ -21,6 +23,12 @@ impl Account {
 #[derive(Debug, Clone)]
 pub struct State {
     accounts: HashMap<[u8; 32], Account>,
+}
+
+impl Default for State {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl State {
@@ -47,7 +55,8 @@ impl State {
         let tx = &signed_tx.tx;
 
         // Check sender has sufficient balance
-        let sender_account = self.get_account(&tx.from_pubkey.0)
+        let sender_account = self
+            .get_account(&tx.from_pubkey.0)
             .ok_or_else(|| anyhow::anyhow!("Sender account not found"))?;
 
         if sender_account.balance < tx.amount {
@@ -56,8 +65,11 @@ impl State {
 
         // Check nonce matches
         if sender_account.nonce != tx.nonce {
-            return Err(anyhow::anyhow!("Invalid nonce: expected {}, got {}",
-                sender_account.nonce, tx.nonce));
+            return Err(anyhow::anyhow!(
+                "Invalid nonce: expected {}, got {}",
+                sender_account.nonce,
+                tx.nonce
+            ));
         }
 
         // === Update state ===
@@ -70,7 +82,8 @@ impl State {
 
         // Add to recipient (create account if needed)
         let recipient_key_bytes = tx.to_pubkey.0.as_bytes();
-        let recipient_account = self.accounts
+        let recipient_account = self
+            .accounts
             .entry(*recipient_key_bytes)
             .or_insert_with(|| Account::new(0, 0));
         recipient_account.balance += tx.amount;
@@ -134,12 +147,7 @@ mod tests {
 
         // Create transaction from Alice to Bob
         let pubkey2: PublicKey = bob_key.public;
-        let tx = Transaction::new(
-            pubkey1,
-            pubkey2,
-            50,
-            0,
-        );
+        let tx = Transaction::new(pubkey1, pubkey2, 50, 0);
 
         // Sign with WRONG key (Bob signs instead of Alice)
         let signature = sign(&tx, &bob_key);
@@ -163,12 +171,7 @@ mod tests {
         state.set_account(alice_key.public, Account::new(10, 0));
 
         // Try to send 50 tokens
-        let tx = Transaction::new(
-            alice_key.public,
-            bob_key.public,
-            50,
-            0,
-        );
+        let tx = Transaction::new(alice_key.public, bob_key.public, 50, 0);
 
         let signature = sign(&tx, &alice_key);
         let signed_tx = SignedTransaction::new(tx, signature);
@@ -248,12 +251,7 @@ mod tests {
         state.set_account(bob_key.public, Account::new(50, 0));
 
         // Alice sends 30 to Bob
-        let tx = Transaction::new(
-            alice_key.public,
-            bob_key.public,
-            30,
-            0,
-        );
+        let tx = Transaction::new(alice_key.public, bob_key.public, 30, 0);
 
         let signature = sign(&tx, &alice_key);
         let signed_tx = SignedTransaction::new(tx, signature);

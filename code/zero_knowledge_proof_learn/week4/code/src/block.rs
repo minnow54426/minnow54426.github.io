@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 use tx_rs::SignedTransaction;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -11,7 +11,12 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn new(prev_hash: [u8; 32], txs: Vec<SignedTransaction>, height: u64, timestamp: u64) -> Self {
+    pub fn new(
+        prev_hash: [u8; 32],
+        txs: Vec<SignedTransaction>,
+        height: u64,
+        timestamp: u64,
+    ) -> Self {
         Self {
             prev_hash,
             txs,
@@ -43,9 +48,9 @@ mod tests {
         let _key = Keypair::generate(&mut OsRng);
 
         let block = Block::new(
-            [0u8; 32], // prev_hash
+            [0u8; 32],  // prev_hash
             vec![],     // empty transactions
-            1,         // height
+            1,          // height
             1234567890, // timestamp
         );
 

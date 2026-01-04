@@ -38,11 +38,11 @@
 //! # }
 //! ```
 
-pub mod state;
 pub mod block;
 pub mod chain;
+pub mod state;
 
 // Public API exports
-pub use state::{State, Account};
-pub use block::{Block, block_hash};
+pub use block::{block_hash, Block};
 pub use chain::apply_block;
+pub use state::{Account, State};

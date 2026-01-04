@@ -1,7 +1,7 @@
-use toychain_rs::{State, Account, Block, block_hash, apply_block};
-use tx_rs::{Transaction, SignedTransaction, sign};
 use ed25519_dalek::Keypair;
 use rand::rngs::OsRng;
+use toychain_rs::{apply_block, block_hash, Account, Block, State};
+use tx_rs::{sign, SignedTransaction, Transaction};
 
 #[test]
 fn test_end_to_end_blockchain_workflow() {
@@ -23,12 +23,7 @@ fn test_end_to_end_blockchain_workflow() {
     println!("Charlie: {:?}", state.get_account(&charlie_key.public));
 
     // === Block 1: Alice sends 30 to Bob ===
-    let tx1 = Transaction::new(
-        alice_key.public,
-        bob_key.public,
-        30,
-        0,
-    );
+    let tx1 = Transaction::new(alice_key.public, bob_key.public, 30, 0);
     let sig1 = sign(&tx1, &alice_key);
     let signed_tx1 = SignedTransaction::new(tx1, sig1);
 
@@ -54,12 +49,7 @@ fn test_end_to_end_blockchain_workflow() {
     assert_eq!(state.get_account(&bob_key.public).unwrap().balance, 80);
 
     // === Block 2: Bob sends 20 to Charlie, Alice sends 10 to Charlie ===
-    let tx2a = Transaction::new(
-        bob_key.public,
-        charlie_key.public,
-        20,
-        0,
-    );
+    let tx2a = Transaction::new(bob_key.public, charlie_key.public, 20, 0);
     let sig2a = sign(&tx2a, &bob_key);
     let signed_tx2a = SignedTransaction::new(tx2a, sig2a);
 
@@ -72,12 +62,7 @@ fn test_end_to_end_blockchain_workflow() {
     let sig2b = sign(&tx2b, &alice_key);
     let signed_tx2b = SignedTransaction::new(tx2b, sig2b);
 
-    let block2 = Block::new(
-        block1_hash,
-        vec![signed_tx2a, signed_tx2b],
-        2,
-        1234567900,
-    );
+    let block2 = Block::new(block1_hash, vec![signed_tx2a, signed_tx2b], 2, 1234567900);
 
     let block2_hash = block_hash(&block2);
     println!("\n=== Block 2 ===");
