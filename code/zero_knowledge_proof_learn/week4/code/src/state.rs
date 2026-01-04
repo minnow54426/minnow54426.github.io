@@ -54,6 +54,12 @@ impl State {
             return Err(anyhow::anyhow!("Insufficient balance"));
         }
 
+        // Check nonce matches
+        if sender_account.nonce != tx.nonce {
+            return Err(anyhow::anyhow!("Invalid nonce: expected {}, got {}",
+                sender_account.nonce, tx.nonce));
+        }
+
         Ok(())
     }
 }
@@ -155,5 +161,61 @@ mod tests {
         // Should fail - insufficient balance
         let result = state.apply_tx(&signed_tx);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_apply_tx_incorrect_nonce() {
+        use ed25519_dalek::Keypair;
+        use rand::rngs::OsRng;
+
+        let mut state = State::new();
+        let alice_key = Keypair::generate(&mut OsRng);
+        let bob_key = Keypair::generate(&mut OsRng);
+
+        // Fund Alice with nonce = 5
+        state.set_account(alice_key.public, Account::new(100, 5));
+
+        // Try to send with nonce = 3 (wrong, should be 5)
+        let tx = Transaction::new(
+            alice_key.public,
+            bob_key.public,
+            50,
+            3, // Wrong nonce
+        );
+
+        let signature = sign(&tx, &alice_key);
+        let signed_tx = SignedTransaction::new(tx, signature);
+
+        // Should fail - incorrect nonce
+        let result = state.apply_tx(&signed_tx);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_apply_tx_correct_nonce() {
+        use ed25519_dalek::Keypair;
+        use rand::rngs::OsRng;
+
+        let mut state = State::new();
+        let alice_key = Keypair::generate(&mut OsRng);
+        let bob_key = Keypair::generate(&mut OsRng);
+
+        // Fund Alice with nonce = 5
+        state.set_account(alice_key.public, Account::new(100, 5));
+
+        // Send with correct nonce = 5
+        let tx = Transaction::new(
+            alice_key.public,
+            bob_key.public,
+            50,
+            5, // Correct nonce
+        );
+
+        let signature = sign(&tx, &alice_key);
+        let signed_tx = SignedTransaction::new(tx, signature);
+
+        // Should pass validation (won't update state yet)
+        let result = state.apply_tx(&signed_tx);
+        assert!(result.is_ok());
     }
 }
