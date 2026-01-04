@@ -60,6 +60,21 @@ impl State {
                 sender_account.nonce, tx.nonce));
         }
 
+        // === Update state ===
+
+        // Deduct from sender and increment nonce
+        let sender_key_bytes = tx.from_pubkey.0.as_bytes();
+        let sender_account = self.accounts.get_mut(sender_key_bytes).unwrap();
+        sender_account.balance -= tx.amount;
+        sender_account.nonce += 1;
+
+        // Add to recipient (create account if needed)
+        let recipient_key_bytes = tx.to_pubkey.0.as_bytes();
+        let recipient_account = self.accounts
+            .entry(*recipient_key_bytes)
+            .or_insert_with(|| Account::new(0, 0));
+        recipient_account.balance += tx.amount;
+
         Ok(())
     }
 }
@@ -217,5 +232,47 @@ mod tests {
         // Should pass validation (won't update state yet)
         let result = state.apply_tx(&signed_tx);
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_apply_tx_updates_state() {
+        use ed25519_dalek::Keypair;
+        use rand::rngs::OsRng;
+
+        let mut state = State::new();
+        let alice_key = Keypair::generate(&mut OsRng);
+        let bob_key = Keypair::generate(&mut OsRng);
+
+        // Setup: Alice has 100, Bob has 50
+        state.set_account(alice_key.public, Account::new(100, 0));
+        state.set_account(bob_key.public, Account::new(50, 0));
+
+        // Alice sends 30 to Bob
+        let tx = Transaction::new(
+            alice_key.public,
+            bob_key.public,
+            30,
+            0,
+        );
+
+        let signature = sign(&tx, &alice_key);
+        let signed_tx = SignedTransaction::new(tx, signature);
+
+        // Apply transaction
+        state.apply_tx(&signed_tx).unwrap();
+
+        // Verify: Alice has 70, nonce 1
+        let alice_account = state.get_account(&alice_key.public);
+        assert_eq!(alice_account.unwrap().balance, 70);
+        assert_eq!(alice_account.unwrap().nonce, 1);
+
+        // Verify: Bob has 80, nonce 0
+        let bob_account = state.get_account(&bob_key.public);
+        assert_eq!(bob_account.unwrap().balance, 80);
+        assert_eq!(bob_account.unwrap().nonce, 0);
+
+        // Verify: Can't replay same transaction
+        let result = state.apply_tx(&signed_tx);
+        assert!(result.is_err());
     }
 }
