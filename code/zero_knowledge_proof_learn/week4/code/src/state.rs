@@ -44,6 +44,16 @@ impl State {
             return Err(anyhow::anyhow!("Invalid signature"));
         }
 
+        let tx = &signed_tx.tx;
+
+        // Check sender has sufficient balance
+        let sender_account = self.get_account(&tx.from_pubkey.0)
+            .ok_or_else(|| anyhow::anyhow!("Sender account not found"))?;
+
+        if sender_account.balance < tx.amount {
+            return Err(anyhow::anyhow!("Insufficient balance"));
+        }
+
         Ok(())
     }
 }
@@ -115,6 +125,34 @@ mod tests {
         let signed_tx = SignedTransaction::new(tx, signature);
 
         // Try to apply - should fail
+        let result = state.apply_tx(&signed_tx);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_apply_tx_insufficient_balance() {
+        use ed25519_dalek::Keypair;
+        use rand::rngs::OsRng;
+
+        let mut state = State::new();
+        let alice_key = Keypair::generate(&mut OsRng);
+        let bob_key = Keypair::generate(&mut OsRng);
+
+        // Fund Alice with only 10 tokens
+        state.set_account(alice_key.public, Account::new(10, 0));
+
+        // Try to send 50 tokens
+        let tx = Transaction::new(
+            alice_key.public,
+            bob_key.public,
+            50,
+            0,
+        );
+
+        let signature = sign(&tx, &alice_key);
+        let signed_tx = SignedTransaction::new(tx, signature);
+
+        // Should fail - insufficient balance
         let result = state.apply_tx(&signed_tx);
         assert!(result.is_err());
     }
