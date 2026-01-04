@@ -3,6 +3,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use ed25519_dalek::PublicKey;
+use tx_rs::{Transaction, SignedTransaction, sign};
+use anyhow::Result;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Account {
@@ -34,6 +36,15 @@ impl State {
 
     pub fn set_account(&mut self, pubkey: PublicKey, account: Account) {
         self.accounts.insert(*pubkey.as_bytes(), account);
+    }
+
+    pub fn apply_tx(&mut self, signed_tx: &SignedTransaction) -> Result<()> {
+        // Verify signature
+        if !signed_tx.verify() {
+            return Err(anyhow::anyhow!("Invalid signature"));
+        }
+
+        Ok(())
     }
 }
 
@@ -75,5 +86,36 @@ mod tests {
         // Get account
         let account = state.get_account(&pubkey);
         assert_eq!(account, Some(&Account::new(100, 0)));
+    }
+
+    #[test]
+    fn test_apply_tx_invalid_signature() {
+        use ed25519_dalek::Keypair;
+        use rand::rngs::OsRng;
+
+        let mut state = State::new();
+        let alice_key = Keypair::generate(&mut OsRng);
+        let bob_key = Keypair::generate(&mut OsRng);
+
+        // Fund Alice
+        let pubkey1: PublicKey = alice_key.public;
+        state.set_account(pubkey1, Account::new(100, 0));
+
+        // Create transaction from Alice to Bob
+        let pubkey2: PublicKey = bob_key.public;
+        let tx = Transaction::new(
+            pubkey1,
+            pubkey2,
+            50,
+            0,
+        );
+
+        // Sign with WRONG key (Bob signs instead of Alice)
+        let signature = sign(&tx, &bob_key);
+        let signed_tx = SignedTransaction::new(tx, signature);
+
+        // Try to apply - should fail
+        let result = state.apply_tx(&signed_tx);
+        assert!(result.is_err());
     }
 }
