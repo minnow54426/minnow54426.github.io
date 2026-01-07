@@ -6,7 +6,7 @@
 // TODO: Implement these modules in upcoming tasks
 pub mod block;
 // pub mod chain;
-// pub mod tx;
+pub mod tx;
 
 pub mod state;
 pub mod types;
