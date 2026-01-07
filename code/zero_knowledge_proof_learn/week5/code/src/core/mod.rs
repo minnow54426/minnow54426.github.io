@@ -4,7 +4,7 @@
 //! toy blockchain, including state, transactions, blocks, and chain management.
 
 // TODO: Implement these modules in upcoming tasks
-// pub mod block;
+pub mod block;
 // pub mod chain;
 // pub mod tx;
 
