@@ -10,7 +10,7 @@ use tx_rs::SignedTransaction;
 use super::types::{Balance, Nonce};
 
 #[allow(unused_imports)]
-use tx_rs::{Transaction, sign};
+use tx_rs::{sign, Transaction};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Account {

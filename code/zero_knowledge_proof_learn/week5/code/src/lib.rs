@@ -60,7 +60,7 @@ pub use core::{
 };
 
 // Public API exports - type aliases
-pub use core::types::{Hash, Height, Timestamp, Balance, Nonce};
+pub use core::types::{Balance, Hash, Height, Nonce, Timestamp};
 
 #[cfg(test)]
 mod public_api_tests {
@@ -76,9 +76,9 @@ mod public_api_tests {
 
     #[test]
     fn test_legacy_functions_still_work() {
-        use tx_rs::Transaction;
         use ed25519_dalek::Keypair;
         use rand::rngs::OsRng;
+        use tx_rs::Transaction;
 
         let mut state = State::new();
         let alice = Keypair::generate(&mut OsRng);
