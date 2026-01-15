@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Transforms an R1CS constraint system into a Quadratic Arithmetic Program."><title>r1cs_to_qap in groth16_qap::polynomials - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="groth16_qap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../groth16_qap/index.html">groth16_<wbr>qap</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><h2><a href="index.html">In groth16_<wbr>qap::<wbr>polynomials</a></h2></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Function <a href="../index.html">groth16_qap</a>::<wbr><a href="index.html">polynomials</a>::<wbr><a class="fn" href="#">r1cs_to_qap</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../../src/groth16_qap/polynomials.rs.html#60-129">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub fn r1cs_to_qap&lt;F&gt;(
+    constraints: &amp;[<a class="struct" href="../../groth16_r1cs/constraint/struct.R1CSConstraint.html" title="struct groth16_r1cs::constraint::R1CSConstraint">R1CSConstraint</a>&lt;F&gt;],
+    num_variables: <a class="primitive" href="https://doc.rust-lang.org/1.82.0/std/primitive.usize.html">usize</a>,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.82.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="type" href="type.QapPolynomials.html" title="type groth16_qap::polynomials::QapPolynomials">QapPolynomials</a>&lt;F&gt;, <a class="enum" href="../error/enum.QapError.html" title="enum groth16_qap::error::QapError">QapError</a>&gt;<div class="where">where
+    F: PrimeField,</div></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Transforms an R1CS constraint system into a Quadratic Arithmetic Program.</p>
+<p>For each variable j (0..m), this creates three polynomials Aⱼ(x), Bⱼ(x), Cⱼ(x)
+such that for any constraint i (1..n):
+Aⱼ(i) = coefficient of variable j in A vector of constraint i
+Bⱼ(i) = coefficient of variable j in B vector of constraint i
+Cⱼ(i) = coefficient of variable j in C vector of constraint i</p>
+<h2 id="arguments"><a class="doc-anchor" href="#arguments">§</a>Arguments</h2>
+<ul>
+<li><code>constraints</code> - Slice of R1CS constraints (must be non-empty)</li>
+<li><code>num_variables</code> - Total number of variables in the system</li>
+</ul>
+<h2 id="returns"><a class="doc-anchor" href="#returns">§</a>Returns</h2>
+<ul>
+<li><code>Ok((A, B, C))</code> - Three vectors of polynomials, each of length num_variables</li>
+<li><code>Err(QapError::EmptyConstraints)</code> - If constraints slice is empty</li>
+<li><code>Err(QapError::InsufficientConstraints)</code> - If fewer than 2 constraints</li>
+</ul>
+<h2 id="algorithm"><a class="doc-anchor" href="#algorithm">§</a>Algorithm</h2>
+<ol>
+<li>Extract coefficient values for each variable across all constraints</li>
+<li>For each variable j:
+a. Collect points (1, A[1,j]), (2, A[2,j]), …, (n, A[n,j])
+b. Interpolate polynomial Aⱼ(x) through these points using Lagrange interpolation
+c. Repeat for B and C</li>
+</ol>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>groth16_qap::polynomials::r1cs_to_qap;
+<span class="kw">use </span>groth16_r1cs::constraint::R1CSConstraint;
+<span class="kw">use </span>groth16_math::fields::FieldWrapper;
+<span class="kw">use </span>ark_bn254::Fq;
+
+<span class="comment">// Create two R1CS constraints
+</span><span class="kw">let </span><span class="kw-2">mut </span>c1 = R1CSConstraint::&lt;Fq&gt;::new();
+c1.add_a_variable(<span class="number">0</span>, FieldWrapper::&lt;Fq&gt;::from(<span class="number">1u64</span>));  <span class="comment">// x
+</span>c1.add_b_variable(<span class="number">1</span>, FieldWrapper::&lt;Fq&gt;::from(<span class="number">1u64</span>));  <span class="comment">// y
+</span>c1.add_c_variable(<span class="number">2</span>, FieldWrapper::&lt;Fq&gt;::from(<span class="number">1u64</span>));  <span class="comment">// z
+
+</span><span class="kw">let </span><span class="kw-2">mut </span>c2 = R1CSConstraint::&lt;Fq&gt;::new();
+c2.add_a_variable(<span class="number">0</span>, FieldWrapper::&lt;Fq&gt;::from(<span class="number">1u64</span>));  <span class="comment">// x
+</span>c2.add_b_variable(<span class="number">0</span>, FieldWrapper::&lt;Fq&gt;::from(<span class="number">1u64</span>));  <span class="comment">// x
+</span>c2.add_c_variable(<span class="number">3</span>, FieldWrapper::&lt;Fq&gt;::from(<span class="number">1u64</span>));  <span class="comment">// w
+
+</span><span class="kw">let </span>constraints = <span class="macro">vec!</span>[c1, c2];
+<span class="kw">let </span>num_vars = <span class="number">4</span>;
+
+<span class="kw">let </span>(A, B, C) = r1cs_to_qap(<span class="kw-2">&amp;</span>constraints, num_vars).unwrap();
+<span class="comment">// A[0] evaluates to 1 at x=1 and x=2 (coefficient for x in both constraints)
+// B[1] evaluates to 1 at x=1, 0 at x=2 (coefficient for y only in first constraint)
+// C[2] evaluates to 1 at x=1, 0 at x=2 (coefficient for z only in first constraint)</span></code></pre></div>
+</div></details></section></div></main></body></html>

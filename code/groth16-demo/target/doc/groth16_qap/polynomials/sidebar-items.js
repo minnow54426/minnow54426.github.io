@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["lagrange_interpolate","r1cs_to_qap"],"type":["QapPolynomials"]};

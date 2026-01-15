@@ -1,0 +1,48 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Checks if a witness polynomial is divisible by the target polynomial."><title>check_divisibility in groth16_qap::divisibility - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="groth16_qap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../groth16_qap/index.html">groth16_<wbr>qap</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><h2><a href="index.html">In groth16_<wbr>qap::<wbr>divisibility</a></h2></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Function <a href="../index.html">groth16_qap</a>::<wbr><a href="index.html">divisibility</a>::<wbr><a class="fn" href="#">check_divisibility</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../../src/groth16_qap/divisibility.rs.html#46-99">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub fn check_divisibility&lt;F&gt;(
+    witness: &amp;[<a class="struct" href="../../groth16_math/fields/struct.FieldWrapper.html" title="struct groth16_math::fields::FieldWrapper">FieldWrapper</a>&lt;F&gt;],
+    a_polynomials: &amp;[<a class="struct" href="../../groth16_math/polynomial/struct.Polynomial.html" title="struct groth16_math::polynomial::Polynomial">Polynomial</a>&lt;F&gt;],
+    b_polynomials: &amp;[<a class="struct" href="../../groth16_math/polynomial/struct.Polynomial.html" title="struct groth16_math::polynomial::Polynomial">Polynomial</a>&lt;F&gt;],
+    c_polynomials: &amp;[<a class="struct" href="../../groth16_math/polynomial/struct.Polynomial.html" title="struct groth16_math::polynomial::Polynomial">Polynomial</a>&lt;F&gt;],
+    target: &amp;<a class="struct" href="../../groth16_math/polynomial/struct.Polynomial.html" title="struct groth16_math::polynomial::Polynomial">Polynomial</a>&lt;F&gt;,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.82.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.82.0/std/primitive.bool.html">bool</a>, <a class="enum" href="../error/enum.QapError.html" title="enum groth16_qap::error::QapError">QapError</a>&gt;<div class="where">where
+    F: PrimeField,</div></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Checks if a witness polynomial is divisible by the target polynomial.</p>
+<p>Given witness values, QAP polynomials (A, B, C), and the target polynomial t(x),
+this function verifies that the witness satisfies all R1CS constraints by checking
+if p(x) / t(x) has no remainder.</p>
+<h2 id="arguments"><a class="doc-anchor" href="#arguments">§</a>Arguments</h2>
+<ul>
+<li><code>witness</code> - The witness assignment (z₀, z₁, …, zₘ)</li>
+<li><code>a_polynomials</code> - Vector of A polynomials [A₀(x), A₁(x), …, Aₘ(x)]</li>
+<li><code>b_polynomials</code> - Vector of B polynomials [B₀(x), B₁(x), …, Bₘ(x)]</li>
+<li><code>c_polynomials</code> - Vector of C polynomials [C₀(x), C₁(x), …, Cₘ(x)]</li>
+<li><code>target</code> - The target polynomial t(x) = ∏ᵢ₌₁ⁿ (x - i)</li>
+</ul>
+<h2 id="returns"><a class="doc-anchor" href="#returns">§</a>Returns</h2>
+<ul>
+<li><code>Ok(true)</code> - If p(x) is divisible by t(x) (witness is valid)</li>
+<li><code>Ok(false)</code> - If p(x) is not divisible by t(x) (witness is invalid)</li>
+<li><code>Err(QapError::MismatchedLengths)</code> - If witness length doesn’t match polynomial vectors</li>
+</ul>
+<h2 id="algorithm"><a class="doc-anchor" href="#algorithm">§</a>Algorithm</h2>
+<ol>
+<li>Compute a(x) = Σⱼ witness[j] · Aⱼ(x)</li>
+<li>Compute b(x) = Σⱼ witness[j] · Bⱼ(x)</li>
+<li>Compute c(x) = Σⱼ witness[j] · Cⱼ(x)</li>
+<li>Compute p(x) = a(x) · b(x) - c(x)</li>
+<li>Check if p(x) is divisible by t(x) using polynomial long division</li>
+</ol>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>groth16_qap::check_divisibility;
+<span class="kw">use </span>groth16_math::{fields::FieldWrapper, polynomial::Polynomial};
+<span class="kw">use </span>ark_bn254::Fq;
+
+<span class="comment">// Given QAP polynomials and witness from a valid R1CS instance
+</span><span class="kw">let </span>witness = <span class="macro">vec!</span>[FieldWrapper::&lt;Fq&gt;::from(<span class="number">1u64</span>), <span class="comment">/* ... */</span>];
+<span class="kw">let </span>a_polys = <span class="macro">vec!</span>[<span class="comment">/* ... */</span>];
+<span class="kw">let </span>b_polys = <span class="macro">vec!</span>[<span class="comment">/* ... */</span>];
+<span class="kw">let </span>c_polys = <span class="macro">vec!</span>[<span class="comment">/* ... */</span>];
+<span class="kw">let </span>target = Polynomial::&lt;Fq&gt; { <span class="comment">/* ... */ </span>};
+
+<span class="kw">let </span>is_valid = check_divisibility(<span class="kw-2">&amp;</span>witness, <span class="kw-2">&amp;</span>a_polys, <span class="kw-2">&amp;</span>b_polys, <span class="kw-2">&amp;</span>c_polys, <span class="kw-2">&amp;</span>target);
+<span class="macro">assert!</span>(is_valid.unwrap());</code></pre></div>
+</div></details></section></div></main></body></html>

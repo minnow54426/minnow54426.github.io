@@ -1,0 +1,25 @@
+[book]
+title = "Groth16 Zero-Knowledge Proofs: From Theory to Implementation"
+authors = ["Groth16 Demo Contributors"]
+description = "A comprehensive tutorial on Groth16 with rigorous mathematical detail and practical Rust implementation"
+language = "en"
+multilingual = false
+
+[build]
+build-dir = "book"
+create-missing = false
+
+[preprocessor]
+
+[renderer]
+mdbook = "mdbook"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/boycrypt/website"
+edit-url-template = "https://github.com/boycrypt/website/edit/main/code/groth16-demo/book/{path}"
+
+[output.html.search]
+enable = true
+limit-results = 30

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["batch_verify","verify_proof"]};

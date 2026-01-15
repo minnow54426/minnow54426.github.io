@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["generate_proof","generate_proof_test"],"struct":["Proof"]};

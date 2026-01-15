@@ -1,0 +1,441 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Mathematical Background - Groth16 Zero-Knowledge Proofs: From Theory to Implementation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive tutorial on Groth16 with rigorous mathematical detail and practical Rust implementation">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Groth16 Zero-Knowledge Proofs: From Theory to Implementation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/boycrypt/website" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/boycrypt/website/edit/main/code/groth16-demo/book/src/01-math-background.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="mathematical-background"><a class="header" href="#mathematical-background">Mathematical Background</a></h1>
+<p>Before diving into Groth16, we need to build some mathematical foundations. Don't worry - we'll connect everything to practical code!</p>
+<h2 id="learning-objectives"><a class="header" href="#learning-objectives">Learning Objectives</a></h2>
+<p>After this chapter, you will understand:</p>
+<ul>
+<li>Finite fields and modular arithmetic</li>
+<li>Polynomials and polynomial evaluation</li>
+<li>Lagrange interpolation</li>
+<li>Why polynomials are useful in zero-knowledge proofs</li>
+</ul>
+<h2 id="finite-fields"><a class="header" href="#finite-fields">Finite Fields</a></h2>
+<h3 id="what-is-a-field"><a class="header" href="#what-is-a-field">What is a Field?</a></h3>
+<p>A <strong>field</strong> is a mathematical structure where you can add, subtract, multiply, and divide (except by zero). Examples you know:</p>
+<ul>
+<li><strong>Rational numbers</strong> (ℚ): fractions like 3/4, -5/7</li>
+<li><strong>Real numbers</strong> (ℝ): decimals like 3.14, √2</li>
+<li><strong>Complex numbers</strong> (ℂ): a + bi</li>
+</ul>
+<h3 id="finite-fields-galois-fields"><a class="header" href="#finite-fields-galois-fields">Finite Fields (Galois Fields)</a></h3>
+<p>In cryptography, we use <strong>finite fields</strong> - fields with a finite number of elements. We denote a field of prime order p as <strong>𝔽ₚ</strong>.</p>
+<p><strong>Example</strong>: 𝔽₇ = {0, 1, 2, 3, 4, 5, 6} (integers modulo 7)</p>
+<h3 id="modular-arithmetic"><a class="header" href="#modular-arithmetic">Modular Arithmetic</a></h3>
+<p>Finite fields use <strong>modular arithmetic</strong> - arithmetic that wraps around.</p>
+<pre><code class="language-rust ignore">// In 𝔽₇:
+(5 + 4) % 7 = 9 % 7 = 2      // Addition wraps around
+(3 × 6) % 7 = 18 % 7 = 4     // Multiplication wraps around</code></pre>
+<p><strong>Key intuition</strong>: Think of a clock (modular arithmetic mod 12):</p>
+<ul>
+<li>10:00 + 5 hours = 3:00 (not 15:00!)</li>
+<li>9:00 - 12 hours = 9:00 (going backwards wraps)</li>
+</ul>
+<h3 id="in-practice-arkworks-finite-fields"><a class="header" href="#in-practice-arkworks-finite-fields">In Practice: arkworks Finite Fields</a></h3>
+<p>In our Rust code, we use <code>ark_bn254::Fr</code> - the scalar field for BN254 elliptic curve:</p>
+<pre><code class="language-rust ignore">use ark_bn254::Fr as ScalarField;
+use ark_ff::Field;
+
+// Field elements
+let a = ScalarField::from(5u64);
+let b = ScalarField::from(4u64);
+
+let sum = a + b;                          // Addition
+let product = a * b;                      // Multiplication
+let inverse = a.inverse().unwrap();       // Multiplicative inverse
+let square = a.square();                  // Exponentiation (a²)
+
+// All operations are modulo the field prime (automatically!)</code></pre>
+<p><strong>Run this example</strong>:</p>
+<pre><code class="language-bash">cargo run --example field_operations
+</code></pre>
+<h2 id="polynomials"><a class="header" href="#polynomials">Polynomials</a></h2>
+<h3 id="what-is-a-polynomial"><a class="header" href="#what-is-a-polynomial">What is a Polynomial?</a></h3>
+<p>A <strong>polynomial</strong> is an expression of variables and coefficients:</p>
+<pre><code class="language-text">P(x) = a₀ + a₁x + a₂x² + a₃x³ + ... + aₙxⁿ
+</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>aᵢ</code> are coefficients (from a field)</li>
+<li><code>x</code> is the variable</li>
+<li><code>n</code> is the degree</li>
+</ul>
+<p><strong>Example</strong>: <code>P(x) = 2 + 3x + x²</code> is a degree-2 polynomial</p>
+<h3 id="why-polynomials"><a class="header" href="#why-polynomials">Why Polynomials?</a></h3>
+<p>Polynomials are incredibly useful in zero-knowledge proofs because of this <strong>fundamental theorem</strong>:</p>
+<blockquote>
+<p><strong>Theorem</strong>: A degree-d polynomial is uniquely determined by d+1 points.</p>
+</blockquote>
+<p><strong>Implication</strong>: If two degree-d polynomials agree on d+1 points, they're identical!</p>
+<p>This is the foundation of QAP (Quadratic Arithmetic Programs).</p>
+<h3 id="polynomial-evaluation"><a class="header" href="#polynomial-evaluation">Polynomial Evaluation</a></h3>
+<p>Evaluating a polynomial means computing its value at a specific point:</p>
+<pre><code class="language-rust ignore">// Evaluate P(x) = 2 + 3x + x² at x = 5:
+P(5) = 2 + 3(5) + 5² = 2 + 15 + 25 = 42</code></pre>
+<p><strong>In code</strong>:</p>
+<pre><code class="language-rust ignore">use ark_ff::Field;
+use ark_bn254::Fr as ScalarField;
+
+// P(x) = 2 + 3x + x²
+fn evaluate_polynomial(x: ScalarField) -&gt; ScalarField {
+    ScalarField::from(2u64)
+        + ScalarField::from(3u64) * x
+        + x * x
+}
+
+let x = ScalarField::from(5u64);
+let result = evaluate_polynomial(x);
+// result = 42</code></pre>
+<h3 id="polynomial-interpolation"><a class="header" href="#polynomial-interpolation">Polynomial Interpolation</a></h3>
+<p><strong>Interpolation</strong> is the reverse of evaluation: given points, find the polynomial.</p>
+<p><strong>Lagrange Interpolation</strong> finds the unique polynomial passing through given points:</p>
+<pre><code class="language-text">Given: (1, 3), (2, 5), (3, 9)
+Find: P(x) such that P(1)=3, P(2)=5, P(3)=9
+</code></pre>
+<p><strong>Formula</strong>: For points (x₁, y₁), ..., (xₙ, yₙ):</p>
+<pre><code class="language-text">P(x) = Σ yᵢ · Lᵢ(x)
+</code></pre>
+<p>Where <code>Lᵢ(x)</code> is the i-th Lagrange basis polynomial:</p>
+<pre><code class="language-text">Lᵢ(x) = Π (x - xⱼ) / (xᵢ - xⱼ)  for all j ≠ i
+</code></pre>
+<p><strong>Example</strong> (simplified):</p>
+<p>Given points (1, 3), (2, 5):</p>
+<pre><code class="language-text">L₁(x) = (x - 2) / (1 - 2) = (x - 2) / -1 = 2 - x
+L₂(x) = (x - 1) / (2 - 1) = (x - 1) / 1 = x - 1
+
+P(x) = 3·L₁(x) + 5·L₂(x)
+     = 3(2 - x) + 5(x - 1)
+     = 6 - 3x + 5x - 5
+     = 1 + 2x
+
+Verify: P(1) = 1 + 2(1) = 3 ✓
+         P(2) = 1 + 2(2) = 5 ✓
+</code></pre>
+<h3 id="in-practice-using-arkworks"><a class="header" href="#in-practice-using-arkworks">In Practice: Using arkworks</a></h3>
+<pre><code class="language-rust ignore">use ark_poly::{
+    polynomial::univariate::DensePolynomial,
+    EvaluationDomain,
+    GeneralEvaluationDomain,
+};
+use ark_bn254::Fr as ScalarField;
+
+// Create polynomial: P(x) = 1 + 2x
+let coefficients = vec![
+    ScalarField::from(1u64),  // constant term
+    ScalarField::from(2u64),  // x term
+];
+let poly = DensePolynomial::from_coefficients_slice(&amp;coefficients);
+
+// Evaluate at x = 5
+let x = ScalarField::from(5u64);
+let result = poly.evaluate(&amp;x);
+// result = 1 + 2(5) = 11
+
+// Interpolate polynomial from points
+let domain = GeneralEvaluationDomain::new(8).unwrap();
+// ... (see Chapter 3 for full QAP interpolation)</code></pre>
+<h2 id="polynomial-division"><a class="header" href="#polynomial-division">Polynomial Division</a></h2>
+<h3 id="the-division-test"><a class="header" href="#the-division-test">The Division Test</a></h3>
+<p>A key insight in Groth16: <strong>A polynomial is divisible by another if and only if it evaluates to zero at all roots of the divisor</strong>.</p>
+<p><strong>Example</strong>: Let <code>T(x) = (x - 1)(x - 2)(x - 3)</code> (a "target polynomial")</p>
+<p>If <code>P(x) = H(x) · T(x)</code>, then:</p>
+<ul>
+<li><code>P(1) = H(1) · T(1) = H(1) · 0 = 0</code></li>
+<li><code>P(2) = H(2) · T(2) = H(2) · 0 = 0</code></li>
+<li><code>P(3) = H(3) · T(3) = H(3) · 0 = 0</code></li>
+</ul>
+<p><strong>Converse</strong>: If <code>P(1) = P(2) = P(3) = 0</code>, then <code>P(x)</code> is divisible by <code>T(x)</code>!</p>
+<p>This is the <strong>QAP satisfaction check</strong> in Groth16!</p>
+<h3 id="in-practice-polynomial-division"><a class="header" href="#in-practice-polynomial-division">In Practice: Polynomial Division</a></h3>
+<pre><code class="language-rust ignore">use ark_poly::polynomial::UVPolynomial;
+
+// P(x) = x³ - 6x² + 11x - 6
+// T(x) = (x - 1)(x - 2)(x - 3) = x³ - 6x² + 11x - 6
+// H(x) = P(x) / T(x) = 1
+
+let p = DensePolynomial::from_coefficients_slice(&amp;[
+    ScalarField::from(6u64),   // -6
+    ScalarField::from(11u64),  // 11x
+    ScalarField::from(6u64),   // -6x²
+    ScalarField::from(1u64),   // x³
+]);
+
+let t = DensePolynomial::from_coefficients_slice(&amp;[
+    ScalarField::from(6u64),
+    ScalarField::from(11u64),
+    ScalarField::from(6u64),
+    ScalarField::from(1u64),
+]);
+
+let h = &amp;p / &amp;t;
+// h = 1 (the quotient polynomial)</code></pre>
+<h2 id="connecting-to-groth16"><a class="header" href="#connecting-to-groth16">Connecting to Groth16</a></h2>
+<h3 id="the-big-picture"><a class="header" href="#the-big-picture">The Big Picture</a></h3>
+<ol>
+<li><strong>R1CS</strong> (Chapter 2): Encodes computation as matrix constraints</li>
+<li><strong>QAP</strong> (Chapter 3): Transforms R1CS to polynomial divisibility check</li>
+<li><strong>Pairings</strong> (Chapter 4): Allow us to check polynomial equations in the exponent</li>
+</ol>
+<p><strong>Key insight</strong>: Checking if a polynomial division works is equivalent to checking if the computation is correct!</p>
+<h3 id="example-multiplier-circuit"><a class="header" href="#example-multiplier-circuit">Example: Multiplier Circuit</a></h3>
+<p>For <code>a × b = c</code>:</p>
+<ol>
+<li><strong>R1CS form</strong>: <code>Az ∘ Bz = Cz</code> where <code>z = [1, a, b, c]</code></li>
+<li><strong>QAP form</strong>: <code>P(x) = H(x) · T(x)</code> where <code>P(x) = A(x) · B(x) - C(x)</code></li>
+<li><strong>Verification</strong>: Check if <code>P(x)</code> is divisible by <code>T(x)</code> using pairings</li>
+</ol>
+<p>We'll see this in detail in Chapters 2 and 3!</p>
+<h2 id="exercises"><a class="header" href="#exercises">Exercises</a></h2>
+<ol>
+<li>
+<p><strong>Field arithmetic</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// In 𝔽₇, compute:
+// (3 + 5) × (2 + 4)
+<span class="boring">}</span></code></pre></pre>
+<p>What's the result? Check with Rust code.</p>
+</li>
+<li>
+<p><strong>Polynomial evaluation</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// P(x) = 3 + 2x - x²
+// Compute P(4) in 𝔽₇
+<span class="boring">}</span></code></pre></pre>
+<p>Hint: Be careful with negative numbers!</p>
+</li>
+<li>
+<p><strong>Interpolation intuition</strong>:</p>
+<ul>
+<li>Given 2 points, how many degree-1 polynomials pass through them?</li>
+<li>Given 3 points, how many degree-2 polynomials pass through them?</li>
+<li>Given 3 points, how many degree-3 polynomials pass through them?</li>
+</ul>
+</li>
+<li>
+<p><strong>Polynomial divisibility</strong>:</p>
+<pre><code class="language-text">P(x) = x³ - 6x² + 11x - 6
+T(x) = (x - 1)(x - 2)(x - 3)
+</code></pre>
+<p>Is P(x) divisible by T(x)? Verify by evaluating P(x) at x=1, 2, 3.</p>
+</li>
+</ol>
+<h2 id="further-reading"><a class="header" href="#further-reading">Further Reading</a></h2>
+<ul>
+<li><strong>Finite Fields</strong>: <a href="https://en.wikipedia.org/wiki/Finite_field">Wikipedia: Finite Field</a></li>
+<li><strong>Polynomials</strong>: <a href="https://www.khanacademy.org/math/algebra2/x2ec2f6f830c9fb89:poly">Khan Academy: Polynomials</a></li>
+<li><strong>Interpolation</strong>: <a href="https://brilliant.org/wiki/lagrange-interpolation/">Brilliant: Lagrange Interpolation</a></li>
+</ul>
+<hr />
+<p><strong>Ready to encode computations? Continue to <a href="./02-r1cs.html">Chapter 2: Rank-1 Constraint Systems</a></strong></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="00-introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="02-r1cs.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="00-introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="02-r1cs.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

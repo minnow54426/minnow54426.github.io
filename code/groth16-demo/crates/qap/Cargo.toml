@@ -1,0 +1,22 @@
+[package]
+name = "groth16-qap"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+groth16-math = { path = "../math" }
+groth16-r1cs = { path = "../r1cs" }
+
+ark-ff = { workspace = true }
+ark-poly = { workspace = true }
+
+serde = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+ark-bn254 = { workspace = true }

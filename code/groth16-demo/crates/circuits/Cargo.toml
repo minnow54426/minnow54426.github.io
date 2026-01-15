@@ -1,0 +1,43 @@
+[package]
+name = "groth16-circuits"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+groth16-math = { path = "../math" }
+groth16-r1cs = { path = "../r1cs" }
+groth16-qap = { path = "../qap" }
+groth16 = { path = "../groth16" }
+
+ark-ff = { workspace = true }
+ark-ec = { workspace = true }
+ark-bn254 = { workspace = true }
+ark-relations = { version = "0.4" }
+ark-r1cs-std = { version = "0.4" }
+ark-crypto-primitives = { version = "0.4" }
+
+serde = { workspace = true }
+anyhow = { workspace = true }
+
+[[bin]]
+name = "multiplier-demo"
+path = "examples/multiplier_demo.rs"
+
+[[bin]]
+name = "cubic-demo"
+path = "examples/cubic_demo.rs"
+
+[[bin]]
+name = "hash-preimage-demo"
+path = "examples/hash_preimage_demo.rs"
+
+[[bin]]
+name = "merkle-demo"
+path = "examples/merkle_demo.rs"
+
+[[bin]]
+name = "range-proof-demo"
+path = "examples/range_proof_demo.rs"
