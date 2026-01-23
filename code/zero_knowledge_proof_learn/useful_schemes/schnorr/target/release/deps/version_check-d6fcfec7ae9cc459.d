@@ -1,0 +1,10 @@
+/Users/boycrypt/code/python/website/.worktrees/schnorr-bip340/code/zero_knowledge_proof_learn/useful_schemes/schnorr/target/release/deps/version_check-d6fcfec7ae9cc459.d: /Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/lib.rs /Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/version.rs /Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/channel.rs /Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/date.rs
+
+/Users/boycrypt/code/python/website/.worktrees/schnorr-bip340/code/zero_knowledge_proof_learn/useful_schemes/schnorr/target/release/deps/libversion_check-d6fcfec7ae9cc459.rlib: /Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/lib.rs /Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/version.rs /Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/channel.rs /Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/date.rs
+
+/Users/boycrypt/code/python/website/.worktrees/schnorr-bip340/code/zero_knowledge_proof_learn/useful_schemes/schnorr/target/release/deps/libversion_check-d6fcfec7ae9cc459.rmeta: /Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/lib.rs /Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/version.rs /Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/channel.rs /Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/date.rs
+
+/Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/lib.rs:
+/Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/version.rs:
+/Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/channel.rs:
+/Users/boycrypt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/date.rs:

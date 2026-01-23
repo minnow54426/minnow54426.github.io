@@ -2,8 +2,8 @@
 //!
 //! Note: This requires the secp256k1 crate with Schnorr support
 
-use schnorr::{KeyPair, PublicKey};
 use rand::rngs::OsRng;
+use schnorr::KeyPair;
 
 #[test]
 #[ignore] // Run manually: cargo test --test cross_validation -- --ignored
