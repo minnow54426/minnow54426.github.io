@@ -41,11 +41,15 @@ impl Error {
 
             // Verify errors
             Error::Verify(VerifyError::InvalidProof) => ErrorKind::InvalidProof,
-            Error::Verify(VerifyError::ProofVerificationFailed) => ErrorKind::ProofVerificationFailed,
+            Error::Verify(VerifyError::ProofVerificationFailed) => {
+                ErrorKind::ProofVerificationFailed
+            }
             Error::Verify(VerifyError::PublicInputsIncorrect) => ErrorKind::PublicInputsIncorrect,
 
             // Serialization errors
-            Error::Serialization(SerializationError::DeserializationFailed) => ErrorKind::DeserializationFailed,
+            Error::Serialization(SerializationError::DeserializationFailed) => {
+                ErrorKind::DeserializationFailed
+            }
             Error::Serialization(SerializationError::VersionMismatch) => ErrorKind::VersionMismatch,
 
             // IO errors map to Unknown

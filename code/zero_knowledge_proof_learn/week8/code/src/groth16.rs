@@ -4,7 +4,7 @@
 //! the Groth16 zk-SNARK protocol.
 
 use crate::circuit::Groth16Circuit;
-use crate::error::{Error, SetupError, Result};
+use crate::error::{Error, Result, SetupError};
 use ark_bn254::Fr;
 
 /// Proving parameters generated during trusted setup

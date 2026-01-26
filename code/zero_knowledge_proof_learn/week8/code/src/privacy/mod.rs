@@ -12,11 +12,11 @@
 //! // Later: prove knowledge of value in range [min, max]
 //! ```
 
-use ark_relations::r1cs::ConstraintSystemRef;
-use serde::{Deserialize, Serialize};
 use crate::circuit::Groth16Circuit;
 use crate::error::{CircuitError, PrivacyError, Result};
 use ark_bn254::Fr;
+use ark_relations::r1cs::ConstraintSystemRef;
+use serde::{Deserialize, Serialize};
 
 /// Privacy circuit for range proofs
 ///
@@ -61,10 +61,7 @@ impl Groth16Circuit<Fr> for PrivacyCircuit {
     /// Private witness: the secret value
     type Witness = u64;
 
-    fn generate_constraints(
-        _cs: ConstraintSystemRef<Fr>,
-        _witness: &Self::Witness,
-    ) -> Result<()> {
+    fn generate_constraints(_cs: ConstraintSystemRef<Fr>, _witness: &Self::Witness) -> Result<()> {
         // Stub implementation - TODO: Implement actual range proof constraints
         Ok(())
     }

@@ -1,7 +1,7 @@
 //! Tests for Identity circuit basic functionality
 
-use zk_groth16_snark::identity::IdentityCircuit;
 use ark_bn254::Fr;
+use zk_groth16_snark::identity::IdentityCircuit;
 
 #[test]
 fn test_identity_circuit_new() {

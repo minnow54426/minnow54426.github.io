@@ -11,11 +11,11 @@
 //! // Later: prove knowledge of preimage that hashes to this value
 //! ```
 
-use ark_relations::r1cs::ConstraintSystemRef;
-use serde::{Deserialize, Serialize};
 use crate::circuit::Groth16Circuit;
 use crate::error::{CircuitError, IdentityError, Result};
 use ark_bn254::Fr;
+use ark_relations::r1cs::ConstraintSystemRef;
+use serde::{Deserialize, Serialize};
 
 /// Identity circuit for hash preimage proofs
 ///
@@ -57,10 +57,7 @@ impl Groth16Circuit<Fr> for IdentityCircuit {
     /// Private witness: the preimage (secret)
     type Witness = Vec<u8>;
 
-    fn generate_constraints(
-        _cs: ConstraintSystemRef<Fr>,
-        _witness: &Self::Witness,
-    ) -> Result<()> {
+    fn generate_constraints(_cs: ConstraintSystemRef<Fr>, _witness: &Self::Witness) -> Result<()> {
         // Stub implementation - TODO: Implement actual hash constraints
         Ok(())
     }

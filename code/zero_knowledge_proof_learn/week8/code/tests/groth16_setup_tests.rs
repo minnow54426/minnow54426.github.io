@@ -1,9 +1,9 @@
 //! Tests for Groth16 setup functionality
 
-use zk_groth16_snark::circuit::Groth16Circuit;
-use zk_groth16_snark::groth16;
-use zk_groth16_snark::error::SetupError;
 use ark_bn254::Fr;
+use zk_groth16_snark::circuit::Groth16Circuit;
+use zk_groth16_snark::error::SetupError;
+use zk_groth16_snark::groth16;
 
 /// Simple test circuit for setup testing
 struct TestCircuit;
@@ -38,5 +38,8 @@ fn test_setup_basic() {
     let result = groth16::setup(&circuit);
 
     // For now, expect SetupFailed
-    assert!(matches!(result, Err(zk_groth16_snark::Error::Setup(SetupError::SetupFailed))));
+    assert!(matches!(
+        result,
+        Err(zk_groth16_snark::Error::Setup(SetupError::SetupFailed))
+    ));
 }

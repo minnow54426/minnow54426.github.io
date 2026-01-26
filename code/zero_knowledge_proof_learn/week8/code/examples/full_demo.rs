@@ -7,10 +7,10 @@
 //!
 //! It shows the current state of implementation for each circuit.
 
-use zk_groth16_snark::Groth16Circuit;
 use zk_groth16_snark::identity::IdentityCircuit;
 use zk_groth16_snark::membership::MembershipCircuit;
 use zk_groth16_snark::privacy::PrivacyCircuit;
+use zk_groth16_snark::Groth16Circuit;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== zk-groth16-snark Full Demo ===\n");

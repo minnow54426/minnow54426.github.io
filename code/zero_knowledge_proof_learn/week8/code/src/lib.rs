@@ -31,19 +31,18 @@
 //! cargo run --example full_demo
 //! ```
 
-pub mod error;
 pub mod circuit;
-pub mod utils;
+pub mod error;
 pub mod groth16;
 pub mod identity;
-pub mod privacy;
 pub mod membership;
+pub mod privacy;
+pub mod utils;
 
 // Re-exports for convenience
 pub use error::{
-    Error, ErrorKind, Result,
-    CircuitError, SetupError, ProveError, VerifyError, SerializationError,
-    IdentityError, MembershipError, PrivacyError,
+    CircuitError, Error, ErrorKind, IdentityError, MembershipError, PrivacyError, ProveError,
+    Result, SerializationError, SetupError, VerifyError,
 };
 // pub use groth16::{setup, verify};
 

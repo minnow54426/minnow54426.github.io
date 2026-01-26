@@ -1,7 +1,7 @@
+use crate::Result;
 use ark_ff::Field;
 use ark_relations::r1cs::ConstraintSystemRef;
 use serde::{Deserialize, Serialize};
-use crate::Result;
 
 /// Core trait that all Groth16 circuits must implement
 pub trait Groth16Circuit<F: Field> {
@@ -15,10 +15,7 @@ pub trait Groth16Circuit<F: Field> {
     type Witness: Clone + Serialize + for<'de> Deserialize<'de>;
 
     /// Generate constraint system
-    fn generate_constraints(
-        cs: ConstraintSystemRef<F>,
-        witness: &Self::Witness,
-    ) -> Result<()>;
+    fn generate_constraints(cs: ConstraintSystemRef<F>, witness: &Self::Witness) -> Result<()>;
 
     /// Create witness from private inputs
     fn generate_witness(&self) -> Result<Self::Witness>;

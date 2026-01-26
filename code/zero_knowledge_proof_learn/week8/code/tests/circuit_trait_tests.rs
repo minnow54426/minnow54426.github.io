@@ -1,5 +1,5 @@
-use zk_groth16_snark::circuit::Groth16Circuit;
 use ark_bls12_381::Fr;
+use zk_groth16_snark::circuit::Groth16Circuit;
 
 #[test]
 fn test_circuit_name() {
@@ -66,4 +66,3 @@ fn test_circuit_methods() {
     assert_eq!(witness, vec![1, 2, 3, 4]);
     assert_eq!(public_inputs, vec![1, 2, 3, 4]);
 }
-

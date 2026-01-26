@@ -1,4 +1,4 @@
-use zk_groth16_snark::utils::serialization::{serialize_proof, deserialize_proof};
+use zk_groth16_snark::utils::serialization::{deserialize_proof, serialize_proof};
 
 #[test]
 fn test_proof_serialization() {

@@ -11,11 +11,11 @@
 //! // Later: prove knowledge of leaf and path that hashes to root
 //! ```
 
-use ark_relations::r1cs::ConstraintSystemRef;
-use serde::{Deserialize, Serialize};
 use crate::circuit::Groth16Circuit;
 use crate::error::{CircuitError, MembershipError, Result};
 use ark_bn254::Fr;
+use ark_relations::r1cs::ConstraintSystemRef;
+use serde::{Deserialize, Serialize};
 
 /// Membership circuit for Merkle tree inclusion proofs
 ///
@@ -57,10 +57,7 @@ impl Groth16Circuit<Fr> for MembershipCircuit {
     /// Private witness: leaf and Merkle path
     type Witness = (Vec<u8>, Vec<[u8; 32]>);
 
-    fn generate_constraints(
-        _cs: ConstraintSystemRef<Fr>,
-        _witness: &Self::Witness,
-    ) -> Result<()> {
+    fn generate_constraints(_cs: ConstraintSystemRef<Fr>, _witness: &Self::Witness) -> Result<()> {
         // Stub implementation - TODO: Implement actual Merkle path constraints
         Ok(())
     }
