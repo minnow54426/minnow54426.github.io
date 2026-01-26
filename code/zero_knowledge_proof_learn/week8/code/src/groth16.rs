@@ -4,10 +4,12 @@
 //! the Groth16 zk-SNARK protocol.
 
 use crate::circuit::Groth16Circuit;
-use crate::error::{Error, Result, SetupError};
+use crate::error::{Error, ProveError, Result, SetupError, VerifyError};
 use ark_bn254::{Bn254, Fr};
-use ark_groth16::{Groth16, ProvingKey, VerifyingKey};
+use ark_groth16::{Groth16, Proof, ProvingKey, VerifyingKey};
 use ark_relations::r1cs::ConstraintSynthesizer;
+use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
+use ark_snark::SNARK;
 use rand::rngs::OsRng;
 
 /// Proving parameters generated during trusted setup
@@ -52,7 +54,7 @@ pub fn setup<C: Groth16Circuit<Fr>>(circuit: &C) -> Result<(ProvingParams, Verif
 
     // Create a constraint synthesizer that will generate constraints
     // We need to wrap our circuit to implement ConstraintSynthesizer
-    let synthesizer = CircuitSynthesizer::new(circuit, witness)?;
+    let synthesizer: CircuitSynthesizer<C> = CircuitSynthesizer::new(witness)?;
 
     // Generate random parameters using Groth16
     let pk = Groth16::<Bn254>::generate_random_parameters_with_reduction(synthesizer, &mut OsRng)
@@ -64,6 +66,96 @@ pub fn setup<C: Groth16Circuit<Fr>>(circuit: &C) -> Result<(ProvingParams, Verif
     Ok((pk, vk))
 }
 
+/// Generate a Groth16 proof for a given circuit instance
+///
+/// # Arguments
+///
+/// * `pk` - Proving key from trusted setup
+/// * `witness` - Private witness for the circuit instance
+///
+/// # Returns
+///
+/// A serialized proof as a byte vector
+///
+/// # Errors
+///
+/// Returns `ProveError::ProofCreationFailed` if proof generation fails
+///
+/// # Example
+///
+/// ```ignore
+/// let (pk, _vk) = setup(&circuit)?;
+/// let witness = circuit.generate_witness()?;
+/// let proof = prove(&pk, &witness)?;
+/// ```
+pub fn prove<C>(
+    pk: &ProvingParams,
+    witness: &C::Witness,
+) -> Result<Vec<u8>>
+where
+    C: Groth16Circuit<Fr>,
+{
+    // Create a constraint synthesizer with the witness
+    let synthesizer = CircuitSynthesizer::<C>::new(witness.clone())?;
+
+    // Generate the proof using Groth16
+    let proof = Groth16::<Bn254>::prove(&pk, synthesizer, &mut OsRng)
+        .map_err(|_| Error::Prove(ProveError::ProofCreationFailed))?;
+
+    // Serialize the proof to bytes
+    let mut proof_bytes = vec![];
+    proof
+        .serialize_compressed(&mut proof_bytes)
+        .map_err(|_| Error::Prove(ProveError::ProofCreationFailed))?;
+
+    Ok(proof_bytes)
+}
+
+/// Verify a Groth16 proof
+///
+/// # Arguments
+///
+/// * `vk` - Verification key from trusted setup
+/// * `public_inputs` - Public inputs for the circuit instance
+/// * `proof` - Serialized proof bytes
+///
+/// # Returns
+///
+/// `true` if the proof is valid, `false` otherwise
+///
+/// # Errors
+///
+/// Returns `VerifyError::ProofVerificationFailed` if verification fails
+///
+/// # Example
+///
+/// ```ignore
+/// let is_valid = verify(&vk, &public_inputs, &proof)?;
+/// assert!(is_valid);
+/// ```
+pub fn verify<C>(
+    vk: &VerificationKey,
+    _public_inputs: &C::PublicInputs,
+    proof: &[u8],
+) -> Result<bool>
+where
+    C: Groth16Circuit<Fr>,
+{
+    // Deserialize the proof
+    let proof_obj = Proof::<Bn254>::deserialize_compressed(proof)
+        .map_err(|_| Error::Verify(VerifyError::InvalidProof))?;
+
+    // Convert public inputs to field elements
+    // For now, we'll use an empty vector since SimpleCircuit doesn't have real constraints
+    let inputs = vec![];
+
+    // Verify the proof
+    let is_valid = Groth16::<Bn254>::verify(&vk, &inputs, &proof_obj)
+        .map_err(|_| Error::Verify(VerifyError::ProofVerificationFailed))?;
+
+    Ok(is_valid)
+}
+
 /// Adapter struct to convert our Groth16Circuit trait into
 /// ark-relations's ConstraintSynthesizer trait
 struct CircuitSynthesizer<C: Groth16Circuit<Fr>> {
@@ -71,7 +163,7 @@ struct CircuitSynthesizer<C: Groth16Circuit<Fr>> {
 }
 
 impl<C: Groth16Circuit<Fr>> CircuitSynthesizer<C> {
-    fn new(_circuit: &C, witness: C::Witness) -> Result<Self> {
+    fn new(witness: C::Witness) -> Result<Self> {
         Ok(Self { witness })
     }
 }

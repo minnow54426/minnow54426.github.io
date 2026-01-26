@@ -44,7 +44,7 @@ pub use error::{
     CircuitError, Error, ErrorKind, IdentityError, MembershipError, PrivacyError, ProveError,
     Result, SerializationError, SetupError, VerifyError,
 };
-// pub use groth16::{setup, verify};
+pub use groth16::{setup, prove, verify};
 
 // Re-export circuit traits
 pub use circuit::Groth16Circuit;
