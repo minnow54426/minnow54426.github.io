@@ -5,43 +5,48 @@
 //! without revealing the password itself.
 
 use sha2::{Digest, Sha256};
+use zk_groth16_snark::groth16::{setup, prove, verify};
 use zk_groth16_snark::identity::IdentityCircuit;
 use zk_groth16_snark::Groth16Circuit;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("=== Identity Proof Example ===\n");
+    println!("=== Identity Circuit Demo ===\n");
 
-    // Simulate a password hash (in real use, this would be stored securely)
     let password = "my_secret_password";
-    let mut hasher = Sha256::new();
-    hasher.update(password.as_bytes());
-    let hash: [u8; 32] = hasher.finalize().into();
+    let password_hash = sha256(password.as_bytes());
+    println!("Password hash: {:02x?}", password_hash);
 
-    println!("Password hash (public):");
-    println!("  {:?}\n", hash);
+    let circuit = IdentityCircuit::new(password_hash, password.len());
 
-    // Create the identity circuit with the public hash
-    let circuit = IdentityCircuit::new(hash);
-    println!("Circuit name: {}", IdentityCircuit::circuit_name());
-    println!("Circuit created successfully!\n");
+    // Setup
+    println!("\n[1/3] Running trusted setup...");
+    let (pk, vk) = setup::<IdentityCircuit>(&circuit)?;
+    println!("  ✓ Setup complete");
 
-    // TODO: Setup trusted ceremony
-    // let params = setup::<Bn254, _>(circuit, &mut rng)?;
+    // Prove
+    println!("\n[2/3] Generating proof...");
+    let witness = circuit.generate_witness_for_preimage(password.as_bytes().to_vec());
+    let public_inputs = IdentityCircuit::public_inputs(&witness);
+    let proof = prove::<IdentityCircuit>(&pk, &witness)?;
+    println!("  ✓ Proof generated: {} bytes", proof.len());
 
-    // TODO: Generate proof
-    // let proof = prove(&params, circuit, witness)?;
+    // Verify
+    println!("\n[3/3] Verifying proof...");
+    let is_valid = verify::<IdentityCircuit>(&vk, &public_inputs, &proof)?;
+    println!("  Verification: {}", if is_valid { "✓ VALID" } else { "✗ INVALID" });
 
-    // TODO: Verify proof
-    // let verified = verify(&params, &pvk, &proof, &public_inputs)?;
-
-    println!("=== Next Steps ===");
-    println!("1. Implement setup() in groth16.rs");
-    println!("2. Implement prove() in groth16.rs");
-    println!("3. Implement verify() in groth16.rs");
-    println!("4. Implement hash constraints in identity circuit");
-    println!("5. Run this example again to generate and verify a proof!\n");
-
-    println!("Example completed successfully!");
+    if is_valid {
+        println!("\n✅ Success! Password proven without revealing it");
+    }
 
     Ok(())
+}
+
+fn sha256(data: &[u8]) -> [u8; 32] {
+    let mut hasher = Sha256::new();
+    hasher.update(data);
+    let result = hasher.finalize();
+    let mut hash = [0u8; 32];
+    hash.copy_from_slice(&result);
+    hash
 }
