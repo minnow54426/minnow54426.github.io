@@ -1,0 +1,1 @@
+<LinearCombination<ark_ff::Fp<MontBackend<FrConfig, 4>, 4>> as Sub<_>>::Output == LinearCombination<ark_ff::Fp<MontBackend<FrConfig, 4>, 4>>

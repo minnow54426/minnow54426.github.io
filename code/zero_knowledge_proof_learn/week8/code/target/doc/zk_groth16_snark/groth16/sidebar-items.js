@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["prove","setup","verify"],"type":["ProvingParams","VerificationKey"]};

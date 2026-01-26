@@ -1,0 +1,9 @@
+(function() {
+    var implementors = Object.fromEntries([["zk_groth16_snark",[["impl&lt;'de&gt; <a class=\"trait\" href=\"https://docs.rs/serde_core/1.0.228/serde_core/de/trait.Deserialize.html\" title=\"trait serde_core::de::Deserialize\">Deserialize</a>&lt;'de&gt; for <a class=\"struct\" href=\"zk_groth16_snark/identity/struct.IdentityCircuit.html\" title=\"struct zk_groth16_snark::identity::IdentityCircuit\">IdentityCircuit</a>"],["impl&lt;'de&gt; <a class=\"trait\" href=\"https://docs.rs/serde_core/1.0.228/serde_core/de/trait.Deserialize.html\" title=\"trait serde_core::de::Deserialize\">Deserialize</a>&lt;'de&gt; for <a class=\"struct\" href=\"zk_groth16_snark/membership/struct.MembershipCircuit.html\" title=\"struct zk_groth16_snark::membership::MembershipCircuit\">MembershipCircuit</a>"],["impl&lt;'de&gt; <a class=\"trait\" href=\"https://docs.rs/serde_core/1.0.228/serde_core/de/trait.Deserialize.html\" title=\"trait serde_core::de::Deserialize\">Deserialize</a>&lt;'de&gt; for <a class=\"struct\" href=\"zk_groth16_snark/privacy/struct.PrivacyCircuit.html\" title=\"struct zk_groth16_snark::privacy::PrivacyCircuit\">PrivacyCircuit</a>"],["impl&lt;'de&gt; <a class=\"trait\" href=\"https://docs.rs/serde_core/1.0.228/serde_core/de/trait.Deserialize.html\" title=\"trait serde_core::de::Deserialize\">Deserialize</a>&lt;'de&gt; for <a class=\"struct\" href=\"zk_groth16_snark/privacy/struct.PrivacyWitness.html\" title=\"struct zk_groth16_snark::privacy::PrivacyWitness\">PrivacyWitness</a>"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[1458]}

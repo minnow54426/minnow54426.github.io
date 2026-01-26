@@ -1,2 +1,2 @@
-createSrcSidebar('[["zk_groth16_snark",["",[],["error.rs","lib.rs"]]]]');
-//{"start":19,"fragment_lengths":[50]}
+createSrcSidebar('[["zk_groth16_snark",["",[["identity",[],["mod.rs"]],["membership",[],["mod.rs"]],["privacy",[],["mod.rs"]],["utils",[],["fields.rs","mod.rs","serialization.rs"]]],["circuit.rs","error.rs","groth16.rs","lib.rs"]]],["zk_groth16_snark",["",[],["error.rs","lib.rs"]]]]');
+//{"start":19,"fragment_lengths":[212,51]}

@@ -29,6 +29,7 @@ impl Error {
             Error::Circuit(CircuitError::Identity(_)) => ErrorKind::InvalidWitness,
             Error::Circuit(CircuitError::Membership(_)) => ErrorKind::InvalidWitness,
             Error::Circuit(CircuitError::Privacy(_)) => ErrorKind::InvalidWitness,
+            Error::Circuit(CircuitError::SynthesisError(_)) => ErrorKind::ConstraintViolation,
 
             // Setup errors
             Error::Setup(SetupError::ParametersAlreadyExist) => ErrorKind::ParametersAlreadyExist,
@@ -86,6 +87,15 @@ pub enum CircuitError {
 
     #[error("Privacy circuit error: {0}")]
     Privacy(#[from] PrivacyError),
+
+    #[error("Constraint synthesis error: {0}")]
+    SynthesisError(String),
+}
+
+impl From<ark_relations::r1cs::SynthesisError> for CircuitError {
+    fn from(err: ark_relations::r1cs::SynthesisError) -> Self {
+        CircuitError::SynthesisError(err.to_string())
+    }
 }
 
 #[derive(Error, Debug)]
