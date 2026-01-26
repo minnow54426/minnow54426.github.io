@@ -33,12 +33,12 @@
 
 pub mod error;
 pub mod circuit;
+pub mod utils;
 
 // pub mod groth16;
 // pub mod identity;
 // pub mod membership;
 // pub mod privacy;
-// pub mod utils;
 
 // Re-exports for convenience
 pub use error::{
