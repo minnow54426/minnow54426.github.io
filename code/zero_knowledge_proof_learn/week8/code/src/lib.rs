@@ -9,19 +9,7 @@
 //!
 //! ## Quick Start
 //!
-//! ```rust
-//! use zk_groth16_snark::{identity, setup, prove, verify};
-//!
-//! // 1. Setup: Generate parameters
-//! let circuit = identity::IdentityCircuit::new(public_hash);
-//! let (pk, vk) = setup(&circuit)?;
-//!
-//! // 2. Prove: Generate proof
-//! let proof = prove(&pk, &witness)?;
-//!
-//! // 3. Verify: Check proof
-//! let is_valid = verify(&vk, &public_inputs, &proof)?;
-//! ```
+//! TODO: Add quick start example when modules are implemented.
 //!
 //! ## Modules
 //!
@@ -43,22 +31,25 @@
 //! cargo run --example full_demo
 //! ```
 
-pub mod circuit;
 pub mod error;
-pub mod groth16;
 
-pub mod identity;
-pub mod membership;
-pub mod privacy;
-
-pub mod utils;
+// pub mod circuit;
+// pub mod groth16;
+// pub mod identity;
+// pub mod membership;
+// pub mod privacy;
+// pub mod utils;
 
 // Re-exports for convenience
-pub use error::{Error, ErrorKind, Result};
-pub use groth16::{setup, verify};
+pub use error::{
+    Error, ErrorKind, Result,
+    CircuitError, SetupError, ProveError, VerifyError, SerializationError,
+    IdentityError, MembershipError, PrivacyError,
+};
+// pub use groth16::{setup, verify};
 
 // Re-export circuit traits
-pub use circuit::Groth16Circuit;
+// pub use circuit::Groth16Circuit;
 
 /// Version information
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
