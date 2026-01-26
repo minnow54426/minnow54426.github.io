@@ -1,0 +1,165 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="SRS (Structured Reference String) generation and loading"><title>kzg10::setup - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="kzg10" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../kzg10/index.html">kzg10</a><span class="version">0.1.0</span></h2></div><h2 class="location"><a href="#">Module setup</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#structs">Structs</a></li></ul></section><h2><a href="../index.html">In crate kzg10</a></h2></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Module <a href="../index.html">kzg10</a>::<wbr><a class="mod" href="#">setup</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../../src/kzg10/setup.rs.html#1-1040">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>SRS (Structured Reference String) generation and loading</p>
+<p>This module handles the <strong>trusted setup</strong> for the KZG10 polynomial commitment scheme.</p>
+<h2 id="critical-security-warning"><a class="doc-anchor" href="#critical-security-warning">§</a>CRITICAL SECURITY WARNING</h2><h3 id="the-toxic-waste-problem"><a class="doc-anchor" href="#the-toxic-waste-problem">§</a>The Toxic Waste Problem</h3>
+<p>The SRS generation requires a <strong>secret value <code>s</code></strong> (called “toxic waste”) that:</p>
+<ol>
+<li>
+<p><strong>MUST be kept secret</strong> - If <code>s</code> is known, an attacker can:</p>
+<ul>
+<li>Forge arbitrary polynomial commitments</li>
+<li>Create fake proofs that verify correctly</li>
+<li>Break the entire security of the KZG10 scheme</li>
+</ul>
+</li>
+<li>
+<p><strong>MUST be destroyed after use</strong> - Even if <code>s</code> is used in a ceremony, it must be:</p>
+<ul>
+<li>Zeroized from memory immediately after computing powers</li>
+<li>Never written to disk, logs, or crash dumps</li>
+<li>Never transmitted over any network</li>
+</ul>
+</li>
+<li>
+<p><strong>MUST be generated securely</strong> - The entropy source for <code>s</code> must be:</p>
+<ul>
+<li>Cryptographically secure random number generator</li>
+<li>Not predictable or reproducible by attackers</li>
+<li>Sufficiently large (field element, ~254 bits for BLS12-381)</li>
+</ul>
+</li>
+</ol>
+<h3 id="production-requirements"><a class="doc-anchor" href="#production-requirements">§</a>Production Requirements</h3>
+<p>In production, you <strong>NEVER</strong> generate the SRS yourself. Instead:</p>
+<ol>
+<li>
+<p><strong>Participate in a Multi-Party Computation (MPC) ceremony</strong> where:</p>
+<ul>
+<li>Multiple participants contribute randomness</li>
+<li>No single participant knows the final <code>s</code></li>
+<li>Each participant verifies the previous contribution</li>
+<li>The ceremony is publicly verifiable and auditable</li>
+</ul>
+</li>
+<li>
+<p><strong>Use a trusted ceremony output</strong> such as:</p>
+<ul>
+<li>Ethereum’s KZG ceremony (for Proto-Danksharding)</li>
+<li>Celo’s ceremony</li>
+<li>Perpetual Powers of Tau ceremony</li>
+</ul>
+</li>
+<li>
+<p><strong>Verify the ceremony transcript</strong> before using the SRS:</p>
+<ul>
+<li>Check all powers of <code>s</code> are consistent</li>
+<li>Verify pairing checks: e(sⁱ·G₁, H₂) = e(G₁, sⁱ·H₂)</li>
+<li>Ensure the degree is sufficient for your use case</li>
+</ul>
+</li>
+</ol>
+<h3 id="mathematical-background"><a class="doc-anchor" href="#mathematical-background">§</a>Mathematical Background</h3>
+<p>The SRS contains powers of the secret <code>s</code> multiplied by group generators:</p>
+<div class="example-wrap"><pre class="language-text"><code>SRS = {
+    G₁, s·G₁, s²·G₁, ..., sⁿ·G₁  in G₁ (for commitments)
+    H₂, s·H₂                      in G₂ (for verification)
+}
+
+where:
+- G₁ is generator of G₁ group (order r curve points)
+- H₂ is generator of G₂ group (order r curve points)
+- s is the toxic secret (scalar field element)
+- n is the maximum polynomial degree supported
+</code></pre></div><h4 id="why-this-structure"><a class="doc-anchor" href="#why-this-structure">§</a>Why This Structure?</h4>
+<ol>
+<li>
+<p><strong>Commitment</strong>: To commit to polynomial P(x) = Σ cᵢ·xⁱ:</p>
+<div class="example-wrap"><pre class="language-text"><code>C = Σ cᵢ · (sⁱ·G₁) = P(s)·G₁
+</code></pre></div>
+<p>This is a <strong>multi-scalar multiplication (MSM)</strong> of coefficients with SRS powers.</p>
+</li>
+<li>
+<p><strong>Verification</strong>: To verify P(z) = v with proof π:</p>
+<div class="example-wrap"><pre class="language-text"><code>e(π, H₂ - [z]H₂) ?= e(C - [v]G₁, H₂)
+</code></pre></div>
+<p>Uses pairing with only 2 G₂ elements (H₂ and s·H₂).</p>
+</li>
+<li>
+<p><strong>Efficiency</strong>: We only need n+1 G₁ elements (large) but only 2 G₂ elements (small).</p>
+</li>
+</ol>
+<h4 id="storage-requirements"><a class="doc-anchor" href="#storage-requirements">§</a>Storage Requirements</h4>
+<p>For a degree n SRS on BLS12-381:</p>
+<ul>
+<li>G₁ elements: 48 bytes each → (n+1) × 48 bytes</li>
+<li>G₂ elements: 96 bytes each → 2 × 96 bytes</li>
+</ul>
+<p>Examples:</p>
+<ul>
+<li>Degree 2¹⁶ (65536): ~3.1 MB</li>
+<li>Degree 2²⁰ (1M): ~50 MB</li>
+<li>Degree 2²⁴ (16M): ~800 MB</li>
+</ul>
+<h3 id="this-module"><a class="doc-anchor" href="#this-module">§</a>This Module</h3>
+<p>This module provides:</p>
+<ol>
+<li>
+<p><strong><code>setup_for_testing()</code></strong> - FOR TESTING ONLY</p>
+<ul>
+<li>Generates SRS from a known secret</li>
+<li><strong>Feature-gated behind <code>test-only</code> feature</strong></li>
+<li><strong>NEVER use in production</strong></li>
+<li>Used for unit tests and integration tests</li>
+</ul>
+</li>
+<li>
+<p><strong><code>from_powers_of_tau()</code></strong> - FOR PRODUCTION</p>
+<ul>
+<li>Loads SRS from a powers of tau ceremony</li>
+<li>Validates all powers are consistent</li>
+<li>Performs pairing checks to verify correctness</li>
+<li>Safe for production use</li>
+</ul>
+</li>
+<li>
+<p><strong>Serialization methods</strong> - Save/load SRS to disk</p>
+<ul>
+<li><code>save_to_file()</code> - Write SRS in binary format</li>
+<li><code>load_from_file()</code> - Read and validate SRS from file</li>
+</ul>
+</li>
+</ol>
+<h2 id="example-testing-setup-insecure"><a class="doc-anchor" href="#example-testing-setup-insecure">§</a>Example: Testing Setup (INSECURE!)</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>ark_bls12_381::{Bls12_381, Fr};
+<span class="kw">use </span>kzg10::SRS;
+
+<span class="comment">// WARNING: This is for TESTING ONLY!
+// NEVER use known secrets in production!
+</span><span class="attr">#[cfg(feature = <span class="string">"test-only"</span>)]
+</span>{
+    <span class="kw">let </span>secret = Fr::from(<span class="number">42u64</span>);  <span class="comment">// INSECURE! predictable
+    </span><span class="kw">let </span>max_degree = <span class="number">1000</span>;
+
+    <span class="kw">let </span>srs = SRS::&lt;Bls12_381&gt;::setup_for_testing(secret, max_degree)
+        .expect(<span class="string">"Setup failed"</span>);
+}</code></pre></div>
+<h2 id="example-production-setup-secure"><a class="doc-anchor" href="#example-production-setup-secure">§</a>Example: Production Setup (SECURE)</h2>
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>ark_bls12_381::Bls12_381;
+<span class="kw">use </span>kzg10::SRS;
+
+<span class="comment">// Load from trusted ceremony output
+</span><span class="kw">let </span>srs = SRS::&lt;Bls12_381&gt;::load_from_file(<span class="string">"ceremony_output.srs"</span>)
+    .expect(<span class="string">"Failed to load SRS"</span>);
+
+<span class="comment">// Verify degree is sufficient
+</span>srs.validate_degree(<span class="number">1000</span>)
+    .expect(<span class="string">"SRS degree too small"</span>);</code></pre></div>
+<h2 id="security-best-practices"><a class="doc-anchor" href="#security-best-practices">§</a>Security Best Practices</h2>
+<ol>
+<li><strong>Always use <code>from_powers_of_tau()</code> in production</strong></li>
+<li><strong>Never call <code>setup_for_testing()</code> in production code</strong></li>
+<li><strong>Enable the <code>test-only</code> feature only for tests</strong></li>
+<li><strong>Verify ceremony transcripts before using SRS</strong></li>
+<li><strong>Keep SRS files read-only and integrity-checked</strong></li>
+<li><strong>Use secure file storage with access controls</strong></li>
+</ol>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.SRS.html" title="struct kzg10::setup::SRS">SRS</a></div><div class="desc docblock-short">Structured Reference String (SRS) for KZG10 commitments</div></li></ul></section></div></main></body></html>

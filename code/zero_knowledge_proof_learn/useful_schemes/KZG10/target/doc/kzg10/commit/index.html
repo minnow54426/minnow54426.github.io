@@ -1,0 +1,128 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Polynomial commitment computation"><title>kzg10::commit - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="kzg10" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../kzg10/index.html">kzg10</a><span class="version">0.1.0</span></h2></div><h2 class="location"><a href="#">Module commit</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#structs">Structs</a></li></ul></section><h2><a href="../index.html">In crate kzg10</a></h2></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Module <a href="../index.html">kzg10</a>::<wbr><a class="mod" href="#">commit</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../../src/kzg10/commit.rs.html#1-727">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Polynomial commitment computation</p>
+<p>This module implements the commitment operation for the KZG10 scheme.</p>
+<h2 id="mathematical-background"><a class="doc-anchor" href="#mathematical-background">§</a>Mathematical Background</h2>
+<p>Given a polynomial P(x) = c₀ + c₁x + c₂x² + … + cₙxⁿ and an SRS
+containing powers of the secret s, we compute the commitment:</p>
+<div class="example-wrap"><pre class="language-text"><code>C = c₀·G + c₁·(s·G) + c₂·(s²·G) + ... + cₙ·(sⁿ·G)
+  = Σ cᵢ · (sⁱ·G)
+  = P(s)·G
+</code></pre></div>
+<p>where G is the generator of the G1 group and sⁱ·G are precomputed
+in the SRS (Structured Reference String).</p>
+<h2 id="multi-scalar-multiplication-msm"><a class="doc-anchor" href="#multi-scalar-multiplication-msm">§</a>Multi-Scalar Multiplication (MSM)</h2>
+<p>The commitment computation uses <strong>Multi-Scalar Multiplication (MSM)</strong>, which
+is the core operation in many polynomial commitment schemes.</p>
+<h3 id="msm-definition"><a class="doc-anchor" href="#msm-definition">§</a>MSM Definition</h3>
+<p>Given:</p>
+<ul>
+<li>Scalars: [c₀, c₁, …, cₙ] in the field F</li>
+<li>Points: [P₀, P₁, …, Pₙ] in an elliptic curve group</li>
+</ul>
+<p>MSM computes:</p>
+<div class="example-wrap"><pre class="language-text"><code>R = c₀·P₀ + c₁·P₁ + ... + cₙ·Pₙ
+</code></pre></div>
+<p>In KZG10 commitments:</p>
+<ul>
+<li>Scalars are polynomial coefficients</li>
+<li>Points are SRS powers [G, s·G, s²·G, …]</li>
+<li>Result is the commitment C = P(s)·G</li>
+</ul>
+<h3 id="pippengers-algorithm"><a class="doc-anchor" href="#pippengers-algorithm">§</a>Pippenger’s Algorithm</h3>
+<p>The naive approach computes each scalar multiplication separately (O(n) EC ops).
+Pippenger’s algorithm (1976) reduces this to O(n / log n) using:</p>
+<ol>
+<li><strong>Windowing</strong>: Split scalars into windows of w bits</li>
+<li><strong>Bucket accumulation</strong>: Group operations by window value</li>
+<li><strong>Combination</strong>: Sum results from all windows</li>
+</ol>
+<p>For window size w:</p>
+<ul>
+<li>Precompute 2ʷ buckets for each window</li>
+<li>Distribute point contributions to buckets</li>
+<li>Sum buckets and combine across windows</li>
+</ul>
+<p>Complexity: O(n·(1/w + log 2ʷ)) → O(n / log n) when optimized</p>
+<h4 id="example-with-w3-8-buckets"><a class="doc-anchor" href="#example-with-w3-8-buckets">§</a>Example with w=3 (8 buckets)</h4>
+<p>For scalars [13, 7, 11] and points [P₀, P₁, P₂]:</p>
+<div class="example-wrap"><pre class="language-text"><code>Binary representation:
+13 = 1101₂
+ 7 = 0111₂
+11 = 1011₂
+
+Window 0 (bits 0-2): [1, 7, 3] → buckets
+Window 1 (bits 3-5): [5, 0, 1] → buckets
+
+Final result = 2³·(sum of window 1) + (sum of window 0)
+</code></pre></div><h3 id="performance-characteristics"><a class="doc-anchor" href="#performance-characteristics">§</a>Performance Characteristics</h3>
+<p>For degree n polynomial on BLS12-381 curve:</p>
+<div><table><thead><tr><th>Degree</th><th>Naive O(n)</th><th>Pippenger O(n/log n)</th></tr></thead><tbody>
+<tr><td>2¹² (4096)</td><td>~50ms</td><td>~10ms</td></tr>
+<tr><td>2¹⁶ (65536)</td><td>~800ms</td><td>~80ms</td></tr>
+<tr><td>2²⁰ (1M)</td><td>~13s</td><td>~500ms</td></tr>
+</tbody></table>
+</div><h3 id="parallelization"><a class="doc-anchor" href="#parallelization">§</a>Parallelization</h3>
+<p>MSM can be parallelized using:</p>
+<ul>
+<li><strong>Chunk-based parallelism</strong>: Split points/scalars across threads</li>
+<li><strong>Window parallelism</strong>: Process different windows in parallel</li>
+<li><strong>Bucket parallelism</strong>: Sum multiple buckets simultaneously</li>
+</ul>
+<p>Enable with: <code>cargo build --features parallel</code></p>
+<p>Uses Rayon for work-stealing parallelism.</p>
+<h2 id="algorithm"><a class="doc-anchor" href="#algorithm">§</a>Algorithm</h2>
+<p>The commitment is computed using MSM:</p>
+<ol>
+<li>Extract polynomial coefficients [c₀, c₁, …, cₙ]</li>
+<li>Extract SRS powers [G, s·G, s²·G, …, sⁿ·G]</li>
+<li>Compute: C = Σ cᵢ · powers[i] using MSM</li>
+</ol>
+<h2 id="performance"><a class="doc-anchor" href="#performance">§</a>Performance</h2>
+<p>For degree n polynomial:</p>
+<ul>
+<li>Time: O(n) with naive approach, O(n / log n) with Pippenger</li>
+<li>Memory: O(n) for the SRS powers</li>
+<li>Parallelizable: Yes (with “parallel” feature)</li>
+</ul>
+<p>Example timings (BLS12-381, modern CPU):</p>
+<ul>
+<li>Degree 2¹² (4096): ~10ms</li>
+<li>Degree 2¹⁶ (65536): ~80ms</li>
+<li>Degree 2²⁰ (1M): ~500ms</li>
+</ul>
+<h2 id="security"><a class="doc-anchor" href="#security">§</a>Security</h2>
+<p>The commitment scheme provides two key security properties:</p>
+<h3 id="binding-commitment"><a class="doc-anchor" href="#binding-commitment">§</a>Binding (Commitment)</h3>
+<p>A commitment is <strong>binding</strong> if it’s computationally infeasible to find
+two different polynomials P ≠ Q with the same commitment:</p>
+<div class="example-wrap"><pre class="language-text"><code>C = P(s)·G = Q(s)·G  ⇒  (P(s) - Q(s))·G = 0
+</code></pre></div>
+<p>Since G is a generator, (P(s) - Q(s)) must be 0 in the field.
+This means P(s) = Q(s), but since deg(P-Q) ≤ n and s is unknown,
+finding such P≠Q requires solving discrete log.</p>
+<p>The <strong>binding property</strong> relies on:</p>
+<ul>
+<li>Discrete logarithm assumption in G1</li>
+<li>s being unknown (trusted setup)</li>
+</ul>
+<h3 id="hiding-privacy"><a class="doc-anchor" href="#hiding-privacy">§</a>Hiding (Privacy)</h3>
+<p>A commitment is <strong>hiding</strong> if it reveals nothing about the polynomial.</p>
+<p>Given commitment C = P(s)·G, recovering P requires:</p>
+<ol>
+<li>Compute discrete log: s = log_G(C) / P(s)</li>
+<li>Or directly find P from C</li>
+</ol>
+<p>Both are computationally infeasible under:</p>
+<ul>
+<li><strong>Discrete Logarithm Assumption</strong>: Can’t recover exponent from point</li>
+<li><strong>Decisional Diffie-Hellman (DDH)</strong>: Can’t distinguish C from random</li>
+</ul>
+<p>Without knowing s, the commitment C is computationally indistinguishable
+from a random group element.</p>
+<h3 id="assumptions-summary"><a class="doc-anchor" href="#assumptions-summary">§</a>Assumptions Summary</h3>
+<ul>
+<li><strong>Discrete Log (DL)</strong>: Binding and hiding</li>
+<li><strong>DDH</strong>: Enhanced hiding</li>
+<li><strong>Trusted Setup</strong>: s must be unknown and destroyed after setup</li>
+<li><strong>Correct SRS</strong>: Powers [s⁰·G, …, sⁿ·G] must be correctly computed</li>
+</ul>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Commitment.html" title="struct kzg10::commit::Commitment">Commitment</a></div><div class="desc docblock-short">A KZG10 polynomial commitment</div></li></ul></section></div></main></body></html>

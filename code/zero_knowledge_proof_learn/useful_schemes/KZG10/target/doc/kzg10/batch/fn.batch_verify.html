@@ -1,0 +1,108 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Verify multiple openings simultaneously using random linear combination"><title>batch_verify in kzg10::batch - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="kzg10" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../kzg10/index.html">kzg10</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><h2><a href="index.html">In kzg10::<wbr>batch</a></h2></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Function <a href="../index.html">kzg10</a>::<wbr><a href="index.html">batch</a>::<wbr><a class="fn" href="#">batch_verify</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../../src/kzg10/batch.rs.html#374-538">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub fn batch_verify&lt;E: Pairing&gt;(
+    commitments: &amp;[<a class="struct" href="../commit/struct.Commitment.html" title="struct kzg10::commit::Commitment">Commitment</a>&lt;E&gt;],
+    openings: &amp;[<a class="struct" href="../proof/struct.Opening.html" title="struct kzg10::proof::Opening">Opening</a>&lt;E&gt;],
+    srs: &amp;<a class="struct" href="../setup/struct.SRS.html" title="struct kzg10::setup::SRS">SRS</a>&lt;E&gt;,
+) -&gt; <a class="type" href="../error/type.Result.html" title="type kzg10::error::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.82.0/std/primitive.bool.html">bool</a>&gt;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Verify multiple openings simultaneously using random linear combination</p>
+<h2 id="mathematical-background"><a class="doc-anchor" href="#mathematical-background">§</a>Mathematical Background</h2>
+<p>Instead of verifying n proofs individually (n × 2 pairings), we combine
+them using random coefficients r₁, r₂, …, rₙ:</p>
+<div class="example-wrap"><pre class="language-text"><code>C_batch =  Σᵢ rᵢ·Cᵢ
+π_batch =  Σᵢ rᵢ·πᵢ
+v_batch =  Σᵢ rᵢ·vᵢ
+</code></pre></div>
+<p>Then verify the single pairing equation:</p>
+<div class="example-wrap"><pre class="language-text"><code>e(π_batch, (s - z)·H) ?= e(C_batch - v_batch·G, H)
+</code></pre></div><h2 id="why-this-works"><a class="doc-anchor" href="#why-this-works">§</a>Why This Works</h2>
+<p>If each individual proof is valid (Pᵢ(z) = vᵢ), then by bilinearity of
+pairings:</p>
+<div class="example-wrap"><pre class="language-text"><code>Πᵢ e(rᵢ·πᵢ, (s - z)·H) = Πᵢ e(rᵢ·Cᵢ - rᵢ·vᵢ·G, H)
+
+⇒ e(Σᵢ rᵢ·πᵢ, (s - z)·H) = e(Σᵢ rᵢ·Cᵢ - (Σᵢ rᵢ·vᵢ)·G, H)
+</code></pre></div>
+<p>The random coefficients ensure no cheating (soundness).</p>
+<h2 id="performance"><a class="doc-anchor" href="#performance">§</a>Performance</h2>
+<ul>
+<li><strong>Individual</strong>: n × 2 pairings ≈ n × 0.6ms</li>
+<li><strong>Batch</strong>: 2 pairings ≈ 0.6ms (regardless of n)</li>
+<li><strong>Speedup</strong>: ~n× for large n</li>
+</ul>
+<p>Examples:</p>
+<ul>
+<li>10 proofs: 6ms → 0.7ms (~8.6x speedup)</li>
+<li>100 proofs: 60ms → 1.6ms (~37.5x speedup)</li>
+<li>1000 proofs: 600ms → 10ms (~60x speedup)</li>
+</ul>
+<h2 id="security"><a class="doc-anchor" href="#security">§</a>Security</h2>
+<p><strong>CRITICAL</strong>: Random coefficients must be:</p>
+<ol>
+<li><strong>Unpredictable</strong>: Use cryptographically secure RNG (OsRng)</li>
+<li><strong>Unique</strong>: Different for each batch verification</li>
+<li><strong>Uniform</strong>: Random from entire field [0, p-1]</li>
+</ol>
+<p>If randomness is compromised, attacker can create fake proofs that pass
+batch verification. This breaks the soundness guarantee completely.</p>
+<p>We use <code>OsRng</code> which draws from the OS’s CSPRNG, providing cryptographic-
+quality randomness suitable for production use.</p>
+<h2 id="arguments"><a class="doc-anchor" href="#arguments">§</a>Arguments</h2>
+<ul>
+<li><code>commitments</code> - Slice of commitments [C₁, …, Cₙ]</li>
+<li><code>openings</code> - Slice of openings [(z, v₁, π₁), …, (z, vₙ, πₙ)]</li>
+<li><code>srs</code> - The structured reference string</li>
+</ul>
+<h2 id="constraints"><a class="doc-anchor" href="#constraints">§</a>Constraints</h2>
+<ul>
+<li><code>commitments.len() == openings.len()</code> (mismatch is error)</li>
+<li>All openings must use the same evaluation point <code>z</code></li>
+<li>Batch must have at least 1 proof (empty batch is error)</li>
+</ul>
+<h2 id="returns"><a class="doc-anchor" href="#returns">§</a>Returns</h2>
+<ul>
+<li><code>Ok(true)</code> if all proofs are valid (batch verification succeeded)</li>
+<li><code>Ok(false)</code> if at least one proof is invalid</li>
+<li><code>Err(...)</code> if input validation fails</li>
+</ul>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>kzg10::{Commitment, SRS, batch_verify};
+<span class="kw">use </span>ark_poly::{DensePolynomial, Polynomial};
+<span class="kw">use </span>ark_bls12_381::{Bls12_381, Fr};
+
+<span class="comment">// Setup
+</span><span class="kw">let </span>srs = SRS::&lt;Bls12_381&gt;::setup_for_testing(Fr::from(<span class="number">2u64</span>), <span class="number">100</span>)<span class="question-mark">?</span>;
+
+<span class="comment">// Create 3 polynomials
+</span><span class="kw">let </span>poly1 = DensePolynomial::from_coefficients_vec(<span class="macro">vec!</span>[Fr::from(<span class="number">1u32</span>)]);
+<span class="kw">let </span>poly2 = DensePolynomial::from_coefficients_vec(<span class="macro">vec!</span>[Fr::from(<span class="number">2u32</span>)]);
+<span class="kw">let </span>poly3 = DensePolynomial::from_coefficients_vec(<span class="macro">vec!</span>[Fr::from(<span class="number">3u32</span>)]);
+
+<span class="comment">// Commit
+</span><span class="kw">let </span>comms = <span class="macro">vec!</span>[
+    Commitment::commit(<span class="kw-2">&amp;</span>poly1, <span class="kw-2">&amp;</span>srs),
+    Commitment::commit(<span class="kw-2">&amp;</span>poly2, <span class="kw-2">&amp;</span>srs),
+    Commitment::commit(<span class="kw-2">&amp;</span>poly3, <span class="kw-2">&amp;</span>srs),
+];
+
+<span class="comment">// Open at same point z = 5
+</span><span class="kw">let </span>z = Fr::from(<span class="number">5u64</span>);
+<span class="kw">let </span>openings = <span class="macro">vec!</span>[
+    Commitment::open(<span class="kw-2">&amp;</span>poly1, z, <span class="kw-2">&amp;</span>srs),
+    Commitment::open(<span class="kw-2">&amp;</span>poly2, z, <span class="kw-2">&amp;</span>srs),
+    Commitment::open(<span class="kw-2">&amp;</span>poly3, z, <span class="kw-2">&amp;</span>srs),
+];
+
+<span class="comment">// Batch verify (much faster than individual!)
+</span><span class="kw">let </span>result = batch_verify::&lt;Bls12_381&gt;(<span class="kw-2">&amp;</span>comms, <span class="kw-2">&amp;</span>openings, <span class="kw-2">&amp;</span>srs)<span class="question-mark">?</span>;
+<span class="macro">assert!</span>(result); <span class="comment">// All proofs valid</span></code></pre></div>
+<h2 id="when-to-use"><a class="doc-anchor" href="#when-to-use">§</a>When to Use</h2>
+<p><strong>Use batch verification</strong> when:</p>
+<ul>
+<li>Verifying 3+ proofs at once (speedup &gt; 2x)</li>
+<li>All proofs use the same evaluation point</li>
+<li>Network latency makes sequential verification expensive</li>
+</ul>
+<p><strong>Use individual verification</strong> (Commitment::verify) when:</p>
+<ul>
+<li>Verifying 1-2 proofs (overhead not worth it)</li>
+<li>Proofs use different evaluation points</li>
+<li>You need to identify which specific proof is invalid</li>
+</ul>
+</div></details></section></div></main></body></html>

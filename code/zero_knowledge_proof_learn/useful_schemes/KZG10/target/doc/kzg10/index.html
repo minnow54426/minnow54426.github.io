@@ -1,0 +1,213 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="KZG10 Polynomial Commitment Scheme"><title>kzg10 - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="kzg10" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../kzg10/index.html">kzg10</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li></ul></section></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">kzg10</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/kzg10/lib.rs.html#1-252">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="kzg10-polynomial-commitment-scheme"><a class="doc-anchor" href="#kzg10-polynomial-commitment-scheme">§</a>KZG10 Polynomial Commitment Scheme</h2>
+<p>A production-ready implementation of the Kate-Zaverucha-Goldberg (KZG10) polynomial
+commitment scheme, as described in the paper:
+“Polynomial Commitments” by Kate, Zaverucha, and Goldberg (2010).</p>
+<h3 id="mathematical-background"><a class="doc-anchor" href="#mathematical-background">§</a>Mathematical Background</h3>
+<p>The KZG10 scheme allows a prover to commit to a polynomial f(x) of degree d, and later
+prove evaluations of f at arbitrary points. The commitment is a single group element,
+and proofs are also single group elements, making the scheme extremely efficient.</p>
+<h4 id="key-properties"><a class="doc-anchor" href="#key-properties">§</a>Key Properties</h4>
+<ul>
+<li><strong>Commitment Size</strong>: O(1) - constant size regardless of polynomial degree</li>
+<li><strong>Proof Size</strong>: O(1) - constant size evaluation proofs</li>
+<li><strong>Verifier Time</strong>: O(1) - constant time verification</li>
+<li><strong>BATCH VERIFICATION</strong>: Supports efficient batch proof verification</li>
+<li><strong>Trusted Setup</strong>: Requires a one-time trusted setup ceremony</li>
+</ul>
+<h4 id="cryptographic-assumptions"><a class="doc-anchor" href="#cryptographic-assumptions">§</a>Cryptographic Assumptions</h4>
+<p>The security of KZG10 relies on the <strong>bounded strong Diffie-Hellman assumption</strong> in
+groups with a pairing-friendly elliptic curve. We use BLS12-381, which provides
+approximately 128 bits of security.</p>
+<h4 id="protocol-overview"><a class="doc-anchor" href="#protocol-overview">§</a>Protocol Overview</h4>
+<ol>
+<li>
+<p><strong>Setup (Trusted)</strong>: Generate structured reference string (SRS)</p>
+<ul>
+<li>Powers of secret s: [1, s, s², …, sⁿ] multiplied by generator G</li>
+<li>Toxic waste s must be destroyed after setup</li>
+</ul>
+</li>
+<li>
+<p><strong>Commit</strong>: Compute commitment to polynomial f</p>
+<ul>
+<li>Commitment = Σᵢ fᵢ · G·sⁱ where f = Σᵢ fᵢ·xⁱ</li>
+<li>This is homomorphic: com(f+g) = com(f) + com(g)</li>
+</ul>
+</li>
+<li>
+<p><strong>Open</strong>: Generate proof that f(z) = y</p>
+<ul>
+<li>Quotient polynomial: q(x) = (f(x) - y) / (x - z)</li>
+<li>Proof = commitment to q(x)</li>
+</ul>
+</li>
+<li>
+<p><strong>Verify</strong>: Check proof using pairing product</p>
+<ul>
+<li>e(proof, [z] - [1]₁) ?= e(commitment - [y]₂, [1]₂)</li>
+<li>Uses bilinear pairing for verification</li>
+</ul>
+</li>
+</ol>
+<h4 id="performance-considerations"><a class="doc-anchor" href="#performance-considerations">§</a>Performance Considerations</h4>
+<ul>
+<li><strong>Pairing Operations</strong>: Most expensive operation (~1ms on modern hardware)</li>
+<li><strong>Multi-Scalar Multiplication (MSM)</strong>: Commitment uses optimized MSM (O(n log n))</li>
+<li><strong>FFT</strong>: Used for polynomial operations (O(n log n))</li>
+<li><strong>Parallelization</strong>: Feature flag <code>parallel</code> enables multi-threaded operations</li>
+</ul>
+<h3 id="architecture"><a class="doc-anchor" href="#architecture">§</a>Architecture</h3>
+<p>This library is organized into several modules:</p>
+<ul>
+<li><code>srs</code>: Structured Reference String (trusted setup)</li>
+<li><code>commit</code>: Polynomial commitment generation</li>
+<li><code>proof</code>: Evaluation proof creation</li>
+<li><code>verify</code>: Proof verification (single and batch)</li>
+<li><code>pcs</code>: Polynomial Commitment Scheme trait and implementation</li>
+<li><code>error</code>: Comprehensive error types</li>
+<li><code>fft</code>: Optimized FFT operations</li>
+</ul>
+<h3 id="example-usage"><a class="doc-anchor" href="#example-usage">§</a>Example Usage</h3>
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>ark_bls12_381::Bls12_381;
+<span class="kw">use </span>ark_poly::univariate::DensePolynomial;
+<span class="kw">use </span>ark_poly::UvPolynomial;
+<span class="kw">use </span>kzg10::{PCS, SRS};
+
+<span class="comment">// Setup: Generate SRS with toxic secret
+</span><span class="kw">let </span>degree = <span class="number">10</span>;
+<span class="kw">let </span>srs = SRS::&lt;Bls12_381&gt;::setup(degree, <span class="kw-2">&amp;mut </span>rng);
+
+<span class="comment">// Commit: Commit to polynomial f(x) = x² + 2x + 1
+</span><span class="kw">let </span>coeffs = <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">1</span>]; <span class="comment">// 1 + 2x + x²
+</span><span class="kw">let </span>poly = DensePolynomial::from_coefficients_vec(coeffs);
+<span class="kw">let </span>commitment = srs.commit(<span class="kw-2">&amp;</span>poly)<span class="question-mark">?</span>;
+
+<span class="comment">// Open: Generate proof that f(5) = 36
+</span><span class="kw">let </span>point = <span class="number">5</span>;
+<span class="kw">let </span>value = poly.evaluate(<span class="kw-2">&amp;</span>point);
+<span class="kw">let </span>proof = srs.open(<span class="kw-2">&amp;</span>poly, point)<span class="question-mark">?</span>;
+
+<span class="comment">// Verify: Check proof using only commitment
+</span><span class="kw">let </span>verified = srs.verify(<span class="kw-2">&amp;</span>commitment, point, value, <span class="kw-2">&amp;</span>proof)<span class="question-mark">?</span>;
+<span class="macro">assert!</span>(verified);</code></pre></div>
+<h3 id="security-considerations"><a class="doc-anchor" href="#security-considerations">§</a>Security Considerations</h3><h4 id="trusted-setup-requirements"><a class="doc-anchor" href="#trusted-setup-requirements">§</a>Trusted Setup Requirements</h4>
+<p>The SRS generation requires a <strong>trusted setup ceremony</strong> where:</p>
+<ol>
+<li>Participants contribute randomness to create the secret s</li>
+<li>The toxic waste s is destroyed after setup</li>
+<li>No single participant knows s (multi-party computation)</li>
+<li>Powers of s are computed correctly: s⁰, s¹, s², …, sⁿ</li>
+</ol>
+<p>If the setup is compromised (s is known), an attacker can forge proofs.</p>
+<h4 id="zeroization"><a class="doc-anchor" href="#zeroization">§</a>Zeroization</h4>
+<p>The <code>secure</code> feature enables automatic zeroization of sensitive data:</p>
+<ul>
+<li>Secrets are zeroized from memory when dropped</li>
+<li>Prevents memory leakage attacks</li>
+<li>Adds small performance overhead</li>
+</ul>
+<p>Enable with: <code>cargo build --features secure</code></p>
+<h4 id="constant-time-operations"><a class="doc-anchor" href="#constant-time-operations">§</a>Constant-Time Operations</h4>
+<p>Critical operations use constant-time implementations to prevent timing attacks:</p>
+<ul>
+<li>Field arithmetic in ark-ff</li>
+<li>Pairing operations in ark-ec</li>
+<li>Scalar multiplications</li>
+</ul>
+<h3 id="feature-flags"><a class="doc-anchor" href="#feature-flags">§</a>Feature Flags</h3>
+<ul>
+<li>
+<p><code>parallel</code>: Enable multi-threaded operations using rayon</p>
+<ul>
+<li>Recommended for high-degree polynomials (&gt; 2¹⁶)</li>
+<li>Improves commitment and proof generation speed</li>
+</ul>
+</li>
+<li>
+<p><code>serde</code>: Enable serialization/deserialization of commitments and proofs</p>
+<ul>
+<li>Useful for storing proofs persistently</li>
+<li>Required for network transmission</li>
+</ul>
+</li>
+<li>
+<p><code>secure</code>: Enable zeroization of sensitive data</p>
+<ul>
+<li>Recommended for production use</li>
+<li>Prevents memory leaks of secrets</li>
+</ul>
+</li>
+<li>
+<p><code>docs</code>: Enable all features for documentation generation</p>
+</li>
+</ul>
+<h3 id="benchmarking"><a class="doc-anchor" href="#benchmarking">§</a>Benchmarking</h3>
+<p>Run benchmarks with:</p>
+<div class="example-wrap"><pre class="language-bash"><code># Run all benchmarks
+cargo bench
+
+# Run specific benchmark
+cargo bench --bench commit
+
+# Generate flamegraph (requires flamegraph package)
+cargo bench --bench commit -- --profile-time=5
+</code></pre></div>
+<p>Expected performance on modern hardware (AMD Ryzen 9 5900X):</p>
+<div><table><thead><tr><th>Operation</th><th>Degree</th><th>Time</th></tr></thead><tbody>
+<tr><td>Commit</td><td>2²⁰</td><td>~50ms</td></tr>
+<tr><td>Open</td><td>2²⁰</td><td>~30ms</td></tr>
+<tr><td>Verify</td><td>-</td><td>~1ms</td></tr>
+<tr><td>Batch Verify (100)</td><td>-</td><td>~3ms</td></tr>
+</tbody></table>
+</div><h3 id="testing"><a class="doc-anchor" href="#testing">§</a>Testing</h3>
+<p>Run tests with:</p>
+<div class="example-wrap"><pre class="language-bash"><code># Run all tests
+cargo test
+
+# Run tests with output
+cargo test -- --nocapture
+
+# Run specific test
+cargo test test_basic_commitment
+
+# Run tests with all features
+cargo test --all-features
+</code></pre></div>
+<p>The test suite includes:</p>
+<ul>
+<li>Unit tests for each module</li>
+<li>Integration tests for full protocol flow</li>
+<li>Property-based tests using proptest</li>
+<li>Comparison tests against ark-poly-commit reference implementation</li>
+</ul>
+<h3 id="references"><a class="doc-anchor" href="#references">§</a>References</h3>
+<ol>
+<li>
+<p>Kate, Aniket, Zaverucha, and Goldberg. “Polynomial Commitments.” CRYPTO 2010.
+https://www.iacr.org/archive/crypto2010/62230639/00000001.pdf</p>
+</li>
+<li>
+<p>Chepurnoy, et al. “Fast Polynomial Commitment Schemes from Reed-Solomon Codes.”
+https://eprint.iacr.org/2020/822</p>
+</li>
+<li>
+<p>Dankrad Feist. “KZG Polynomial Commitments.”
+https://dankradfeist.de/ethereum/2021/06/18/pcs-kzg.html</p>
+</li>
+<li>
+<p>Vitalik Buterin. “An approximate introduction to how zk-SNARKs work.”
+https://vitalik.ca/general/2021/01/26/snarks.html</p>
+</li>
+</ol>
+<h3 id="license"><a class="doc-anchor" href="#license">§</a>License</h3>
+<p>This project is licensed under MIT OR Apache-2.0. See LICENSE file for details.</p>
+<h3 id="contributing"><a class="doc-anchor" href="#contributing">§</a>Contributing</h3>
+<p>Contributions are welcome! Please ensure:</p>
+<ul>
+<li>All tests pass: <code>cargo test</code></li>
+<li>Code is formatted: <code>cargo fmt</code></li>
+<li>No clippy warnings: <code>cargo clippy</code></li>
+<li>All public functions have documentation</li>
+<li>Mathematical explanations are provided for non-trivial operations</li>
+</ul>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name" id="reexport.batch_verify"><code>pub use crate::batch::<a class="fn" href="batch/fn.batch_verify.html" title="fn kzg10::batch::batch_verify">batch_verify</a>;</code></div></li><li><div class="item-name" id="reexport.Commitment"><code>pub use crate::commit::<a class="struct" href="commit/struct.Commitment.html" title="struct kzg10::commit::Commitment">Commitment</a>;</code></div></li><li><div class="item-name" id="reexport.Error"><code>pub use crate::error::<a class="enum" href="error/enum.Error.html" title="enum kzg10::error::Error">Error</a>;</code></div></li><li><div class="item-name" id="reexport.Result"><code>pub use crate::error::<a class="type" href="error/type.Result.html" title="type kzg10::error::Result">Result</a>;</code></div></li><li><div class="item-name" id="reexport.EvaluationProof"><code>pub use crate::proof::<a class="struct" href="proof/struct.EvaluationProof.html" title="struct kzg10::proof::EvaluationProof">EvaluationProof</a>;</code></div></li><li><div class="item-name" id="reexport.Opening"><code>pub use crate::proof::<a class="struct" href="proof/struct.Opening.html" title="struct kzg10::proof::Opening">Opening</a>;</code></div></li><li><div class="item-name" id="reexport.SRS"><code>pub use crate::setup::<a class="struct" href="setup/struct.SRS.html" title="struct kzg10::setup::SRS">SRS</a>;</code></div></li></ul><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="batch/index.html" title="mod kzg10::batch">batch</a></div><div class="desc docblock-short">Batch operations for efficient proof verification</div></li><li><div class="item-name"><a class="mod" href="commit/index.html" title="mod kzg10::commit">commit</a></div><div class="desc docblock-short">Polynomial commitment computation</div></li><li><div class="item-name"><a class="mod" href="error/index.html" title="mod kzg10::error">error</a></div><div class="desc docblock-short">Error types for the KZG10 library</div></li><li><div class="item-name"><a class="mod" href="open/index.html" title="mod kzg10::open">open</a></div><div class="desc docblock-short">Proof generation (opening)</div></li><li><div class="item-name"><a class="mod" href="proof/index.html" title="mod kzg10::proof">proof</a></div><div class="desc docblock-short">Proof and commitment data structures</div></li><li><div class="item-name"><a class="mod" href="setup/index.html" title="mod kzg10::setup">setup</a></div><div class="desc docblock-short">SRS (Structured Reference String) generation and loading</div></li><li><div class="item-name"><a class="mod" href="verify/index.html" title="mod kzg10::verify">verify</a></div><div class="desc docblock-short">Proof verification using bilinear pairings</div></li></ul></section></div></main></body></html>

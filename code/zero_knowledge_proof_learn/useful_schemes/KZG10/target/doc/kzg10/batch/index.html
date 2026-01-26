@@ -1,0 +1,164 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Batch operations for efficient proof verification"><title>kzg10::batch - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="kzg10" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../kzg10/index.html">kzg10</a><span class="version">0.1.0</span></h2></div><h2 class="location"><a href="#">Module batch</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#functions">Functions</a></li></ul></section><h2><a href="../index.html">In crate kzg10</a></h2></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Module <a href="../index.html">kzg10</a>::<wbr><a class="mod" href="#">batch</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../../src/kzg10/batch.rs.html#1-792">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Batch operations for efficient proof verification</p>
+<p>This module implements <strong>batch verification</strong> that allows verifying multiple
+evaluation proofs simultaneously using <strong>random linear combination</strong>, reducing
+amortized cost by approximately n× for large batches.</p>
+<h2 id="mathematical-background-random-linear-combination"><a class="doc-anchor" href="#mathematical-background-random-linear-combination">§</a>Mathematical Background: Random Linear Combination</h2>
+<p>Instead of verifying n proofs individually (requiring 2n pairings), we combine
+them using random coefficients and verify with only 2 pairings total.</p>
+<h3 id="the-batch-verification-algorithm"><a class="doc-anchor" href="#the-batch-verification-algorithm">§</a>The Batch Verification Algorithm</h3>
+<p>Given n proofs (Cᵢ, zᵢ, vᵢ, πᵢ) for i = 1..n:</p>
+<h4 id="step-1-generate-random-coefficients"><a class="doc-anchor" href="#step-1-generate-random-coefficients">§</a>Step 1: Generate Random Coefficients</h4>
+<p>Generate unpredictable random scalars r₁, r₂, …, rₙ from the field:</p>
+<div class="example-wrap"><pre class="language-text"><code>rᵢ ←$ {0, 1, ..., p-1} for i = 1..n
+</code></pre></div><h4 id="step-2-compute-linear-combinations"><a class="doc-anchor" href="#step-2-compute-linear-combinations">§</a>Step 2: Compute Linear Combinations</h4>
+<p>Combine all commitments, proofs, and values using the random coefficients:</p>
+<div class="example-wrap"><pre class="language-text"><code>C_batch =  Σᵢ rᵢ · Cᵢ         (combined commitment)
+π_batch =  Σᵢ rᵢ · πᵢ         (combined proof)
+v_batch =  Σᵢ rᵢ · vᵢ         (combined value)
+</code></pre></div>
+<p><strong>Note</strong>: All proofs must use the same evaluation point z.</p>
+<h4 id="step-3-verify-single-pairing-equation"><a class="doc-anchor" href="#step-3-verify-single-pairing-equation">§</a>Step 3: Verify Single Pairing Equation</h4>
+<p>Check the aggregated pairing equation:</p>
+<div class="example-wrap"><pre class="language-text"><code>e(π_batch, (s - z)·H) ?= e(C_batch - v_batch·G, H)
+</code></pre></div><h3 id="why-this-works-linearity-of-pairings"><a class="doc-anchor" href="#why-this-works-linearity-of-pairings">§</a>Why This Works: Linearity of Pairings</h3>
+<p>The pairing operation e(·,·) is <strong>bilinear</strong>, meaning:</p>
+<div class="example-wrap"><pre class="language-text"><code>e(a·P, b·Q) = e(P, Q)^(a·b)
+e(P₁ + P₂, Q) = e(P₁, Q) · e(P₂, Q)
+e(P, Q₁ + Q₂) = e(P, Q₁) · e(P, Q₂)
+</code></pre></div><h4 id="proof-of-correctness"><a class="doc-anchor" href="#proof-of-correctness">§</a>Proof of Correctness</h4>
+<p>If each individual proof is valid (Pᵢ(z) = vᵢ), then:</p>
+<div class="example-wrap"><pre class="language-text"><code>Individual verification equations:
+e(πᵢ, (s - z)·H) = e(Cᵢ - vᵢ·G, H)  for all i = 1..n
+</code></pre></div>
+<p>Multiply each equation by rᵢ (raise to power rᵢ in GT):</p>
+<div class="example-wrap"><pre class="language-text"><code>e(πᵢ, (s - z)·H)^(rᵢ) = e(Cᵢ - vᵢ·G, H)^(rᵢ)
+</code></pre></div>
+<p>By bilinearity, this is equivalent to:</p>
+<div class="example-wrap"><pre class="language-text"><code>e(rᵢ·πᵢ, (s - z)·H) = e(rᵢ·(Cᵢ - vᵢ·G), H)
+e(rᵢ·πᵢ, (s - z)·H) = e(rᵢ·Cᵢ - rᵢ·vᵢ·G, H)
+</code></pre></div>
+<p>Multiply all equations together:</p>
+<div class="example-wrap"><pre class="language-text"><code>Πᵢ e(rᵢ·πᵢ, (s - z)·H) = Πᵢ e(rᵢ·Cᵢ - rᵢ·vᵢ·G, H)
+</code></pre></div>
+<p>By bilinearity of pairings:</p>
+<div class="example-wrap"><pre class="language-text"><code>e(Σᵢ rᵢ·πᵢ, (s - z)·H) = e(Σᵢ rᵢ·Cᵢ - (Σᵢ rᵢ·vᵢ)·G, H)
+</code></pre></div>
+<p>Which is exactly our batch verification equation:</p>
+<div class="example-wrap"><pre class="language-text"><code>e(π_batch, (s - z)·H) = e(C_batch - v_batch·G, H)
+</code></pre></div>
+<p>Therefore, <strong>if all individual proofs are valid, the batch equation is valid</strong>.</p>
+<h3 id="soundness-why-cheating-fails"><a class="doc-anchor" href="#soundness-why-cheating-fails">§</a>Soundness: Why Cheating Fails</h3>
+<p>The critical question: Can a malicious prover create fake proofs that pass
+batch verification but fail individual verification?</p>
+<p><strong>Answer</strong>: No, under the q-SBDH assumption, with overwhelming probability.</p>
+<h4 id="the-fiat-shamir-heuristic"><a class="doc-anchor" href="#the-fiat-shamir-heuristic">§</a>The Fiat-Shamir Heuristic</h4>
+<p>The random coefficients r₁, …, rₙ act like challenges in a Σ-protocol.
+If a prover could create invalid proofs that pass batch verification, they
+would need to “guess” the random coefficients in advance.</p>
+<p>Since the coefficients are:</p>
+<ul>
+<li>Generated from a cryptographically secure random source</li>
+<li>Unpredictable before verification time</li>
+<li>Different for each batch verification</li>
+</ul>
+<p>The probability of guessing correct coefficients is <strong>1/p ≈ 2^(-254)</strong> for
+BLS12-381, which is cryptographically negligible.</p>
+<h4 id="formal-security-argument"><a class="doc-anchor" href="#formal-security-argument">§</a>Formal Security Argument</h4>
+<p>Suppose a prover creates n invalid proofs. For the batch to verify, they need:</p>
+<div class="example-wrap"><pre class="language-text"><code>Πᵢ e(πᵢ, (s - z)·H)^(rᵢ) = Πᵢ e(Cᵢ - vᵢ·G, H)^(rᵢ)
+</code></pre></div>
+<p>This is a polynomial equation in the random variables r₁, …, rₙ:</p>
+<div class="example-wrap"><pre class="language-text"><code>Σᵢ rᵢ · (individual_verification_failure) = 0
+</code></pre></div>
+<p>For this to hold for random rᵢ, all coefficients must be zero, meaning
+all individual proofs must be valid. This happens with probability:</p>
+<div class="example-wrap"><pre class="language-text"><code>Pr[batch_accept | ∃ invalid proof] ≤ 1/p
+</code></pre></div><h2 id="performance-analysis"><a class="doc-anchor" href="#performance-analysis">§</a>Performance Analysis</h2><h3 id="computational-cost"><a class="doc-anchor" href="#computational-cost">§</a>Computational Cost</h3>
+<p><strong>Individual Verification</strong> (n proofs):</p>
+<div class="example-wrap"><pre class="language-text"><code>Cost_individual = n × (2 pairings + 1 scalar mul + 2 subtractions)
+                ≈ n × 2 pairings
+                ≈ n × 0.6ms (for BLS12-381)
+</code></pre></div>
+<p><strong>Batch Verification</strong> (n proofs):</p>
+<div class="example-wrap"><pre class="language-text"><code>Cost_batch = n × (2 scalar muls) + 1 × (2 pairings) + O(n) additions
+           ≈ n × 0.01ms + 0.6ms
+           ≈ 0.6ms for large n
+</code></pre></div>
+<p><strong>Speedup</strong>:</p>
+<div class="example-wrap"><pre class="language-text"><code>Speedup(n) = Cost_individual / Cost_batch
+           ≈ (n × 0.6ms) / 0.6ms
+           ≈ n
+</code></pre></div><h4 id="example-performance"><a class="doc-anchor" href="#example-performance">§</a>Example Performance</h4><div><table><thead><tr><th>Number of Proofs</th><th>Individual</th><th>Batch</th><th>Speedup</th></tr></thead><tbody>
+<tr><td>2</td><td>1.2ms</td><td>0.62ms</td><td>1.9x</td></tr>
+<tr><td>10</td><td>6ms</td><td>0.7ms</td><td>8.6x</td></tr>
+<tr><td>100</td><td>60ms</td><td>1.6ms</td><td>37.5x</td></tr>
+<tr><td>1000</td><td>600ms</td><td>10ms</td><td>60x</td></tr>
+</tbody></table>
+</div>
+<p><em>Timings are approximate for BLS12-381 on modern hardware</em></p>
+<h3 id="when-to-use-batch-verification"><a class="doc-anchor" href="#when-to-use-batch-verification">§</a>When to Use Batch Verification</h3>
+<p><strong>Use batch verification when</strong>:</p>
+<ul>
+<li>Verifying 3+ proofs (speedup &gt; 2x)</li>
+<li>Proofs use the same evaluation point z</li>
+<li>Network latency makes individual verification slow</li>
+<li>You need to verify many blocks/transactions simultaneously</li>
+</ul>
+<p><strong>Use individual verification when</strong>:</p>
+<ul>
+<li>Verifying 1-2 proofs (overhead not worth it)</li>
+<li>Proofs use different evaluation points</li>
+<li>You need to know which specific proof is invalid</li>
+</ul>
+<h2 id="security-requirements"><a class="doc-anchor" href="#security-requirements">§</a>Security Requirements</h2><h3 id="critical-randomness-quality"><a class="doc-anchor" href="#critical-randomness-quality">§</a>CRITICAL: Randomness Quality</h3>
+<p>The security of batch verification <strong>completely depends</strong> on the quality
+of the random coefficients r₁, …, rₙ.</p>
+<h4 id="requirements"><a class="doc-anchor" href="#requirements">§</a>Requirements</h4>
+<ol>
+<li><strong>Cryptographically Secure</strong>: Use <code>OsRng</code> or <code>thread_rng()</code> from rand</li>
+<li><strong>Unpredictable</strong>: Must not be guessable by attacker</li>
+<li><strong>Unique</strong>: Different for each batch verification</li>
+<li><strong>Uniform</strong>: Each rᵢ uniformly random from [0, p-1]</li>
+</ol>
+<h4 id="what-goes-wrong-if-randomness-is-bad"><a class="doc-anchor" href="#what-goes-wrong-if-randomness-is-bad">§</a>What Goes Wrong If Randomness Is Bad?</h4>
+<p><strong>Predictable randomness</strong> (e.g., rᵢ = i):</p>
+<ul>
+<li>Attacker can craft invalid proofs that pass batch verification</li>
+<li>Breaks soundness guarantee</li>
+<li><strong>Complete security failure</strong></li>
+</ul>
+<p><strong>Insufficient entropy</strong> (e.g., only 8 bits of randomness):</p>
+<ul>
+<li>Attacker can brute force all 2⁸ = 256 possibilities</li>
+<li>1/256 chance of finding a working combination</li>
+<li><strong>Unacceptable security level</strong></li>
+</ul>
+<p><strong>Reused randomness</strong> (same rᵢ across verifications):</p>
+<ul>
+<li>Attacker can learn information about proofs</li>
+<li>Potential for adaptive attacks</li>
+<li><strong>Weakens zero-knowledge property</strong></li>
+</ul>
+<h4 id="our-implementation"><a class="doc-anchor" href="#our-implementation">§</a>Our Implementation</h4>
+<p>We use <code>ark_std::rand::rngs::OsRng</code> which:</p>
+<ul>
+<li>Draws from operating system’s CSPRNG</li>
+<li>Provides cryptographic-quality randomness</li>
+<li>Is unpredictable and has sufficient entropy</li>
+<li>Is the standard choice for production Rust code</li>
+</ul>
+<h2 id="limitations"><a class="doc-anchor" href="#limitations">§</a>Limitations</h2><h3 id="same-evaluation-point"><a class="doc-anchor" href="#same-evaluation-point">§</a>Same Evaluation Point</h3>
+<p><strong>Current limitation</strong>: All proofs in a batch must use the same evaluation
+point z. This is because we compute (s - z)·H once and reuse it.</p>
+<p><strong>Workaround</strong>: For different evaluation points, group proofs by zᵢ and
+verify each group separately. The speedup still applies to each group.</p>
+<p><strong>Future extension</strong>: Can generalize to different zᵢ using:</p>
+<div class="example-wrap"><pre class="language-text"><code>e(π_batch, s·H - Σᵢ rᵢ·zᵢ·H) = e(C_batch - v_batch·G, H)
+</code></pre></div>
+<p>This requires computing Σᵢ rᵢ·zᵢ·H instead of just z·H.</p>
+<h3 id="no-error-localization"><a class="doc-anchor" href="#no-error-localization">§</a>No Error Localization</h3>
+<p>Batch verification only tells you “all valid” or “at least one invalid”.
+It doesn’t tell you <strong>which</strong> proof(s) are invalid.</p>
+<p><strong>Solution</strong>: If batch verification fails, fall back to individual
+verification to identify the bad proof(s).</p>
+</div></details><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="fn" href="fn.batch_verify.html" title="fn kzg10::batch::batch_verify">batch_<wbr>verify</a></div><div class="desc docblock-short">Verify multiple openings simultaneously using random linear combination</div></li></ul></section></div></main></body></html>
