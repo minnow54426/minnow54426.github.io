@@ -32,6 +32,9 @@ anyhow = "1.0"
 # Randomness
 rand = "0.8"
 
+# Hashing
+sha2 = "0.10"
+
 [dev-dependencies]
 # Testing
 proptest = "1.0"
