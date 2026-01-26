@@ -32,8 +32,8 @@
 //! ```
 
 pub mod error;
+pub mod circuit;
 
-// pub mod circuit;
 // pub mod groth16;
 // pub mod identity;
 // pub mod membership;
@@ -49,7 +49,7 @@ pub use error::{
 // pub use groth16::{setup, verify};
 
 // Re-export circuit traits
-// pub use circuit::Groth16Circuit;
+pub use circuit::Groth16Circuit;
 
 /// Version information
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
