@@ -2,8 +2,7 @@
 
 use ark_bn254::Fr;
 use zk_groth16_snark::circuit::Groth16Circuit;
-use zk_groth16_snark::error::SetupError;
-use zk_groth16_snark::groth16;
+use zk_groth16_snark::groth16::setup;
 
 /// Simple test circuit for setup testing
 struct TestCircuit;
@@ -31,15 +30,12 @@ impl Groth16Circuit<Fr> for TestCircuit {
 }
 
 #[test]
-#[ignore]
-fn test_setup_basic() {
-    // This test should compile but will be ignored until setup is implemented
+fn test_setup() {
     let circuit = TestCircuit;
-    let result = groth16::setup(&circuit);
+    let (pk, vk) = setup(&circuit).unwrap();
 
-    // For now, expect SetupFailed
-    assert!(matches!(
-        result,
-        Err(zk_groth16_snark::Error::Setup(SetupError::SetupFailed))
-    ));
+    // Verify keys are generated
+    assert!(pk.vk.gamma_abc_g1.len() > 0); // Has gamma G1 elements
+    // Check that alpha_g1 is not the identity (zero) point
+    assert!(vk.alpha_g1 != ark_ec::short_weierstrass::Affine::identity()); // VK initialized with alpha
 }
