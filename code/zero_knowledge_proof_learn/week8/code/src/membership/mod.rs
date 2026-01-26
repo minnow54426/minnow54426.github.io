@@ -11,7 +11,6 @@
 //! // Later: prove knowledge of leaf and path that hashes to root
 //! ```
 
-use ark_ff::Field;
 use ark_relations::r1cs::ConstraintSystemRef;
 use serde::{Deserialize, Serialize};
 use crate::circuit::Groth16Circuit;

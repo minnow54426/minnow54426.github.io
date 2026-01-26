@@ -12,7 +12,6 @@
 //! // Later: prove knowledge of value in range [min, max]
 //! ```
 
-use ark_ff::Field;
 use ark_relations::r1cs::ConstraintSystemRef;
 use serde::{Deserialize, Serialize};
 use crate::circuit::Groth16Circuit;
