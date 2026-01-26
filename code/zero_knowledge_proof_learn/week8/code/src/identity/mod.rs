@@ -104,8 +104,11 @@ impl Groth16Circuit<Fr> for IdentityCircuit {
     }
 
     fn generate_witness(&self) -> Result<Self::Witness> {
-        // Cannot generate witness without knowing preimage
-        Err(CircuitError::Identity(IdentityError::InvalidPreimageLength).into())
+        // For setup purposes, generate a dummy witness
+        // The actual proof will use a real preimage via generate_witness_for_preimage
+        Ok(IdentityWitness {
+            preimage: vec![0u8; self.preimage_length],
+        })
     }
 
     fn public_inputs(witness: &Self::Witness) -> Self::PublicInputs {

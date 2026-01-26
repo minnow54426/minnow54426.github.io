@@ -67,7 +67,7 @@ impl MembershipCircuit {
     }
 
     /// Hash a leaf value
-    fn hash_leaf(leaf: &[u8]) -> [u8; 32] {
+    pub fn hash_leaf(leaf: &[u8]) -> [u8; 32] {
         let mut hasher = Sha256::new();
         hasher.update(leaf);
         let result: [u8; 32] = hasher.finalize().into();
@@ -75,7 +75,7 @@ impl MembershipCircuit {
     }
 
     /// Hash two internal nodes
-    fn hash_internal(left: &[u8; 32], right: &[u8; 32]) -> [u8; 32] {
+    pub fn hash_internal(left: &[u8; 32], right: &[u8; 32]) -> [u8; 32] {
         let mut hasher = Sha256::new();
         hasher.update(left);
         hasher.update(right);
@@ -123,8 +123,12 @@ impl Groth16Circuit<Fr> for MembershipCircuit {
     }
 
     fn generate_witness(&self) -> Result<Self::Witness> {
-        // Cannot generate witness without knowing leaf and path
-        Err(CircuitError::Membership(MembershipError::InvalidPathLength).into())
+        // For setup purposes, generate a dummy witness
+        // The actual proof will use a real leaf/path via generate_witness_for_path
+        Ok(MembershipWitness {
+            leaf: vec![0u8; 32],
+            path: vec![[0u8; 32]; 8], // Default path of depth 8
+        })
     }
 
     fn public_inputs(witness: &Self::Witness) -> Self::PublicInputs {
