@@ -36,9 +36,9 @@ pub mod circuit;
 pub mod utils;
 pub mod groth16;
 pub mod identity;
+pub mod privacy;
 
 // pub mod membership;
-// pub mod privacy;
 
 // Re-exports for convenience
 pub use error::{
