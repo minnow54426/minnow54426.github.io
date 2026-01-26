@@ -37,8 +37,7 @@ pub mod utils;
 pub mod groth16;
 pub mod identity;
 pub mod privacy;
-
-// pub mod membership;
+pub mod membership;
 
 // Re-exports for convenience
 pub use error::{
