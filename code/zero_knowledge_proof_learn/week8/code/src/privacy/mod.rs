@@ -13,7 +13,7 @@
 //! ```
 
 use crate::circuit::Groth16Circuit;
-use crate::error::{CircuitError, PrivacyError, Result};
+use crate::error::{CircuitError, Result};
 use ark_bn254::Fr;
 use ark_relations::r1cs::ConstraintSystemRef;
 use serde::{Deserialize, Serialize};
@@ -74,24 +74,29 @@ impl Groth16Circuit<Fr> for PrivacyCircuit {
 
     fn generate_constraints(cs: ConstraintSystemRef<Fr>, witness: &Self::Witness) -> Result<()> {
         use ark_relations::r1cs::LinearCombination;
-        use ark_ff::Field;
 
         // Allocate variables (all as witness variables for simplified verification)
-        let value_var = cs.new_witness_variable(|| Ok(Fr::from(witness.value)))
+        let value_var = cs
+            .new_witness_variable(|| Ok(Fr::from(witness.value)))
             .map_err(|e| CircuitError::SynthesisError(e.to_string()))?;
-        let min_var = cs.new_witness_variable(|| Ok(Fr::from(witness.min)))
+        let min_var = cs
+            .new_witness_variable(|| Ok(Fr::from(witness.min)))
             .map_err(|e| CircuitError::SynthesisError(e.to_string()))?;
-        let max_var = cs.new_witness_variable(|| Ok(Fr::from(witness.max)))
+        let max_var = cs
+            .new_witness_variable(|| Ok(Fr::from(witness.max)))
             .map_err(|e| CircuitError::SynthesisError(e.to_string()))?;
 
         // Compute (value - min) * (max - value)
-        let diff_min: LinearCombination<Fr> = LinearCombination::from(value_var) - LinearCombination::from(min_var);
-        let diff_max: LinearCombination<Fr> = LinearCombination::from(max_var) - LinearCombination::from(value_var);
+        let diff_min: LinearCombination<Fr> =
+            LinearCombination::from(value_var) - LinearCombination::from(min_var);
+        let diff_max: LinearCombination<Fr> =
+            LinearCombination::from(max_var) - LinearCombination::from(value_var);
 
         // Allocate product variable
         let product_witness_val = (Fr::from(witness.value) - Fr::from(witness.min))
             * (Fr::from(witness.max) - Fr::from(witness.value));
-        let product_var = cs.new_witness_variable(|| Ok(product_witness_val))
+        let product_var = cs
+            .new_witness_variable(|| Ok(product_witness_val))
             .map_err(|e| CircuitError::SynthesisError(e.to_string()))?;
 
         // Enforce constraint: (value - min) * (max - value) = product
@@ -100,7 +105,8 @@ impl Groth16Circuit<Fr> for PrivacyCircuit {
             diff_min,
             diff_max,
             LinearCombination::<Fr>::from(product_var),
-        ).map_err(|e| CircuitError::SynthesisError(e.to_string()))?;
+        )
+        .map_err(|e| CircuitError::SynthesisError(e.to_string()))?;
 
         Ok(())
     }

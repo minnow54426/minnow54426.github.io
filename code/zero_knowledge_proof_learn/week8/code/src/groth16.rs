@@ -88,10 +88,7 @@ pub fn setup<C: Groth16Circuit<Fr>>(circuit: &C) -> Result<(ProvingParams, Verif
 /// let witness = circuit.generate_witness()?;
 /// let proof = prove(&pk, &witness)?;
 /// ```
-pub fn prove<C>(
-    pk: &ProvingParams,
-    witness: &C::Witness,
-) -> Result<Vec<u8>>
+pub fn prove<C>(pk: &ProvingParams, witness: &C::Witness) -> Result<Vec<u8>>
 where
     C: Groth16Circuit<Fr>,
 {
@@ -99,7 +96,7 @@ where
     let synthesizer = CircuitSynthesizer::<C>::new(witness.clone())?;
 
     // Generate the proof using Groth16
-    let proof = Groth16::<Bn254>::prove(&pk, synthesizer, &mut OsRng)
+    let proof = Groth16::<Bn254>::prove(pk, synthesizer, &mut OsRng)
         .map_err(|_| Error::Prove(ProveError::ProofCreationFailed))?;
 
     // Serialize the proof to bytes
@@ -150,7 +147,7 @@ where
     let inputs = vec![];
 
     // Verify the proof
-    let is_valid = Groth16::<Bn254>::verify(&vk, &inputs, &proof_obj)
+    let is_valid = Groth16::<Bn254>::verify(vk, &inputs, &proof_obj)
         .map_err(|_| Error::Verify(VerifyError::ProofVerificationFailed))?;
 
     Ok(is_valid)

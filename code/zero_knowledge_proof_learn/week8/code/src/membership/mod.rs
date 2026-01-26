@@ -12,7 +12,7 @@
 //! ```
 
 use crate::circuit::Groth16Circuit;
-use crate::error::{CircuitError, MembershipError, Result};
+use crate::error::{CircuitError, Result};
 use ark_bn254::Fr;
 use ark_relations::r1cs::ConstraintSystemRef;
 use serde::{Deserialize, Serialize};
@@ -103,11 +103,12 @@ impl Groth16Circuit<Fr> for MembershipCircuit {
 
         // For each byte of the root, enforce the computed value matches
         // In a full ZK system, this would use Merkle tree gadgets
-        for (i, &root_byte) in computed_root.iter().enumerate() {
+        for &root_byte in computed_root.iter() {
             let root_byte_val = root_byte as u64;
 
             // Allocate witness variable for root byte
-            let root_var = cs.new_witness_variable(|| Ok(Fr::from(root_byte_val)))
+            let root_var = cs
+                .new_witness_variable(|| Ok(Fr::from(root_byte_val)))
                 .map_err(|e| CircuitError::SynthesisError(e.to_string()))?;
 
             // Enforce: root_byte * 1 = root_byte (identity constraint)
@@ -116,7 +117,8 @@ impl Groth16Circuit<Fr> for MembershipCircuit {
                 LinearCombination::<Fr>::from(root_var),
                 LinearCombination::<Fr>::from(ark_relations::r1cs::Variable::One),
                 LinearCombination::<Fr>::from(root_var),
-            ).map_err(|e| CircuitError::SynthesisError(e.to_string()))?;
+            )
+            .map_err(|e| CircuitError::SynthesisError(e.to_string()))?;
         }
 
         Ok(())
@@ -139,7 +141,11 @@ impl Groth16Circuit<Fr> for MembershipCircuit {
 
 impl MembershipCircuit {
     /// Generate a witness for a specific leaf and path
-    pub fn generate_witness_for_path(&self, leaf: Vec<u8>, path: Vec<[u8; 32]>) -> MembershipWitness {
+    pub fn generate_witness_for_path(
+        &self,
+        leaf: Vec<u8>,
+        path: Vec<[u8; 32]>,
+    ) -> MembershipWitness {
         MembershipWitness { leaf, path }
     }
 

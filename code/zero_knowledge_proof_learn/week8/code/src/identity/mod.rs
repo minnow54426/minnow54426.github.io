@@ -12,7 +12,7 @@
 //! ```
 
 use crate::circuit::Groth16Circuit;
-use crate::error::{CircuitError, IdentityError, Result};
+use crate::error::{CircuitError, Result};
 use ark_bn254::Fr;
 use ark_relations::r1cs::ConstraintSystemRef;
 use serde::{Deserialize, Serialize};
@@ -54,7 +54,10 @@ impl IdentityCircuit {
     /// assert_eq!(circuit.preimage_length, 32);
     /// ```
     pub fn new(hash: [u8; 32], preimage_length: usize) -> Self {
-        Self { hash, preimage_length }
+        Self {
+            hash,
+            preimage_length,
+        }
     }
 }
 
@@ -84,11 +87,12 @@ impl Groth16Circuit<Fr> for IdentityCircuit {
         // The expected hash should be stored in the witness
         // For now, we'll just verify the hash was computed correctly
         // Create field elements from hash bytes
-        for (i, &computed_byte) in computed_hash.iter().enumerate() {
+        for &computed_byte in computed_hash.iter() {
             let computed_byte_val = computed_byte as u64;
 
             // Allocate witness variable for computed hash byte
-            let computed_var = cs.new_witness_variable(|| Ok(Fr::from(computed_byte_val)))
+            let computed_var = cs
+                .new_witness_variable(|| Ok(Fr::from(computed_byte_val)))
                 .map_err(|e| CircuitError::SynthesisError(e.to_string()))?;
 
             // Enforce: computed_byte * 1 = computed_byte (identity constraint)
@@ -97,7 +101,8 @@ impl Groth16Circuit<Fr> for IdentityCircuit {
                 LinearCombination::<Fr>::from(computed_var),
                 LinearCombination::<Fr>::from(ark_relations::r1cs::Variable::One),
                 LinearCombination::<Fr>::from(computed_var),
-            ).map_err(|e| CircuitError::SynthesisError(e.to_string()))?;
+            )
+            .map_err(|e| CircuitError::SynthesisError(e.to_string()))?;
         }
 
         Ok(())
