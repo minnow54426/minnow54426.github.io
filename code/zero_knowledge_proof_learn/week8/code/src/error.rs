@@ -25,11 +25,31 @@ pub enum Error {
 impl Error {
     pub fn kind(&self) -> ErrorKind {
         match self {
+            // Circuit errors - all map to InvalidWitness
             Error::Circuit(CircuitError::Identity(_)) => ErrorKind::InvalidWitness,
+            Error::Circuit(CircuitError::Membership(_)) => ErrorKind::InvalidWitness,
+            Error::Circuit(CircuitError::Privacy(_)) => ErrorKind::InvalidWitness,
+
+            // Setup errors
             Error::Setup(SetupError::ParametersAlreadyExist) => ErrorKind::ParametersAlreadyExist,
+            Error::Setup(SetupError::InsufficientEntropy) => ErrorKind::InsufficientEntropy,
+            Error::Setup(SetupError::SetupFailed) => ErrorKind::SetupFailed,
+
+            // Prove errors
+            Error::Prove(ProveError::WitnessGenerationFailed) => ErrorKind::WitnessGenerationFailed,
             Error::Prove(ProveError::ProofCreationFailed) => ErrorKind::ProofCreationFailed,
+
+            // Verify errors
             Error::Verify(VerifyError::InvalidProof) => ErrorKind::InvalidProof,
-            _ => ErrorKind::Unknown,
+            Error::Verify(VerifyError::ProofVerificationFailed) => ErrorKind::ProofVerificationFailed,
+            Error::Verify(VerifyError::PublicInputsIncorrect) => ErrorKind::PublicInputsIncorrect,
+
+            // Serialization errors
+            Error::Serialization(SerializationError::DeserializationFailed) => ErrorKind::DeserializationFailed,
+            Error::Serialization(SerializationError::VersionMismatch) => ErrorKind::VersionMismatch,
+
+            // IO errors map to Unknown
+            Error::Io(_) => ErrorKind::Unknown,
         }
     }
 }
