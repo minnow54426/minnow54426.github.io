@@ -9,3 +9,4 @@ pub mod cli;
 pub mod fileio;
 
 pub use error::{CliError, CircuitType, Result};
+pub use cli::Cli;
