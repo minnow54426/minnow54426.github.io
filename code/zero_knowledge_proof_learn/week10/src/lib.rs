@@ -6,5 +6,6 @@
 pub mod error;
 pub mod artifacts;
 pub mod cli;
+pub mod fileio;
 
 pub use error::{CliError, CircuitType, Result};

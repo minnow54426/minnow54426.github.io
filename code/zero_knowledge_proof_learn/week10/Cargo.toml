@@ -23,6 +23,10 @@ thiserror = "1.0"
 # Timing (for benchmarking)
 humantime = "2.1"
 
+[dev-dependencies]
+# For creating temporary files in tests
+tempfile = "3.8"
+
 [[bin]]
 name = "zk-artifacts"
 path = "src/main.rs"
