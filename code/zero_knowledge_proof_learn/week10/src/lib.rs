@@ -7,6 +7,8 @@ pub mod error;
 pub mod artifacts;
 pub mod cli;
 pub mod fileio;
+pub mod serialization;
 
 pub use error::{CliError, CircuitType, Result};
 pub use cli::Cli;
+pub use serialization::{ProvingKeyWrapper, VerifyingKeyWrapper, ProofWrapper};
