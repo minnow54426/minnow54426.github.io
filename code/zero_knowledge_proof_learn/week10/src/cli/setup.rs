@@ -1,6 +1,6 @@
+use crate::error::{CircuitType, Result};
 use clap::Parser;
 use std::path::PathBuf;
-use crate::error::{CircuitType, Result};
 
 /// Generate proving/verifying keys for a circuit
 #[derive(Parser, Debug)]
@@ -22,7 +22,39 @@ pub fn run(cmd: SetupCommand) -> Result<()> {
     println!("Setting up circuit: {:?}", cmd.circuit);
     println!("Output directory: {}", cmd.output_dir.display());
 
-    // TODO: Implement actual key generation in Task 8
+    // Create output directory
+    std::fs::create_dir_all(&cmd.output_dir)?;
+
+    // Check if keys already exist
+    let vk_path = cmd.output_dir.join("vk.json");
+    let pk_path = cmd.output_dir.join("pk.json");
+
+    if (vk_path.exists() || pk_path.exists()) && !cmd.force {
+        println!("Keys already exist. Use --force to overwrite.");
+        return Ok(());
+    }
+
+    // TODO: Call Week 8's setup function
+    // This will be implemented after testing with actual Week 8 library
+    match cmd.circuit {
+        CircuitType::Identity => {
+            println!("Generating keys for identity circuit...");
+            // Call: zk_groth16_snark::identity::setup()
+        }
+        CircuitType::Membership => {
+            println!("Generating keys for membership circuit...");
+            // Call: zk_groth16_snark::membership::setup()
+        }
+        CircuitType::Privacy => {
+            println!("Generating keys for privacy circuit...");
+            // Call: zk_groth16_snark::privacy::setup()
+        }
+    }
+
+    println!("Keys saved to:");
+    println!("  {}", vk_path.display());
+    println!("  {}", pk_path.display());
+
     Ok(())
 }
 
