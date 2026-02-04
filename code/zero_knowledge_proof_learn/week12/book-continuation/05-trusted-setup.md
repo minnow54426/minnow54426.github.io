@@ -26,8 +26,7 @@ e(A, B) = e(α, β) · e(public·IC, γ) · e(C, δ)
 ```
 
 The parameters (α, β, γ, δ) and the input commitment (IC) must be generated somehow. They have special properties:
-- **α, β**: Random field elements (the "toxic waste")
-- **γ, δ**: Derived from α and β
+- **α, β, γ, δ**: Random field elements (the "toxic waste")
 - **IC**: Computed from the QAP coefficients
 
 These parameters are **circuit-specific** - different circuits need different parameters.
@@ -94,6 +93,15 @@ G₁^A(τ) = G₁^(a₀·A₀(τ) + a₁·A₁(τ) + ...)
 ```
 
 This is the key to generating the proving key.
+
+### Alpha, Beta, Gamma, Delta
+
+These four field elements are the random parameters of the trusted setup:
+
+- **α, β**: Used in proof verification equation (the main toxic waste)
+- **γ, δ**: Used for input commitment and proof blinding
+
+In some Groth16 descriptions, γ and δ are derived from α and β (γ = α·β, δ = α·β²). However, our implementation generates all four independently for defense-in-depth: compromising α and β doesn't automatically compromise γ and δ.
 
 ## Key Structure
 
@@ -176,6 +184,8 @@ ICₘ = G₁^Aₘ(τ)  // Last public input
 
 Where Aᵢ(x) are the QAP A-polynomials for each variable, evaluated at τ.
 
+**Implementation Note:** The actual implementation in `../week11/crates/groth16/src/keys.rs` stores encrypted polynomial evaluations (`a_query`, `b_g1_query`, `b_g2_query`, `c_query`, `h_query`) rather than raw powers of tau. These are computed by evaluating QAP polynomials at tau and encrypting with alpha/beta. The conceptual structures above show what these values represent mathematically.
+
 ## Single-Party Setup
 
 ### The Algorithm
@@ -198,15 +208,14 @@ let mut powers_of_tau_g2 = Vec::with_capacity(n + 1);
 let g1 = G1::generator();  // Generator of G1
 let g2 = G2::generator();  // Generator of G2
 
-powers_of_tau_g1.push(g1);  // τ⁰
-powers_of_tau_g2.push(g2);
+let mut current_g1 = g1;
+let mut current_g2 = g2;
 
-for i in 1..=n {
-    let prev = powers_of_tau_g1[i-1];
-    powers_of_tau_g1.push(prev.mul(Scalar::from(i as u64)));
-
-    let prev_g2 = powers_of_tau_g2[i-1];
-    powers_of_tau_g2.push(prev_g2.mul(Scalar::from(i as u64)));
+for _ in 0..=n {
+    powers_of_tau_g1.push(current_g1);
+    powers_of_tau_g2.push(current_g2);
+    current_g1 = current_g1.mul(tau);
+    current_g2 = current_g2.mul(tau);
 }
 ```
 
@@ -223,10 +232,13 @@ let beta_h = g1.mul(beta).mul(h_tau);
 ```rust
 let mut ic = Vec::with_capacity(num_public_inputs + 1);
 
-for j in 0..=num_public_inputs {
-    // Evaluate A_j(τ) where A_j is the j-th A-polynomial
-    let a_j_tau = evaluate_a_polynomial(&qap.a_polys[j], Scalar::from(n as u64));
-    ic.push(g1.mul(a_j_tau));
+// IC[0] = β·G₁ (for constant 1 in witness)
+ic.push(g1.mul(beta));
+
+// IC[i] = β·Aᵢ(τ)·G₁ for each public input
+for a_poly in a_polys.iter().take(num_public_inputs + 1).skip(1) {
+    let a_j_tau = evaluate_polynomial(a_poly, tau);
+    ic.push(g1.mul(beta * a_j_tau));
 }
 ```
 
