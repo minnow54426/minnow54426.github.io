@@ -128,11 +128,16 @@ For a random point r. This single check suffices!
 
 ## Implementation
 
-Our QAP transformation lives in `crates/qap/src/polynomials.rs`.
+Our QAP transformation lives in `../week11/crates/qap/src/polynomials.rs` (accessed via symlinks).
 
 ### Data Structures
 
 ```rust
+use crate::error::QapError;
+use ark_ff::PrimeField;
+use groth16_math::fields::FieldWrapper;
+use groth16_math::polynomial::Polynomial;
+
 /// Quadratic Arithmetic Program
 pub struct QAP {
     /// A polynomials: one per witness variable
@@ -182,9 +187,13 @@ pub fn lagrange_interpolate(points: &[(Scalar, Scalar)]) -> DensePolynomial {
 }
 ```
 
+**Note:** This is a simplified presentation of Lagrange interpolation. The actual implementation in `crates/math/src/polynomial.rs` uses full finite field arithmetic with modular inverses. See the implementation for complete details.
+
 ### R1CS to QAP Transformation
 
 ```rust
+use crate::r1cs::R1CS;
+
 pub fn r1cs_to_qap(r1cs: &R1CS) -> QAP {
     let num_constraints = r1cs.a.num_rows();
     let num_vars = r1cs.a.num_cols();
@@ -230,6 +239,8 @@ pub fn r1cs_to_qap(r1cs: &R1CS) -> QAP {
 ### Polynomial Division
 
 ```rust
+use crate::error::{DivisionError, QapError};
+
 pub fn poly_div(numerator: &DensePolynomial, denominator: &DensePolynomial)
     -> Result<DensePolynomial, DivisionError>
 {
@@ -278,25 +289,35 @@ Let's trace the R1CS → QAP transformation for our multiplier circuit: a × b =
 ```
 A = [[0, 1, 0, 0],     B = [[1, 0, 0, 0],     C = [[0, 1, 0, 0],
      [0, 0, 1, 0],          [1, 0, 0, 0],          [0, 0, 1, 0],
-     [0, 0, 0, 0]]          [0, 1, 0, 0],          [0, 0, 0, 1]]
+     [0, 1, 0, 0]]          [0, 0, 1, 0],          [0, 0, 0, 1]]
 ```
 
 ### Construct Polynomials
 
 **For variable w[1] (column 1 of A, B, C):**
-- A column: [1, 0, 0] at x = [1, 2, 3]
-- Interpolate: A₁(x) passes through (1,1), (2,0), (3,0)
-- Result: A₁(x) = 0.5x² - 2.5x + 3
+- A column: [1, 0, 1] at x = [1, 2, 3]
+- Interpolate: A₁(x) passes through (1,1), (2,0), (3,1)
+- Using Lagrange interpolation: A₁(x) = 0.5(x-2)(x-3) - 0 + 0.5(x-1)(x-2) = x² - 3x + 3
 
-Similarly compute B₁(x) = 0, C₁(x) = 0.
+Similarly:
+- B column: [0, 0, 0], so B₁(x) = 0
+- C column: [0, 0, 0], so C₁(x) = 0
 
 **For variable w[2] (column 2):**
 - A column: [0, 1, 0]
 - A₂(x) passes through (1,0), (2,1), (3,0)
 - A₂(x) = -x² + 4x - 4
 
+- B column: [0, 0, 1]
+- B₂(x) passes through (1,0), (2,0), (3,1)
+- B₂(x) = 0.5(x-1)(x-2) = 0.5x² - 1.5x + 1
+
+- C column: [0, 0, 0], so C₂(x) = 0
+
 **For variable w[3] (column 3):**
-- A₃(x) = 0, B₃(x) = 0, C₃(x) = 0
+- A column: [0, 0, 0], so A₃(x) = 0
+- B column: [0, 0, 0], so B₃(x) = 0
+- C column: [0, 0, 1], so C₃(x) = 0.5x² - 1.5x + 1 (same as B₂)
 
 **For constant w[0] = 1:**
 - A₀(x) = 0, B₀(x) = 1, C₀(x) = 0
@@ -304,13 +325,13 @@ Similarly compute B₁(x) = 0, C₁(x) = 0.
 ### Final Polynomials
 
 A(x) = w[0]·A₀(x) + w[1]·A₁(x) + w[2]·A₂(x) + w[3]·A₃(x)
-     = 1·0 + a·(0.5x² - 2.5x + 3) + b·(-x² + 4x - 4) + c·0
+     = 1·0 + a·(x² - 3x + 3) + b·(-x² + 4x - 4) + c·0
 
-B(x) = 1·1 + a·0 + b·x + c·0
-     = 1 + b·x
+B(x) = w[0]·B₀(x) + w[1]·B₁(x) + w[2]·B₂(x) + w[3]·B₃(x)
+     = 1·1 + a·0 + b·(0.5x² - 1.5x + 1) + c·0
 
-C(x) = 1·0 + a·0 + b·0 + c·x
-     = c·x
+C(x) = w[0]·C₀(x) + w[1]·C₁(x) + w[2]·C₂(x) + w[3]·C₃(x)
+     = 1·0 + a·0 + b·0 + c·(0.5x² - 1.5x + 1)
 
 ### Target Polynomial
 
@@ -319,20 +340,26 @@ t(x) = (x-1)(x-2)(x-3) = x³ - 6x² + 11x - 6
 ### Verification
 
 For a = 3, b = 5, c = 15:
-- A(x) = 3(0.5x² - 2.5x + 3) + 5(-x² + 4x - 4) = -3.5x² + 12.5x - 11
-- B(x) = 1 + 5x
-- C(x) = 15x
+- A(x) = 3(x² - 3x + 3) + 5(-x² + 4x - 4) = -2x² + 11x - 11
+- B(x) = 1 + 5(0.5x² - 1.5x + 1) = 2.5x² - 7.5x + 6
+- C(x) = 15(0.5x² - 1.5x + 1) = 7.5x² - 22.5x + 15
 
 Check at x = 1.5 (random point):
-- A(1.5) = -3.5(2.25) + 12.5(1.5) - 11 = -7.875 + 18.75 - 11 = -0.125
-- B(1.5) = 1 + 5(1.5) = 8.5
-- C(1.5) = 15(1.5) = 22.5
+- A(1.5) = -2(2.25) + 11(1.5) - 11 = -4.5 + 16.5 - 11 = 1
+- B(1.5) = 2.5(2.25) - 7.5(1.5) + 6 = 5.625 - 11.25 + 6 = 0.375
+- C(1.5) = 7.5(2.25) - 22.5(1.5) + 15 = 16.875 - 33.75 + 15 = -1.875
 - t(1.5) = 1.5³ - 6(1.5²) + 11(1.5) - 6 = 3.375 - 13.5 + 16.5 - 6 = 0.375
 
-A·B - C = (-0.125)(8.5) - 22.5 = -1.0625 - 22.5 = -23.5625
-t·h = 0.375 · h  →  h = -62.833...
+A·B - C = (1)(0.375) - (-1.875) = 0.375 + 1.875 = 2.25
+t·h = 0.375 · h  →  h = 6
+
+Check: (A·B - C)(x) = 2.25 at x=1.5
+We can verify: A·B - C should be divisible by t(x)
+(A·B - C) / t = h(x) where h(1.5) = 6
 
 Division succeeds! Computation is valid.
+
+**Note:** The calculations above use floating-point arithmetic for clarity. In the actual implementation, all operations use finite field arithmetic (mod p), which provides exact results.
 
 ## Summary
 
