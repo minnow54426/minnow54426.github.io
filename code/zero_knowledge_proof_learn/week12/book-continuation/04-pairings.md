@@ -155,6 +155,8 @@ e(g₁^(α·s + ...), g₂^(β·s + ...)) = e(g₁^α, g₂^β) · e(g₁^(publi
 
 If this equation holds, the proof is valid!
 
+**Connection to QAP:** This pairing equation encodes the QAP divisibility check from Chapter 3. If e(A, B) = e(α, β) · e(input·IC, γ) · e(C, δ), then the prover knows a valid assignment to the QAP polynomials.
+
 ### Tate Pairing (Construction)
 
 The most common pairing construction uses **Weil pairing** or **Tate pairing**.
@@ -199,6 +201,8 @@ Not all elliptic curves support efficient pairings. We need:
 
 ## Implementation
 
+**Implementation Note:** The code examples in this section illustrate the key concepts of pairing operations. The actual implementation in `../week11/crates/groth16/src/verify.rs` uses arkworks 0.4 APIs which may differ from the simplified examples shown here. For production code, refer to the actual implementation files.
+
 Our pairing operations use arkworks' BN254 implementation.
 
 ### Data Structures
@@ -218,6 +222,9 @@ type GT = <Bn254 as PairingEngine>::Fqk;
 
 // Pairing engine
 type Pairing = Bn254;
+
+// Type alias for clarity
+type Scalar = <Bn254 as PairingEngine>::Fr;
 ```
 
 ### Point Operations
@@ -225,6 +232,7 @@ type Pairing = Bn254;
 ```rust
 /// Generate a random point in G1
 pub fn random_g1() -> G1 {
+    let mut rng = rand::thread_rng();
     G1::rand(&mut rng)
 }
 
@@ -240,8 +248,10 @@ pub fn add_g1(a: &G1, b: &G1) -> G1 {
 
 /// Check if point is in correct subgroup
 pub fn check_subgroup(point: &G1) -> bool {
-    let r = <Bn254 as PairingEngine>::Fr::MODULUS;
-    point.mul(r) == G1::zero()  // Should be point at infinity
+    // Verify point is in the correct subgroup by checking
+    // that multiplying by the group order yields the identity
+    let order = <Bn254 as PairingEngine>::ScalarField::MODULUS;
+    point.mul(order) == G1::zero()
 }
 ```
 
@@ -326,7 +336,7 @@ pub fn batch_verify(
     let mut left_pairs = Vec::new();
     let mut right_pairs = Vec::new();
 
-    for (i, (proof, vk, pub_input)) in proofs.iter().zip(vks).zip(public_inputs).enumerate() {
+    for ((proof, vk), pub_input) in proofs.iter().zip(vks.iter()).zip(public_inputs.iter()) {
         // Random scalar for this proof
         let r = Scalar::rand(&mut rng);
 
