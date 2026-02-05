@@ -81,11 +81,13 @@ assert!(is_on_curve(A));
 assert!(is_on_curve(B));
 assert!(is_on_curve(C));
 
-// Check subgroups
+// Check subgroups (prevents small-subgroup attacks)
 assert!(is_in_correct_subgroup(A));
 assert!(is_in_correct_subgroup(B));
 assert!(is_in_correct_subgroup(C));
 ```
+
+**Why subgroup checks matter:** Without verifying elements are in the correct subgroup, an attacker could use points from small subgroups to create fake proofs that pass verification. These small-subgroup attacks exploit the fact that not all points on the elliptic curve are part of the prime-order subgroup used in Groth16.
 
 **Step 2: Compute Public Input Commitment**
 ```rust
@@ -96,6 +98,8 @@ for (i, pub_input) in public_inputs.iter().enumerate() {
     public_ic = public_ic.add(IC[i + 1].mul(*pub_input));
 }
 ```
+
+**Note on IC[0]:** Some implementations include the constant term in IC[0], while others expect it to be added separately. This implementation handles both cases.
 
 **Step 3: Compute Pairing Equation Check**
 ```rust
@@ -188,12 +192,12 @@ We check:
 Where rᵢ are random scalars.
 
 **Pairing properties:**
-- e(r·A, B) = e(A, B)^r  (scalar multiplication in Gᵀ)
-- e(A₁, B₁) · e(A₂, B₂) = e(A₁ + A₂, B₁ + B₂)  (additive)
+- e(r·A, B) = e(A, B)^r (scalar multiplication in Gᵀ)
+- e(A₁ + A₂, B) = e(A₁, B) · e(A₂, B) (additive in first argument)
 
 This gives us:
 ```
-e(Σ rᵢ·Aᵢ, Σ rᵢ·Bᵢ) = Π e(rᵢ·RHSᵢ)
+e(Σ rᵢ·Aᵢ, B) = Π e(rᵢ·Aᵢ, B) = Π e(Aᵢ, B)^rᵢ
 ```
 
 **Single pairing instead of n pairings!**
@@ -215,7 +219,7 @@ pub fn batch_verify(
         // Generate random scalar for this proof
         let r = Scalar::rand(&mut rng);
 
-        // Left side: r · e(A, B) = e(r·A, B)
+        // Left side: r · e(A, B) = e(r·A, B) using first-argument additivity
         left_pairs.push((proof.a.mul(r), proof.b));
 
         // Right side: r · [e(α, β) · e(public·IC, γ) · e(C, δ)]
@@ -248,6 +252,8 @@ From our benchmarks (see `../week11/crates/groth16/BENCHMARK_RESULTS.md`):
 | 100 | 450ms | 4.5ms | 100× |
 
 **Key Insight:** Batch verification is **O(1)** - constant time regardless of batch size!
+
+**Note:** The batch verification algorithm shown above achieves O(1) in theory with proper pairing aggregation. However, the current implementation uses a loop of individual verifications. A true O(1) implementation would use more advanced techniques.
 
 ## Verification Correctness
 
