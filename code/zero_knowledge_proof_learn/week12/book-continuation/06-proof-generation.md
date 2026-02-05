@@ -28,7 +28,7 @@ Where:
 - **B ∈ G₂** - Encrypts the evaluation of B-polynomials
 - **C ∈ G₁** - Encrypts the evaluation of C-polynomials and the division polynomial
 
-Each element is 48-96 bytes, so the entire proof is quite small (~128 bytes).
+Each element is 48-128 bytes depending on compression, so the entire proof is quite small (~192 bytes compressed, ~256 bytes uncompressed).
 
 ### What Each Element Proves
 
@@ -81,13 +81,9 @@ If H(τ) exists (division succeeds), the witness is valid.
 
 Use the proving key to encrypt the evaluations into group elements:
 
-```rust
-// A = α·A(τ) + r·β·B(τ)  (in G1)
-// B = B(τ)                      (in G2)
-// C = β·A(τ) + r·β·B(τ) + H(τ)  (in G1)
-```
+**Note:** The actual Groth16 proof formulas are more complex. The simplified formulas above show the key ideas. The actual implementation uses encrypted polynomial evaluations from the proving key (a_query, b_query, etc.) with multiple randomization factors. See the implementation in `../week11/crates/groth16/src/prove.rs` for the complete formulas.
 
-Where r is a random blinding factor for zero-knowledge.
+The key insight: The proof elements encrypt polynomial evaluations in a way that allows verification via the pairing equation but doesn't reveal the underlying witness values.
 
 ## Zero-Knowledge via Randomization
 
@@ -97,7 +93,10 @@ If we just output A(τ), B(τ), C(τ) directly, the verifier could extract infor
 
 ### The Blinding Technique
 
-Groth16 uses random blinding factors r, s, δ:
+Groth16 uses multiple random blinding factors for zero-knowledge:
+- **r**: Randomizes the A element (in G₁)
+- **s**: Randomizes the C element (in G₁)
+- **δ**: Used in G₂ elements (not shown in simplified code)
 
 **Proof generation with blinding:**
 
@@ -123,6 +122,8 @@ For any verifier, there exists a simulator that can generate indistinguishable p
 ## Implementation
 
 Our proof generation lives in `../week11/crates/groth16/src/prove.rs`.
+
+**Implementation Note:** The code examples in this section illustrate the key concepts of proof generation. They are simplified for pedagogical clarity. The actual implementation in `../week11/crates/groth16/src/prove.rs` uses encrypted polynomial queries (a_query, b_query, etc.) and efficient multi-scalar multiplication. Refer to the implementation for production-ready code.
 
 ### Data Structures
 
@@ -171,7 +172,7 @@ pub fn generate_proof(
     // Generate random blinding factors
     let r = Fr::rand(&mut rng);
     let s = Fr::rand(&mut rng);
-    let delta = Fr::rand(&mut rng);
+    // Note: delta is used in the actual G2 computations
 
     // Compute proof elements
     let a = pk.alpha_g1.mul(a_tau).add(
@@ -294,20 +295,15 @@ The verifier checks:
 e(A, B) = e(α, β) · e(public·IC, γ) · e(C, δ)
 ```
 
-Let's expand our blinded proof:
-```
-e(A, B) = e(α·A + r·β·B, B)
-        = e(α·A, B) · e(r·β·B, B)
-        = e(α·A, B) · e(r·β·B, B)
-        = e(α·A, B) · e(r·β·B, B)
-```
+The proof elements A, B, C are constructed such that when combined with the public inputs (via IC) and the setup parameters (α, β, γ, δ), the pairing equation holds if and only if the prover knows a valid witness.
 
-Using bilinearity:
-```
-e(r·β·B, B) = e(β·B, B)^r
-```
+**Intuition:** The randomization factors (r, s, δ) are carefully chosen so they "cancel out" in the pairing equation. This allows the proof to verify correctly while hiding the actual witness values.
 
-The key insight: the randomization cancels out in the pairing equation, but hides the actual values from the verifier.
+**Connection to Previous Chapters:**
+- **Chapter 3 (QAP):** Defined the A, B, C polynomials that get evaluated
+- **Chapter 4 (Pairings):** Showed how bilinear pairings work
+- **Chapter 5 (Setup):** Generated the encrypted polynomial evaluations (a_query, b_query, etc.)
+- **This chapter:** Combines it all to create the actual proof
 
 ### Zero-Knowledge Proof
 
@@ -323,7 +319,7 @@ For any valid witness, the distribution of proofs is identical regardless of the
 2. The prover evaluates QAP polynomials at τ and encrypts them
 3. Random blinding factors (r, s, δ) enable zero-knowledge
 4. The proving key contains encrypted polynomial evaluations at τ
-5. Proofs are small (~128 bytes) and fast to generate
+5. Proofs are small (~192-256 bytes depending on compression) and fast to generate
 6. Zero-knowledge means proofs reveal nothing about the private witness
 
 **Next Chapter:** We'll see how the verifier checks proofs using the pairing equation.
