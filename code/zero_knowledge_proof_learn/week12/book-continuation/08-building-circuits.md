@@ -6,6 +6,8 @@ In the previous chapters, we explored the theoretical foundations of Groth16: R1
 
 This chapter bridges the gap between theory and practice. You'll learn how to design arithmetic circuits that encode real-world computations, optimize them for efficiency, and implement them using modern zk-SNARK libraries. We'll progress from simple examples to complex patterns, covering constraint optimization, privacy design, and testing methodologies.
 
+**About Code Examples:** This chapter contains both complete, runnable examples and conceptual sketches. Sketches are marked as "simplified" or "conceptual" and are intended to illustrate patterns rather than serve as production code.
+
 ### Chapter Goals
 
 By the end of this chapter, you will:
@@ -186,6 +188,22 @@ impl<F: Field> ConstraintSynthesizer<F> for MyCircuit<F> {
 - **Prover mode:** With `Some(value)` for actual proof generation
 - **Verifier mode:** With `None` for setup and verification (no witness needed)
 
+### Required Dependencies
+
+To use the arkworks Circuit API, add these dependencies to your `Cargo.toml`:
+
+```toml
+[dependencies]
+ark-relations = "0.4"
+ark-ff = "0.4"
+ark-groth16 = "0.4"
+ark-bn254 = "0.4"
+ark-std = { version = "0.4", default-features = false }
+rand = "0.8"
+```
+
+**Note:** See the Week 11 implementation for a complete working example.
+
 ### Design Principles
 
 When designing circuits, three competing goals must be balanced:
@@ -208,6 +226,17 @@ When designing circuits, three competing goals must be balanced:
 ## Example 1: Simple Multiplier Circuit
 
 ### Problem Statement
+
+**Note:** The following examples use the `lc!()` macro and other circuit components. Before implementing, ensure you have the required imports:
+
+```rust
+// Required imports for circuit examples
+use ark_relations::r1cs::{
+    ConstraintSynthesizer, ConstraintSystem, ConstraintSystem_ref,
+    SynthesisError, Variable
+};
+use ark_relations::r1cs::lc;  // For lc!() macro
+```
 
 **Goal:** Prove knowledge of two numbers `a` and `b` such that `a × b = c`, without revealing `a` or `b`.
 
