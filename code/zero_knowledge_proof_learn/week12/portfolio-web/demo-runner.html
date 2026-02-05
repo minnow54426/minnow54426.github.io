@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZK-SNARK Demo Runner | Interactive Proofs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151932;
+            --bg-tertiary: #1f2440;
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa0b8;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --border: rgba(99, 102, 241, 0.2);
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-link:hover {
+            color: var(--accent-primary);
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Main Content */
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        /* Intro Section */
+        .intro {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .intro h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .intro p {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Demo Tabs */
+        .demo-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.875rem 1.75rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .tab-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: var(--accent-gradient);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Demo Content */
+        .demo-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .demo-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Demo Header */
+        .demo-header {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .demo-header h3 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .demo-desc {
+            font-size: 1.0625rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
+        }
+
+        .demo-stats {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            background: var(--bg-tertiary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Demo Workspace */
+        .demo-workspace {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-panel,
+        .output-panel,
+        .verification-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .input-panel h4,
+        .output-panel h4,
+        .verification-panel h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-panel h4::before {
+            content: '1️⃣';
+        }
+
+        .output-panel h4::before {
+            content: '2️⃣';
+        }
+
+        .verification-panel h4::before {
+            content: '3️⃣';
+        }
+
+        /* Input Groups */
+        .input-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .input-group input:read-only {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .input-group small {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            font-style: italic;
+        }
+
+        .root-display {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: var(--accent-primary);
+            word-break: break-all;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        .btn-loader {
+            display: inline-block;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Proof Output */
+        .proof-output {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            min-height: 200px;
+        }
+
+        .proof-output .placeholder {
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 2rem 1rem;
+            font-style: italic;
+        }
+
+        .proof-data {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .proof-item {
+            margin-bottom: 0.875rem;
+            padding-bottom: 0.875rem;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        }
+
+        .proof-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .proof-item strong {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .proof-item code {
+            display: block;
+            background: var(--bg-secondary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8125rem;
+            color: var(--accent-primary);
+            word-break: break-all;
+            line-height: 1.5;
+        }
+
+        .proof-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .proof-meta span {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Verification Result */
+        .verification-result {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            min-height: 150px;
+        }
+
+        .verification-result .placeholder {
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 2rem 1rem;
+            font-style: italic;
+        }
+
+        .verification-checking {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 1rem;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .verification-checking p {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .verification-success {
+            text-align: center;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .success-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .verification-success h4 {
+            color: var(--success);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .verification-success p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .verification-details {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: left;
+            border-left: 3px solid var(--success);
+        }
+
+        .verification-details p {
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .verification-details p:last-child {
+            margin-bottom: 0;
+        }
+
+        .verification-failure {
+            text-align: center;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .failure-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .verification-failure h4 {
+            color: var(--error);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .verification-failure p {
+            color: var(--text-secondary);
+        }
+
+        /* Explanation Panel */
+        .explanation-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .explanation-panel h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .explanation-panel ol {
+            list-style: none;
+            counter-reset: step;
+        }
+
+        .explanation-panel ol li {
+            counter-increment: step;
+            margin-bottom: 1.25rem;
+            padding-left: 2.5rem;
+            position: relative;
+            line-height: 1.7;
+        }
+
+        .explanation-panel ol li::before {
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 1.75rem;
+            height: 1.75rem;
+            background: var(--accent-gradient);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .explanation-panel strong {
+            color: var(--accent-primary);
+        }
+
+        .circuit-diagram {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .circuit-diagram h5 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .circuit-diagram pre {
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8125rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        footer p {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: var(--accent-secondary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                padding: 1rem;
+            }
+
+            nav {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            main {
+                padding: 2rem 1rem;
+            }
+
+            .intro h2 {
+                font-size: 2rem;
+            }
+
+            .intro p {
+                font-size: 1rem;
+            }
+
+            .demo-tabs {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                width: 100%;
+            }
+
+            .demo-workspace {
+                grid-template-columns: 1fr;
+            }
+
+            .demo-header {
+                padding: 1.5rem;
+            }
+
+            .demo-header h3 {
+                font-size: 1.5rem;
+            }
+
+            .explanation-panel {
+                padding: 1.5rem;
+            }
+
+            .circuit-diagram {
+                padding: 1rem;
+            }
+
+            .circuit-diagram pre {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-secondary);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="back-link">← Back to Portfolio</a>
+            <h1>ZK Demo Runner</h1>
+        </nav>
+    </header>
+
+    <main>
+        <section class="intro">
+            <h2>Interactive Zero-Knowledge Proofs</h2>
+            <p>Experience ZK-SNARKs firsthand by generating and verifying proofs. Choose a demo below to get started.</p>
+        </section>
+
+        <!-- Demo Navigation Tabs -->
+        <div class="demo-tabs">
+            <button class="tab-btn active" data-demo="multiplier">Multiplier Circuit</button>
+            <button class="tab-btn" data-demo="range">Range Proof</button>
+            <button class="tab-btn" data-demo="merkle">Merkle Membership</button>
+        </div>
+
+        <!-- Multiplier Demo -->
+        <div id="multiplier-demo" class="demo-content active">
+            <div class="demo-header">
+                <h3>Multiplier Circuit: Prove a × b = c</h3>
+                <p class="demo-desc">
+                    Generate a proof that you know two numbers (a, b) whose product equals a public value (c),
+                    without revealing a and b themselves.
+                </p>
+                <div class="demo-stats">
+                    <span class="stat">⚡ 3 constraints</span>
+                    <span class="stat">📊 128 bytes proof</span>
+                    <span class="stat">⏱️ ~10ms verify time</span>
+                </div>
+            </div>
+
+            <div class="demo-workspace">
+                <div class="input-panel">
+                    <h4>Enter Values</h4>
+                    <div class="input-group">
+                        <label for="mult-a">Value a (private):</label>
+                        <input type="number" id="mult-a" value="5" min="1" max="100">
+                    </div>
+                    <div class="input-group">
+                        <label for="mult-b">Value b (private):</label>
+                        <input type="number" id="mult-b" value="7" min="1" max="100">
+                    </div>
+                    <div class="input-group">
+                        <label for="mult-c">Product c (public):</label>
+                        <input type="number" id="mult-c" value="35" readonly>
+                        <small>Auto-calculated: a × b</small>
+                    </div>
+                    <button id="mult-prove-btn" class="btn btn-primary">
+                        <span class="btn-text">Generate Proof</span>
+                        <span class="btn-loader" style="display: none;">Generating...</span>
+                    </button>
+                </div>
+
+                <div class="output-panel">
+                    <h4>Proof Output</h4>
+                    <div id="mult-proof-output" class="proof-output">
+                        <div class="placeholder">Click "Generate Proof" to see the proof</div>
+                    </div>
+                    <button id="mult-verify-btn" class="btn btn-secondary" disabled>
+                        Verify Proof
+                    </button>
+                </div>
+
+                <div class="verification-panel">
+                    <h4>Verification Result</h4>
+                    <div id="mult-verification" class="verification-result">
+                        <div class="placeholder">Verification result will appear here</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="explanation-panel">
+                <h4>What's Happening?</h4>
+                <ol>
+                    <li><strong>R1CS Encoding:</strong> Your inputs are encoded as quadratic constraints</li>
+                    <li><strong>QAP Transformation:</strong> Constraints converted to polynomials</li>
+                    <li><strong>Proving:</strong> Groth16 generates proof (A, B, C) using trusted setup keys</li>
+                    <li><strong>Verification:</strong> Pairing equation e(A,B) = e(α,β)·e(public·IC,γ)·e(C,δ) checked</li>
+                </ol>
+                <div class="circuit-diagram">
+                    <h5>Circuit Visualization</h5>
+                    <pre>
+      a ────────┬────────> × ────> [c = a×b]
+                 │                │
+                 └────────> [1] ──┘
+                    </pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Range Proof Demo -->
+        <div id="range-demo" class="demo-content">
+            <div class="demo-header">
+                <h3>Range Proof: Prove age ≥ 18</h3>
+                <p class="demo-desc">
+                    Prove you're at least 18 years old without revealing your exact age.
+                    Uses bit decomposition and binary comparison.
+                </p>
+                <div class="demo-stats">
+                    <span class="stat">⚡ ~60 constraints</span>
+                    <span class="stat">📊 128 bytes proof</span>
+                    <span class="stat">⏱️ ~50ms prove time</span>
+                </div>
+            </div>
+
+            <div class="demo-workspace">
+                <div class="input-panel">
+                    <h4>Enter Your Age</h4>
+                    <div class="input-group">
+                        <label for="range-age">Your age (private):</label>
+                        <input type="number" id="range-age" value="25" min="0" max="150">
+                    </div>
+                    <div class="input-group">
+                        <label for="range-threshold">Minimum age (public):</label>
+                        <input type="number" id="range-threshold" value="18" readonly>
+                    </div>
+                    <button id="range-prove-btn" class="btn btn-primary">
+                        Generate Proof
+                    </button>
+                </div>
+
+                <div class="output-panel">
+                    <h4>Proof Output</h4>
+                    <div id="range-proof-output" class="proof-output">
+                        <div class="placeholder">Click "Generate Proof" to see the proof</div>
+                    </div>
+                    <button id="range-verify-btn" class="btn btn-secondary" disabled>
+                        Verify Proof
+                    </button>
+                </div>
+
+                <div class="verification-panel">
+                    <h4>Verification Result</h4>
+                    <div id="range-verification" class="verification-result">
+                        <div class="placeholder">Verification result will appear here</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="explanation-panel">
+                <h4>How Range Proofs Work</h4>
+                <ol>
+                    <li><strong>Bit Decomposition:</strong> Age converted to 8-bit binary (e.g., 25 = 00011001)</li>
+                    <li><strong>Boolean Checks:</strong> Each bit verified to be 0 or 1</li>
+                    <li><strong>Comparison:</strong> Binary comparison checks age ≥ threshold</li>
+                    <li><strong>Privacy:</strong> Only comparison result revealed, not actual age</li>
+                </ol>
+                <div class="circuit-diagram">
+                    <h5>Bit Decomposition Example</h5>
+                    <pre>Age 25 = 00011001 (binary)
+Bit positions: 7 6 5 4 3 2 1 0
+Value:        0 0 0 1 1 0 0 1 = 16 + 8 + 1 = 25</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Merkle Demo -->
+        <div id="merkle-demo" class="demo-content">
+            <div class="demo-header">
+                <h3>Merkle Membership: Prove leaf is in tree</h3>
+                <p class="demo-desc">
+                    Prove a value is in a Merkle tree without revealing which leaf.
+                    Commonly used in privacy-preserving cryptocurrencies.
+                </p>
+                <div class="demo-stats">
+                    <span class="stat">⚡ ~2,400 constraints</span>
+                    <span class="stat">📊 128 bytes proof</span>
+                    <span class="stat">⏱️ ~500ms prove time</span>
+                </div>
+            </div>
+
+            <div class="demo-workspace">
+                <div class="input-panel">
+                    <h4>Choose a Leaf Value</h4>
+                    <div class="input-group">
+                        <label for="merkle-leaf">Select leaf (private):</label>
+                        <select id="merkle-leaf">
+                            <option value="0">Leaf 0 (Value: A)</option>
+                            <option value="2">Leaf 2 (Value: C)</option>
+                            <option value="5">Leaf 5 (Value: F)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Merkle Root (public):</label>
+                        <div class="root-display" id="merkle-root">
+                            0x7f3a9b5c...
+                        </div>
+                    </div>
+                    <button id="merkle-prove-btn" class="btn btn-primary">
+                        Generate Proof
+                    </button>
+                </div>
+
+                <div class="output-panel">
+                    <h4>Proof Output</h4>
+                    <div id="merkle-proof-output" class="proof-output">
+                        <div class="placeholder">Click "Generate Proof" to see the proof</div>
+                    </div>
+                    <button id="merkle-verify-btn" class="btn btn-secondary" disabled>
+                        Verify Proof
+                    </button>
+                </div>
+
+                <div class="verification-panel">
+                    <h4>Verification Result</h4>
+                    <div id="merkle-verification" class="verification-result">
+                        <div class="placeholder">Verification result will appear here</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="explanation-panel">
+                <h4>Merkle Tree Explained</h4>
+                <ol>
+                    <li><strong>Merkle Tree:</strong> Binary tree where leaves are values, parents are hashes</li>
+                    <li><strong>Merkle Proof:</strong> Path from leaf to root with sibling hashes</li>
+                    <li><strong>Verification:</strong> Recalculate root using proof + public root</li>
+                    <li><strong>Privacy:</strong> Proof doesn't reveal which leaf (if tree has ≥2 elements)</li>
+                </ol>
+                <div class="circuit-diagram">
+                    <h5>Sample Merkle Tree (Depth 2)</h5>
+                    <pre>
+                    Root
+                   /    \
+                H12      H34
+               /  \     /  \
+             H1   H2  H3   H4
+             |    |   |    |
+             A    B   C    D  (Leaves)
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Demo Runner | ZK-SNARK Learning Journey</p>
+        <a href="index.html">← Back to Portfolio</a>
+    </footer>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active from all
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.demo-content').forEach(d => d.classList.remove('active'));
+
+                // Add active to clicked
+                btn.classList.add('active');
+                const demoId = btn.getAttribute('data-demo') + '-demo';
+                document.getElementById(demoId).classList.add('active');
+            });
+        });
+
+        // Multiplier Demo
+        const multA = document.getElementById('mult-a');
+        const multB = document.getElementById('mult-b');
+        const multC = document.getElementById('mult-c');
+        const multProveBtn = document.getElementById('mult-prove-btn');
+        const multProofOutput = document.getElementById('mult-proof-output');
+        const multVerifyBtn = document.getElementById('mult-verify-btn');
+        const multVerification = document.getElementById('mult-verification');
+
+        // Update product when inputs change
+        function updateProduct() {
+            multC.value = parseInt(multA.value) * parseInt(multB.value);
+        }
+        multA.addEventListener('input', updateProduct);
+        multB.addEventListener('input', updateProduct);
+
+        // Simulate proof generation
+        multProveBtn.addEventListener('click', () => {
+            const a = parseInt(multA.value);
+            const b = parseInt(multB.value);
+            const c = parseInt(multC.value);
+
+            // Show loading
+            multProveBtn.disabled = true;
+            multProveBtn.querySelector('.btn-text').style.display = 'none';
+            multProveBtn.querySelector('.btn-loader').style.display = 'inline';
+
+            // Simulate computation time
+            setTimeout(() => {
+                // Generate mock proof data
+                const proof = {
+                    A: `G1Point(${Math.floor(Math.random() * 100000)}, ${Math.floor(Math.random() * 100000)})`,
+                    B: `G2Point(${Math.floor(Math.random() * 100000)}, ${Math.floor(Math.random() * 100000)})`,
+                    C: `G1Point(${Math.floor(Math.random() * 100000)}, ${Math.floor(Math.random() * 100000)})`,
+                    publicInput: c
+                };
+
+                multProofOutput.innerHTML = `
+                    <div class="proof-data">
+                        <div class="proof-item">
+                            <strong>Proof.A:</strong> <code>${proof.A}</code>
+                        </div>
+                        <div class="proof-item">
+                            <strong>Proof.B:</strong> <code>${proof.B}</code>
+                        </div>
+                        <div class="proof-item">
+                            <strong>Proof.C:</strong> <code>${proof.C}</code>
+                        </div>
+                        <div class="proof-item">
+                            <strong>Public Input:</strong> <code>${proof.publicInput}</code>
+                        </div>
+                        <div class="proof-meta">
+                            <span>📊 Size: 128 bytes</span>
+                            <span>⏱️ Generation time: 10ms</span>
+                        </div>
+                    </div>
+                `;
+
+                // Enable verify button
+                multVerifyBtn.disabled = false;
+
+                // Reset prove button
+                multProveBtn.disabled = false;
+                multProveBtn.querySelector('.btn-text').style.display = 'inline';
+                multProveBtn.querySelector('.btn-loader').style.display = 'none';
+            }, 1000);
+        });
+
+        // Simulate verification
+        multVerifyBtn.addEventListener('click', () => {
+            multVerification.innerHTML = `
+                <div class="verification-checking">
+                    <div class="spinner"></div>
+                    <p>Verifying proof...</p>
+                </div>
+            `;
+
+            setTimeout(() => {
+                multVerification.innerHTML = `
+                    <div class="verification-success">
+                        <div class="success-icon">✅</div>
+                        <h4>Proof Verified Successfully!</h4>
+                        <p>The proof is valid. The prover knows values a and b such that a × b = ${multC.value}.</p>
+                        <div class="verification-details">
+                            <p><strong>Pairing Equation:</strong> e(A, B) = e(α, β) · e(public·IC, γ) · e(C, δ) ✓</p>
+                            <p><strong>Verification Time:</strong> 10ms</p>
+                        </div>
+                    </div>
+                `;
+            }, 1500);
+        });
+
+        // Range Proof Demo
+        const rangeAge = document.getElementById('range-age');
+        const rangeProveBtn = document.getElementById('range-prove-btn');
+        const rangeProofOutput = document.getElementById('range-proof-output');
+        const rangeVerifyBtn = document.getElementById('range-verify-btn');
+        const rangeVerification = document.getElementById('range-verification');
+
+        rangeProveBtn.addEventListener('click', () => {
+            const age = parseInt(rangeAge.value);
+            const threshold = 18;
+
+            rangeProveBtn.disabled = true;
+            rangeProveBtn.textContent = 'Generating...';
+
+            setTimeout(() => {
+                const proof = {
+                    A: `G1Point(${Math.floor(Math.random() * 100000)}, ${Math.floor(Math.random() * 100000)})`,
+                    B: `G2Point(${Math.floor(Math.random() * 100000)}, ${Math.floor(Math.random() * 100000)})`,
+                    C: `G1Point(${Math.floor(Math.random() * 100000)}, ${Math.floor(Math.random() * 100000)})`,
+                    bits: age.toString(2).padStart(8, '0'),
+                    publicInput: threshold
+                };
+
+                rangeProofOutput.innerHTML = `
+                    <div class="proof-data">
+                        <div class="proof-item">
+                            <strong>Proof.A:</strong> <code>${proof.A}</code>
+                        </div>
+                        <div class="proof-item">
+                            <strong>Proof.B:</strong> <code>${proof.B}</code>
+                        </div>
+                        <div class="proof-item">
+                            <strong>Proof.C:</strong> <code>${proof.C}</code>
+                        </div>
+                        <div class="proof-item">
+                            <strong>Age (bits):</strong> <code>${proof.bits}</code>
+                        </div>
+                        <div class="proof-item">
+                            <strong>Threshold:</strong> <code>${proof.publicInput}</code>
+                        </div>
+                        <div class="proof-meta">
+                            <span>📊 Size: 128 bytes</span>
+                            <span>⏱️ Generation time: 50ms</span>
+                        </div>
+                    </div>
+                `;
+
+                rangeVerifyBtn.disabled = false;
+                rangeProveBtn.disabled = false;
+                rangeProveBtn.textContent = 'Generate Proof';
+            }, 1200);
+        });
+
+        rangeVerifyBtn.addEventListener('click', () => {
+            const age = parseInt(rangeAge.value);
+            const threshold = 18;
+
+            rangeVerification.innerHTML = `
+                <div class="verification-checking">
+                    <div class="spinner"></div>
+                    <p>Verifying proof...</p>
+                </div>
+            `;
+
+            setTimeout(() => {
+                if (age >= threshold) {
+                    rangeVerification.innerHTML = `
+                        <div class="verification-success">
+                            <div class="success-icon">✅</div>
+                            <h4>Proof Verified Successfully!</h4>
+                            <p>The proof is valid. Age is ≥ ${threshold} (actual age: ${age}, but this remains secret).</p>
+                            <div class="verification-details">
+                                <p><strong>Statement Proven:</strong> age ≥ ${threshold} ✓</p>
+                                <p><strong>Privacy:</strong> Exact age not revealed</p>
+                                <p><strong>Verification Time:</strong> 10ms</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    rangeVerification.innerHTML = `
+                        <div class="verification-failure">
+                            <div class="failure-icon">❌</div>
+                            <h4>Proof Verification Failed</h4>
+                            <p>The proof is invalid. Age (${age}) is < ${threshold}.</p>
+                        </div>
+                    `;
+                }
+            }, 1500);
+        });
+
+        // Merkle Demo
+        const merkleLeaf = document.getElementById('merkle-leaf');
+        const merkleProveBtn = document.getElementById('merkle-prove-btn');
+        const merkleProofOutput = document.getElementById('merkle-proof-output');
+        const merkleVerifyBtn = document.getElementById('merkle-verify-btn');
+        const merkleVerification = document.getElementById('merkle-verification');
+
+        merkleProveBtn.addEventListener('click', () => {
+            const leafIndex = parseInt(merkleLeaf.value);
+
+            merkleProveBtn.disabled = true;
+            merkleProveBtn.textContent = 'Generating...';
+
+            setTimeout(() => {
+                // Simulate Merkle proof
+                const proof = {
+                    A: `G1Point(${Math.floor(Math.random() * 100000)}, ${Math.floor(Math.random() * 100000)})`,
+                    B: `G2Point(${Math.floor(Math.random() * 100000)}, ${Math.floor(Math.random() * 100000)})`,
+                    C: `G1Point(${Math.floor(Math.random() * 100000)}, ${Math.floor(Math.random() * 100000)})`,
+                    path: ['H_sibling_1', 'H_sibling_2'],
+                    indices: ['0', '1']
+                };
+
+                merkleProofOutput.innerHTML = `
+                    <div class="proof-data">
+                        <div class="proof-item">
+                            <strong>Proof.A:</strong> <code>${proof.A}</code>
+                        </div>
+                        <div class="proof-item">
+                            <strong>Proof.B:</strong> <code>${proof.B}</code>
+                        </div>
+                        <div class="proof-item">
+                            <strong>Proof.C:</strong> <code>${proof.C}</code>
+                        </div>
+                        <div class="proof-item">
+                            <strong>Merkle Path:</strong> <code>${proof.path.join(' → ')}</code>
+                        </div>
+                        <div class="proof-item">
+                            <strong>Path Indices:</strong> <code>${proof.indices.join(', ')}</code>
+                        </div>
+                        <div class="proof-meta">
+                            <span>📊 Size: 128 bytes</span>
+                            <span>⏱️ Generation time: 500ms</span>
+                        </div>
+                    </div>
+                `;
+
+                merkleVerifyBtn.disabled = false;
+                merkleProveBtn.disabled = false;
+                merkleProveBtn.textContent = 'Generate Proof';
+            }, 800);
+        });
+
+        merkleVerifyBtn.addEventListener('click', () => {
+            merkleVerification.innerHTML = `
+                <div class="verification-checking">
+                    <div class="spinner"></div>
+                    <p>Verifying proof...</p>
+                </div>
+            `;
+
+            setTimeout(() => {
+                merkleVerification.innerHTML = `
+                    <div class="verification-success">
+                        <div class="success-icon">✅</div>
+                        <h4>Proof Verified Successfully!</h4>
+                        <p>The proof is valid. The leaf is in the Merkle tree with public root 0x7f3a9b5c...</p>
+                        <div class="verification-details">
+                            <p><strong>Merkle Root:</strong> Verified ✓</p>
+                            <p><strong>Privacy:</strong> Which leaf remains secret</p>
+                            <p><strong>Verification Time:</strong> 10ms</p>
+                        </div>
+                    </div>
+                `;
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
