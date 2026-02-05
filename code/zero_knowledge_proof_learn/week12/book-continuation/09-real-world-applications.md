@@ -36,6 +36,8 @@ Zero-knowledge proofs have found applications across a surprisingly diverse rang
 
 Each application area leverages different properties of zk-SNARKs: some prioritize privacy, others scalability or verifiability. Understanding these priorities is key to designing effective ZK systems.
 
+**Note:** All statistics and figures are current as of early 2024 and are subject to change. Consult project documentation for latest data.
+
 ## Case Study 1: Ethereum Scaling with ZK-Rollups
 
 ### The Problem: Ethereum Scalability
@@ -134,8 +136,8 @@ For each transaction in the batch:
 - Launched: March 2023
 - Throughput: ~100 TPS per sequencer (multiple sequencers possible)
 - Constraints: ~200,000 per transaction batch
-- TVL (Total Value Locked): $500M+ as of 2024
-- Uses: Custom proving system with Groth16-like properties
+- TVL (Total Value Locked): $500M+ (as of early 2024)
+- Uses: PLONK-based proving system with custom optimizations (not Groth16, but similar design patterns)
 - Hardware: GPU acceleration for proving
 
 **Polygon zkEVM**
@@ -143,7 +145,7 @@ For each transaction in the batch:
 - Throughput: ~90 TPS
 - Unique feature: Fully EVM-compatible (smart contracts work unchanged)
 - Constraints: ~500,000 per batch (higher due to EVM support)
-- TVL: $100M+ as of 2024
+- TVL: $100M+ (as of early 2024)
 - Uses: Modified Groth16 with optimizations for EVM operations
 
 **Scroll**
@@ -151,6 +153,8 @@ For each transaction in the batch:
 - Native zkEVM design (not ported)
 - Open-source proving stack
 - Constraints: ~150,000-300,000 per batch
+
+**Other ZK-Rollups:** Starknet (now StarkNet) uses STARKs (different proof system with transparent setup) but achieves similar scalability benefits. This chapter focuses on Groth16-based systems, but the design patterns apply broadly across ZK proving systems.
 
 ### Performance Comparison
 
@@ -350,7 +354,7 @@ Zcash provides multiple layers of privacy:
 ### Real-World Impact
 
 **Adoption and Usage**
-- Monthly transaction volume: $10M+ (as of 2024)
+- Monthly transaction volume: $10M+ monthly (as of early 2024)
 - Active wallets: 100,000+ shielded addresses
 - Shielded transactions: ~10% of all Zcash transactions (up from <1% in 2017)
 
@@ -364,6 +368,8 @@ Zcash provides multiple layers of privacy:
 - **Exchange delistings**: Some exchanges delist Zcash due to privacy concerns
 - **Compliance tools**: Zcash developing compliance tools for regulated entities
 - **Travel rule**: Developing solutions to reveal data to regulators while preserving privacy
+
+**Example:** In 2023-2024, major exchanges like Binance and Coinbase delisted or restricted privacy coins (Monero, Zcash) in EU jurisdictions due to AML/KYC directives. This highlights the tension between privacy technology and regulatory compliance.
 
 **Technical Improvements**
 - **Mobile support**: Shielded transactions now possible on mobile devices
