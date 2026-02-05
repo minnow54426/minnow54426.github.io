@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZK-SNARK Learning Journey | 12-Week Deep Dive</title>
+    <meta name="description" content="A comprehensive 12-week journey implementing Groth16 zk-SNARKs from first principles. 22,000+ words of tutorial content, production-grade documentation, and working code.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS Custom Properties */
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #8b5cf6;
+            --accent-color: #ec4899;
+            --success-color: #10b981;
+
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-card: #1e293b;
+
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+
+            --border-color: #334155;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+            --spacing-2xl: 4rem;
+        }
+
+        /* Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #0c1222 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-primary);
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--accent-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        h2 {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .lead {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto var(--spacing-lg);
+        }
+
+        .section-desc {
+            text-align: center;
+            color: var(--text-tertiary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-md);
+        }
+
+        /* Header & Navigation */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-sm) var(--spacing-md);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: var(--spacing-md);
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background: var(--text-primary);
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-xl);
+            align-items: center;
+            padding: var(--spacing-2xl) var(--spacing-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -25%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h2 {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .tagline {
+            font-size: 1.25rem;
+            color: var(--text-tertiary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-md);
+            margin: var(--spacing-lg) 0;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+        }
+
+        .cta-group {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Hero Visual */
+        .hero-visual {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zk-puzzle {
+            width: 400px;
+            height: 400px;
+            position: relative;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .zk-puzzle::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--accent-color) 100%);
+            border-radius: 20px;
+            opacity: 0.1;
+            filter: blur(40px);
+        }
+
+        .zk-puzzle svg {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Sections */
+        section {
+            padding: var(--spacing-2xl) var(--spacing-md);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* About Section */
+        .about {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            margin: var(--spacing-xl) auto;
+            max-width: 1200px;
+        }
+
+        .highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        .highlight-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: var(--spacing-md);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .highlight-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .highlight-card .icon {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .highlight-card h3 {
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        /* Tutorial Section */
+        .tutorial {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .chapter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-md);
+        }
+
+        .chapter-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: var(--spacing-md);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .chapter-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .chapter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .chapter-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .chapter-number {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .chapter-stats {
+            list-style: none;
+            padding: 0;
+            margin: var(--spacing-sm) 0;
+        }
+
+        .chapter-stats li {
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+            padding: 0.25rem 0;
+        }
+
+        .chapter-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .chapter-link:hover {
+            color: var(--secondary-color);
+            gap: 0.5rem;
+        }
+
+        /* Documentation Section */
+        .docs {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            margin: var(--spacing-xl) auto;
+            max-width: 1200px;
+        }
+
+        .docs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-md);
+        }
+
+        .doc-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: var(--spacing-md);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .doc-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .doc-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .doc-card h3 {
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .doc-meta {
+            display: inline-block;
+            margin-top: var(--spacing-sm);
+            padding: 0.25rem 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        /* Interactive Section */
+        .interactive {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .interactive-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-md);
+        }
+
+        .interactive-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: var(--spacing-md);
+            transition: all 0.3s ease;
+        }
+
+        .interactive-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .interactive-card h3 {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .interactive-card ul {
+            list-style: none;
+            padding: 0;
+            margin: var(--spacing-sm) 0 var(--spacing-md);
+        }
+
+        .interactive-card ul li {
+            color: var(--text-tertiary);
+            padding: 0.25rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .interactive-card ul li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+        }
+
+        /* Tech Stack Section */
+        .tech-stack {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            margin: var(--spacing-xl) auto;
+            max-width: 1200px;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-md);
+        }
+
+        .tech-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: var(--spacing-md);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .tech-item:hover {
+            border-color: var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        .tech-item strong {
+            display: block;
+            color: var(--text-primary);
+            font-size: 1.125rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .tech-item span {
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+        }
+
+        /* Contact Section */
+        .contact {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .contact-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        .contact-link {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: var(--spacing-md);
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-xs);
+            transition: all 0.3s ease;
+        }
+
+        .contact-link:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .contact-link .icon {
+            font-size: 2rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: var(--spacing-lg);
+            border-top: 1px solid var(--border-color);
+            margin-top: var(--spacing-2xl);
+        }
+
+        footer p {
+            color: var(--text-tertiary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 968px) {
+            .hero {
+                grid-template-columns: 1fr;
+                text-align: center;
+                padding-top: var(--spacing-2xl);
+            }
+
+            .hero-content {
+                order: 1;
+            }
+
+            .hero-visual {
+                order: 2;
+            }
+
+            .stats {
+                justify-content: center;
+            }
+
+            .cta-group {
+                justify-content: center;
+            }
+
+            .zk-puzzle {
+                width: 300px;
+                height: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--bg-secondary);
+                flex-direction: column;
+                padding: var(--spacing-md);
+                border-top: 1px solid var(--border-color);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .chapter-grid,
+            .docs-grid,
+            .interactive-cards,
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-content {
+            animation: fadeInUp 1s ease;
+        }
+
+        /* Print Styles */
+        @media print {
+            header,
+            .hero-visual,
+            .cta-group {
+                display: none;
+            }
+
+            section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header/Nav -->
+    <header>
+        <nav>
+            <div class="logo">ZK Journey</div>
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#about">About</a></li>
+                <li><a href="#tutorial">Tutorial</a></li>
+                <li><a href="#docs">Docs</a></li>
+                <li><a href="#timeline">Timeline</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero visible">
+        <div class="hero-content">
+            <h1>Zero-Knowledge Proofs</h1>
+            <h2>From First Principles to Production</h2>
+            <p class="tagline">A 12-week deep dive into Groth16 zk-SNARKs</p>
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-number">22,000+</span>
+                    <span class="stat-label">Words Written</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">7</span>
+                    <span class="stat-label">Tutorial Chapters</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">275</span>
+                    <span class="stat-label">Hours Invested</span>
+                </div>
+            </div>
+            <div class="cta-group">
+                <a href="#tutorial" class="btn btn-primary">Explore Tutorial</a>
+                <a href="https://github.com/boycrypt/zero_knowledge_proof_learn" class="btn btn-secondary">View on GitHub</a>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="zk-puzzle">
+                <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Abstract ZK visualization -->
+                    <circle cx="200" cy="200" r="150" stroke="url(#gradient1)" stroke-width="2" fill="none" opacity="0.5">
+                        <animate attributeName="r" values="150;160;150" dur="3s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="200" cy="200" r="100" stroke="url(#gradient2)" stroke-width="2" fill="none" opacity="0.7">
+                        <animate attributeName="r" values="100;110;100" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="200" cy="200" r="50" stroke="url(#gradient3)" stroke-width="3" fill="none">
+                        <animate attributeName="r" values="50;55;50" dur="1.5s" repeatCount="indefinite"/>
+                    </circle>
+
+                    <!-- Orbital elements -->
+                    <circle cx="200" cy="50" r="8" fill="url(#gradient1)">
+                        <animate attributeName="cx" values="200;350;200;50;200" dur="8s" repeatCount="indefinite"/>
+                        <animate attributeName="cy" values="50;200;350;200;50" dur="8s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="200" cy="350" r="6" fill="url(#gradient2)">
+                        <animate attributeName="cx" values="200;50;200;350;200" dur="6s" repeatCount="indefinite"/>
+                        <animate attributeName="cy" values="350;200;50;200;350" dur="6s" repeatCount="indefinite"/>
+                    </circle>
+
+                    <!-- Connection lines -->
+                    <path d="M 200 50 L 200 200 L 200 350" stroke="url(#gradient3)" stroke-width="1" opacity="0.3">
+                        <animate attributeName="d" values="M 200 50 L 200 200 L 200 350;M 350 200 L 200 200 L 50 200;M 200 50 L 200 200 L 200 350" dur="8s" repeatCount="indefinite"/>
+                    </path>
+
+                    <!-- Center symbol -->
+                    <text x="200" y="210" text-anchor="middle" fill="url(#gradient3)" font-family="monospace" font-size="24" font-weight="bold">ZK</text>
+
+                    <!-- Gradients -->
+                    <defs>
+                        <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2>About This Project</h2>
+            <p class="lead">
+                Over 12 weeks, I went from zero knowledge of zero-knowledge proofs to implementing
+                a complete Groth16 tutorial with production-grade documentation. This portfolio showcases
+                that journey.
+            </p>
+            <div class="highlights">
+                <div class="highlight-card">
+                    <div class="icon">📚</div>
+                    <h3>Comprehensive Tutorial</h3>
+                    <p>7 chapters covering mathematical foundations, protocol implementation, circuit design, and real-world applications.</p>
+                </div>
+                <div class="highlight-card">
+                    <div class="icon">🔒</div>
+                    <h3>Security-First</h3>
+                    <p>Threat model, security analysis, and production considerations for ZK systems.</p>
+                </div>
+                <div class="highlight-card">
+                    <div class="icon">💻</div>
+                    <h3>Working Code</h3>
+                    <p>Complete Groth16 implementation in Rust using arkworks, with example circuits and tests.</p>
+                </div>
+                <div class="highlight-card">
+                    <div class="icon">🎯</div>
+                    <h3>Interview Ready</h3>
+                    <p>Preparation guide with 18+ Q&A, sample answers, and practice problems.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tutorial Section -->
+    <section id="tutorial" class="tutorial">
+        <div class="container">
+            <h2>The Tutorial</h2>
+            <p class="section-desc">Seven chapters from theory to practice</p>
+
+            <div class="chapter-grid">
+                <div class="chapter-card">
+                    <span class="chapter-number">03</span>
+                    <h3>QAP Transformation</h3>
+                    <p>R1CS to polynomial transformation using Lagrange interpolation</p>
+                    <ul class="chapter-stats">
+                        <li>1,871 words</li>
+                        <li>~25 min read</li>
+                    </ul>
+                    <a href="../book-continuation/03-qap.md" class="chapter-link">Read Chapter →</a>
+                </div>
+
+                <div class="chapter-card">
+                    <span class="chapter-number">04</span>
+                    <h3>Elliptic Curves & Pairings</h3>
+                    <p>Bilinear maps, pairing-friendly curves, and the cryptographic engine</p>
+                    <ul class="chapter-stats">
+                        <li>1,875 words</li>
+                        <li>~25 min read</li>
+                    </ul>
+                    <a href="../book-continuation/04-pairings.md" class="chapter-link">Read Chapter →</a>
+                </div>
+
+                <div class="chapter-card">
+                    <span class="chapter-number">05</span>
+                    <h3>Trusted Setup</h3>
+                    <p>Ceremonies, toxic waste, and multi-party computation</p>
+                    <ul class="chapter-stats">
+                        <li>2,443 words</li>
+                        <li>~30 min read</li>
+                    </ul>
+                    <a href="../book-continuation/05-trusted-setup.md" class="chapter-link">Read Chapter →</a>
+                </div>
+
+                <div class="chapter-card">
+                    <span class="chapter-number">06</span>
+                    <h3>Proof Generation</h3>
+                    <p>Creating zero-knowledge proofs with blinding and randomization</p>
+                    <ul class="chapter-stats">
+                        <li>1,498 words</li>
+                        <li>~20 min read</li>
+                    </ul>
+                    <a href="../book-continuation/06-proof-generation.md" class="chapter-link">Read Chapter →</a>
+                </div>
+
+                <div class="chapter-card">
+                    <span class="chapter-number">07</span>
+                    <h3>Proof Verification</h3>
+                    <p>Pairing equations, single and batch verification</p>
+                    <ul class="chapter-stats">
+                        <li>1,548 words</li>
+                        <li>~20 min read</li>
+                    </ul>
+                    <a href="../book-continuation/07-proof-verification.md" class="chapter-link">Read Chapter →</a>
+                </div>
+
+                <div class="chapter-card">
+                    <span class="chapter-number">08</span>
+                    <h3>Building Circuits</h3>
+                    <p>Design patterns, optimization strategies, and examples</p>
+                    <ul class="chapter-stats">
+                        <li>5,428 words</li>
+                        <li>~60 min read</li>
+                    </ul>
+                    <a href="../book-continuation/08-building-circuits.md" class="chapter-link">Read Chapter →</a>
+                </div>
+
+                <div class="chapter-card">
+                    <span class="chapter-number">09</span>
+                    <h3>Real-World Applications</h3>
+                    <p>ZK-rollups, Zcash, identity systems, and more</p>
+                    <ul class="chapter-stats">
+                        <li>7,162 words</li>
+                        <li>~90 min read</li>
+                    </ul>
+                    <a href="../book-continuation/09-real-world-applications.md" class="chapter-link">Read Chapter →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documentation Section -->
+    <section id="docs" class="docs">
+        <div class="container">
+            <h2>Documentation Hub</h2>
+            <p class="section-desc">Professional-grade documentation for production systems</p>
+
+            <div class="docs-grid">
+                <a href="../docs/architecture.md" class="doc-card">
+                    <div class="doc-icon">🏗️</div>
+                    <h3>Architecture</h3>
+                    <p>System diagrams, data flow, and component relationships</p>
+                    <span class="doc-meta">7 mermaid diagrams</span>
+                </a>
+
+                <a href="../docs/threat-model.md" class="doc-card">
+                    <div class="doc-icon">🔐</div>
+                    <h3>Threat Model</h3>
+                    <p>Security assumptions, attack vectors, and mitigation strategies</p>
+                    <span class="doc-meta">6,498 words</span>
+                </a>
+
+                <a href="../docs/interview-prep.md" class="doc-card">
+                    <div class="doc-icon">💼</div>
+                    <h3>Interview Prep</h3>
+                    <p>Q&A, sample answers, and practice problems for ZK roles</p>
+                    <span class="doc-meta">18+ questions</span>
+                </a>
+
+                <a href="../docs/applications-guide.md" class="doc-card">
+                    <div class="doc-icon">🛠️</div>
+                    <h3>Applications Guide</h3>
+                    <p>Build real ZK applications with best practices and patterns</p>
+                    <span class="doc-meta">Implementation guide</span>
+                </a>
+
+                <a href="../docs/learning-journey.md" class="doc-card">
+                    <div class="doc-icon">📖</div>
+                    <h3>Learning Journey</h3>
+                    <p>12-week retrospective with mistakes, lessons, and advice</p>
+                    <span class="doc-meta">2,765 words</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Section -->
+    <section id="timeline" class="interactive">
+        <div class="container">
+            <h2>Try It Yourself</h2>
+            <p class="section-desc">Interactive demonstrations of ZK concepts</p>
+
+            <div class="interactive-cards">
+                <div class="interactive-card">
+                    <h3>🧮 Demo Runner</h3>
+                    <p>Generate and verify ZK proofs in your browser</p>
+                    <ul>
+                        <li>Multiplier circuit</li>
+                        <li>Range proof (age ≥ 18)</li>
+                        <li>Merkle membership</li>
+                    </ul>
+                    <a href="demo-runner.html" class="btn btn-outline">Try Demos →</a>
+                </div>
+
+                <div class="interactive-card">
+                    <h3>🏗️ Architecture Viewer</h3>
+                    <p>Interactive system diagrams and component relationships</p>
+                    <ul>
+                        <li>Data flow visualizations</li>
+                        <li>Proof generation sequence</li>
+                        <li>Verification equation</li>
+                    </ul>
+                    <a href="architecture-viewer.html" class="btn btn-outline">Explore →</a>
+                </div>
+
+                <div class="interactive-card">
+                    <h3>📅 Timeline Viewer</h3>
+                    <p>Visual 12-week learning journey with milestones</p>
+                    <ul>
+                        <li>Week-by-week breakdown</li>
+                        <li>Time investment</li>
+                        <li>Key breakthroughs</li>
+                    </ul>
+                    <a href="timeline.html" class="btn btn-outline">View Timeline →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section class="tech-stack">
+        <div class="container">
+            <h2>Technical Stack</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <strong>Rust</strong>
+                    <span>Implementation language</span>
+                </div>
+                <div class="tech-item">
+                    <strong>arkworks-rs</strong>
+                    <span>Cryptographic library</span>
+                </div>
+                <div class="tech-item">
+                    <strong>Groth16</strong>
+                    <span>ZK-SNARK proving system</span>
+                </div>
+                <div class="tech-item">
+                    <strong>BN254</strong>
+                    <span>Pairing-friendly curve</span>
+                </div>
+                <div class="tech-item">
+                    <strong>Poseidon</strong>
+                    <span>ZK-friendly hash function</span>
+                </div>
+                <div class="tech-item">
+                    <strong>R1CS/QAP</strong>
+                    <span>Constraint systems</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>Let's Connect</h2>
+            <p>Interested in ZK research, collaboration, or hiring?</p>
+
+            <div class="contact-links">
+                <a href="https://github.com/boycrypt" class="contact-link">
+                    <span class="icon">GitHub</span>
+                    <span>View my code</span>
+                </a>
+                <a href="https://linkedin.com/in/your-profile" class="contact-link">
+                    <span class="icon">LinkedIn</span>
+                    <span>Let's connect</span>
+                </a>
+                <a href="https://twitter.com/your-handle" class="contact-link">
+                    <span class="icon">Twitter</span>
+                    <span>Follow my journey</span>
+                </a>
+                <a href="mailto:your-email@example.com" class="contact-link">
+                    <span class="icon">Email</span>
+                    <span>Get in touch</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>Built with dedication over 12 weeks of intensive learning.</p>
+            <p>© 2024 | Created during Zero-Knowledge Proof Deep Dive</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking a link
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+            });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        const headerOffset = 80;
+                        const elementPosition = target.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            });
+        });
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Header background on scroll
+        const header = document.querySelector('header');
+        let lastScroll = 0;
+
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+
+            if (currentScroll > 100) {
+                header.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
+            } else {
+                header.style.boxShadow = 'none';
+            }
+
+            lastScroll = currentScroll;
+        });
+
+        // Add parallax effect to hero visual
+        const heroVisual = document.querySelector('.hero-visual');
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallaxSpeed = 0.3;
+
+            if (heroVisual && scrolled < window.innerHeight) {
+                heroVisual.style.transform = `translateY(${scrolled * parallaxSpeed}px)`;
+            }
+        });
+    </script>
+</body>
+</html>
