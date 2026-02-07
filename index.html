@@ -1,90 +1,217 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>wonderonpathlesspath</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            color: #333;
-        }
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        .nav {
-            margin: 30px 0;
-        }
-        .nav a {
-            display: inline-block;
-            margin: 10px 20px 10px 0;
-            padding: 10px 20px;
-            background: #0066cc;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background 0.3s;
-        }
-        .nav a:hover {
-            background: #0052a3;
-        }
-        .section {
-            margin: 40px 0;
-            padding: 20px;
-            background: #f5f5f5;
-            border-radius: 8px;
-        }
-        .section h2 {
-            margin-top: 0;
-            color: #0066cc;
-        }
-    </style>
-</head>
-<body>
-    <h1>wonderonpathlesspath</h1>
-    <p>Welcome to my personal space!</p>
+<!DOCTYPE HTML>
+<!--
+	Ethereal by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+	Adapted for personal portfolio
+-->
+<html>
+	<head>
+		<title>wonderonpathlesspath</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
 
-    <nav class="nav">
-        <a href="/photo-gallery.html">📸 Photography</a>
-        <a href="/code.html">💻 Code</a>
-        <a href="/music.html">🎵 Music</a>
-        <a href="/paint.html">🎨 Paint</a>
-        <a href="/cryptography.html">🔐 Cryptography</a>
-    </nav>
+		<!-- Page Wrapper -->
+			<div id="page-wrapper">
 
-    <div class="section">
-        <h2>📸 Photography</h2>
-        <p>A collection of moments captured through my lens, showcasing the beauty in everyday life.</p>
-        <p><a href="/photo-gallery.html">View Photo Gallery →</a></p>
-    </div>
+				<!-- Wrapper -->
+					<div id="wrapper">
 
-    <div class="section">
-        <h2>💻 Code</h2>
-        <p>Projects, tutorials, and experiments in programming and software development.</p>
-        <p><a href="/code.html">Explore Code Projects →</a></p>
-    </div>
+						<!-- Panel (Banner) -->
+							<section class="panel banner right" id="home">
+								<div class="content color0 span-3-75">
+									<h1 class="major">wonderonpathlesspath</h1>
+									<p>Capturing moments. Building systems. Exploring cryptography.</p>
+									<p>A journey through photography, code, and zero-knowledge proofs.</p>
+									<ul class="actions">
+										<li><a href="#photography" class="button primary color1 circle icon solid fa-angle-right">Explore</a></li>
+									</ul>
+								</div>
+								<div class="image filtered span-1-75" data-position="25% 25%">
+									<img src="photos/landscapes/mountain.jpg" alt="" />
+								</div>
+							</section>
 
-    <div class="section">
-        <h2>🎵 Music</h2>
-        <p>Musical creations, collaborations, and thoughts on sound and rhythm.</p>
-        <p><a href="/music.html">Listen to Music →</a></p>
-    </div>
+						<!-- Panel (Photography) -->
+							<section class="panel color1" id="photography">
+								<div class="intro color1-alt">
+									<h2 class="major">Photography</h2>
+									<p>Visual stories captured through the lens</p>
+									<ul class="actions">
+										<li><a href="photo-gallery.html" class="button primary color1 icon solid fa-images">View Full Gallery</a></li>
+									</ul>
+								</div>
+								<div class="gallery" id="photoGallery">
+									<!-- Dynamic photos will be injected by JavaScript -->
+								</div>
+							</section>
 
-    <div class="section">
-        <h2>🎨 Paint</h2>
-        <p>Visual art creations, paintings, and digital artwork exploring color and form.</p>
-        <p><a href="/paint.html">View Paint Gallery →</a></p>
-    </div>
+						<!-- Panel (Code) -->
+							<section class="panel color2" id="code">
+								<div class="intro color2-alt">
+									<h2 class="major">Code Projects</h2>
+									<p>From Zero Knowledge Proofs to interactive visualizations</p>
+								</div>
+								<div class="inner columns aligned">
+									<div class="span-4">
+										<h3 class="major">Zero Knowledge Proof Learning</h3>
+										<div class="zk-progress">
+											<div class="progress-bar">
+												<div class="filled" style="width: 83%">10/12 weeks completed</div>
+											</div>
+											<p>Exploring ZK-SNARKs through Rust implementation</p>
+											<ul class="actions">
+												<li><a href="code.html#zk-learning" class="button primary color2 icon solid fa-gem">Explore Journey</a></li>
+											</ul>
+										</div>
+									</div>
+									<div class="span-2">
+										<span class="icon solid fa-tree" style="font-size: 3em; margin-bottom: 1em; display: block;"></span>
+										<h3>Christmas Tree</h3>
+										<p>Interactive visualization</p>
+										<ul class="actions">
+											<li><a href="code/christmas_tree/" class="button small color2">View</a></li>
+										</ul>
+									</div>
+									<div class="span-2">
+										<span class="icon solid fa-chart-area" style="font-size: 3em; margin-bottom: 1em; display: block;"></span>
+										<h3>Interactiva Panel</h3>
+										<p>Polynomial plotter</p>
+										<ul class="actions">
+											<li><a href="code/interactiva_panel/" class="button small color2">View</a></li>
+										</ul>
+									</div>
+									<div class="span-2">
+										<span class="icon solid fa-book" style="font-size: 3em; margin-bottom: 1em; display: block;"></span>
+										<h3>Groth16 Demo</h3>
+										<p>Interactive book</p>
+										<ul class="actions">
+											<li><a href="code/groth16-demo/book/book/index.html" class="button small color2">View</a></li>
+										</ul>
+									</div>
+								</div>
+							</section>
 
-    <div class="section">
-        <h2>🔐 Cryptography</h2>
-        <p>Exploring the fascinating world of cryptographic protocols, zero-knowledge proofs, and mathematical foundations of security.</p>
-        <p><a href="/cryptography.html">Explore Cryptography →</a></p>
-    </div>
-</body>
+						<!-- Panel (Cryptography) -->
+							<section class="panel color3" id="cryptography">
+								<div class="intro color3-alt">
+									<h2 class="major">Cryptography</h2>
+									<p>Interactive visualizations of cryptographic concepts</p>
+								</div>
+								<div class="inner columns aligned">
+									<div class="span-7">
+										<h3 class="major">Polynomial Interpolation Preview</h3>
+										<p class="plotter-caption">Polynomial interpolation: The foundation of ZK-SNARKs</p>
+										<div class="mini-plotter-wrapper">
+											<canvas id="polyCanvas" width="700" height="350"></canvas>
+											<div class="preset-buttons">
+												<button class="button small color3" data-poly="simple">Simple</button>
+												<button class="button small color3" data-poly="complex">Complex</button>
+												<button class="button small color3" data-poly="zk-demo">ZK Demo</button>
+											</div>
+										</div>
+									</div>
+									<div class="span-3">
+										<h3>What are ZK-SNARKs?</h3>
+										<p>Zero-Knowledge Succinct Non-Interactive Arguments of Knowledge let you prove facts without revealing the underlying data.</p>
+										<ul class="actions stacked">
+											<li><a href="cryptography.html" class="button primary color3 icon solid fa-external-link-alt">Full Interactive Demo</a></li>
+											<li><a href="code.html#zk-learning" class="button color3">View Learning Journey</a></li>
+										</ul>
+									</div>
+								</div>
+							</section>
+
+						<!-- Panel (Music + Paint) -->
+							<section class="panel color4" id="creative">
+								<div class="intro color4-alt">
+									<h2 class="major">Creative Works</h2>
+									<p>Visual art through watercolor and sound</p>
+								</div>
+
+								<!-- Paint Videos -->
+								<div class="inner">
+									<h3 class="major">Watercolor Paintings</h3>
+									<div class="video-carousel" id="videoCarousel">
+										<!-- Dynamic videos will be injected by JavaScript -->
+									</div>
+									<ul class="actions" style="margin-top: 2em;">
+										<li><a href="paint.html" class="button primary color4 icon solid fa-film">View All 12 Videos</a></li>
+									</ul>
+								</div>
+
+								<!-- Music (Placeholder) -->
+								<div class="inner" style="margin-top: 3em;">
+									<h3 class="major">Music</h3>
+									<p>Coming soon...</p>
+								</div>
+							</section>
+
+						<!-- Panel (Contact/Explore) -->
+							<section class="panel color5-alt" id="contact">
+								<div class="intro color5">
+									<h2 class="major">Connect & Explore</h2>
+									<p>Get in touch or dive deeper into my projects</p>
+								</div>
+								<div class="inner columns divided">
+									<div class="span-3-25">
+										<form method="post" action="https://formspree.io/f/your-form-id">
+											<div class="fields">
+												<div class="field half">
+													<label for="name">Name</label>
+													<input type="text" name="name" id="name" />
+												</div>
+												<div class="field half">
+													<label for="email">Email</label>
+													<input type="email" name="email" id="email" />
+												</div>
+												<div class="field">
+													<label for="message">Message</label>
+													<textarea name="message" id="message" rows="4"></textarea>
+												</div>
+											</div>
+											<ul class="actions">
+												<li><input type="submit" value="Send Message" class="button primary color5" /></li>
+											</ul>
+										</form>
+									</div>
+									<div class="span-1-5">
+										<h3>Explore More</h3>
+										<ul class="actions stacked">
+											<li><a href="photo-gallery.html" class="button color5 icon solid fa-camera">Full Photo Gallery</a></li>
+											<li><a href="code.html" class="button color5 icon solid fa-code">All Code Projects</a></li>
+											<li><a href="cryptography.html" class="button color5 icon solid fa-gem">Cryptography Tools</a></li>
+											<li><a href="paint.html" class="button color5 icon solid fa-palette">Paint Gallery</a></li>
+										</ul>
+
+										<div class="social-links" style="margin-top: 2em;">
+											<h3>Connect</h3>
+											<ul class="contact-icons color5">
+												<li class="icon brands fa-github"><a href="https://github.com/yourusername">GitHub</a></li>
+												<li class="icon solid fa-envelope"><a href="mailto:your@email.com">Email</a></li>
+											</ul>
+										</div>
+									</div>
+								</div>
+							</section>
+
+						<!-- Copyright -->
+							<div class="copyright">&copy; 2025 wonderonpathlesspath. Design: <a href="https://html5up.net">HTML5 UP</a>.</div>
+
+					</div>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/main.js"></script>
+			<script src="js/home.js"></script>
+
+	</body>
 </html>
