@@ -13,6 +13,11 @@ include:
   - paint/
   - cryptography.html
   - cryptography/
+  - code/
+  - assets/
+  - js/
+  - images/
+  - music.html
 
 # Exclude unnecessary files
 exclude:
