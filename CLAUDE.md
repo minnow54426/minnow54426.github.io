@@ -130,11 +130,25 @@ git reset --hard origin/main  # Use with caution!
 
 ### Photo Management
 ```bash
-# Add new photos to the gallery
-cp /path/to/new/photos/*.jpg photos/
+# Add new photos to existing category
+cp /path/to/new/photos/*.jpg "photos/shang hai/"
 
-# Update photo-gallery.html to include new photos
-# (Edit the file manually to add new photo items)
+# Regenerate gallery HTML (if needed)
+cd photos
+python3 << 'EOF'
+# Simple script to add photos to existing gallery
+import os
+photo_dir = "shang hai"
+photos = sorted([f for f in os.listdir(photo_dir) if f.lower().endswith('.jpg')])
+for photo in photos:
+    print(f'<a href="{photo_dir}/{photo}" class="image"><img src="{photo_dir}/{photo}" alt="" loading="lazy" /></a>')
+EOF
+
+# For new categories, create directory and regenerate all galleries
+mkdir "photos/new category"
+cp /path/to/photos/*.jpg "photos/new category/"
+# Update photo-gallery.html to add new category link
+# Regenerate gallery HTML using the template structure
 
 # Test locally, then commit and push
 ```
@@ -188,7 +202,31 @@ ls -lh videos/
 ├── polynomial-plotter.html # Standalone polynomial plotter
 ├── app.js                  # Main JavaScript for site interactions
 ├── styles.css              # Global styles
-├── photos/                 # Photography collection (18 categories)
+├── photos/                 # Photography collection (12 categories)
+│   ├── shang hai/         # Shanghai photos (62 JPGs)
+│   ├── animals/           # Animal photos (23 JPGs)
+│   ├── jiu zhai gou/      # Jiu Zhai Gou photos (20 JPGs)
+│   ├── zhang jia jie/     # Zhang Jia Jie photos (13 JPGs)
+│   ├── hu pao gong yuan/  # Hu Pao Park photos (14 JPGs)
+│   ├── qing dao/          # Qing Dao photos (16 JPGs)
+│   ├── nan xun gu zhen/   # Nanxun Ancient Town photos (10 JPGs)
+│   ├── qian dao hu/       # Qian Dao Hu photos (10 JPGs)
+│   ├── ao men/            # Ao Men photos (7 JPGs)
+│   ├── zhu hai/           # Zhu Hai photos (3 JPGs)
+│   ├── on road/           # Travel photos (4 JPGs)
+│   ├── others/            # Other photos (2 JPGs)
+│   ├── shang-hai.html     # Shanghai gallery page
+│   ├── animals.html       # Animals gallery page
+│   ├── jiu-zhai-gou.html  # Jiu Zhai Gou gallery page
+│   ├── zhang-jia-jie.html # Zhang Jia Jie gallery page
+│   ├── hu-pao-gong-yuan.html # Hu Pao Park gallery page
+│   ├── qing-dao.html      # Qing Dao gallery page
+│   ├── nan-xun-gu-zhen.html # Nanxun gallery page
+│   ├── qian-dao-hu.html   # Qian Dao Hu gallery page
+│   ├── ao-men.html        # Ao Men gallery page
+│   ├── zhu-hai.html       # Zhu Hai gallery page
+│   ├── on-road.html       # On Road gallery page
+│   └── others.html        # Others gallery page
 ├── paint/                  # Art and video collection
 │   └── water_color/       # Watercolor videos (12 videos)
 ├── code/                   # Code projects directory
@@ -209,7 +247,8 @@ ls -lh videos/
 ├── .nojekyll              # Disable Jekyll processing
 ├── .gitignore             # Files to exclude from git
 ├── README.md              # Project documentation
-└── CLAUDE.md              # This file - AI assistant instructions
+├── CLAUDE.md              # This file - AI assistant instructions
+└── html5up-multiverse.zip # HTML5 UP Multiverse template source
 ```
 
 ## Website Structure
@@ -262,12 +301,25 @@ Located in `code/zero_knowledge_proof_learn/`, this is a structured 12-week lear
 - Focus on blockchain + ZK proofs in Rust
 
 ### Photo Gallery (`photo-gallery.html`)
-- Minimal design with no header text
-- Compact 2px grid spacing between photos
-- Folder-based navigation with expandable sections
-- Masonry-style layout with varied photo sizes
-- Lightbox functionality for full-size viewing
-- "← Back to Home" link for navigation
+- Main gallery index with 12 photo categories
+- Each category links to individual gallery page
+- Category cards with simple photo count text (e.g., "62 photos")
+- Clean design without progress bars
+- Responsive grid layout for category selection
+- Links to individual category pages (e.g., `photos/shang-hai.html`)
+
+### Individual Photo Galleries (`photos/*.html`)
+- **HTML5 UP Multiverse template** layout
+- **SimpleLightbox** lightbox for full-screen viewing (via CDN)
+- **Flexbox grid** with responsive columns:
+  - Desktop: 4 columns (25% width)
+  - Medium: 3 columns (33.33% width)
+  - Tablet: 2 columns (50% width)
+  - Mobile: 1 column (100% width)
+- Viewport-based photo height: `calc(40vh - 2em)`
+- Fixed header with navigation links
+- Gradient overlay effect on hover
+- 12 categories: Shanghai (62 photos), Jiu Zhai Gou (20), Zhang Jia Jie (13), Hu Pao Park (14), Qing Dao (16), Nanxun (10), Qian Dao Hu (10), Animals (23), Ao Men (7), Zhu Hai (3), On Road (4), Others (2)
 
 ### Paint Gallery (`paint.html`)
 - Folder-based navigation with 12 watercolor videos
@@ -278,11 +330,15 @@ Located in `code/zero_knowledge_proof_learn/`, this is a structured 12-week lear
 - "← Back to Home" link for navigation
 - Total of 12 videos: Christmas Snowman, Single Leaf, Mountain, Leaf on Water, Flower, Autumn Leave, Rose, Peach, Cherry Blossoms, Swan, Flower Bed, Whale
 
-### Photo Layout
-- Grid system with `repeat(auto-fill, minmax(250px, 1fr))`
-- Compact `grid-gap: 2px` for tight spacing
-- Responsive design for mobile and tablet
-- Hover effects and smooth transitions
+### Photo Gallery Layout (Multiverse Style)
+- **Flexbox grid** with `flex-wrap: wrap`
+- **Responsive breakpoints** for automatic column adjustment
+- **Viewport-based heights** for consistent photo sizing
+- **Article-based structure** (`<article class="thumb">`) for SEO
+- **SimpleLightbox** integration for lightbox functionality (via CDN)
+- **CSS gradient overlays** on photo hover
+- **Fixed header** with backdrop blur effect
+- **Keyboard navigation** in lightbox (arrow keys, ESC)
 
 ## Deployment Process (Learned from Experience)
 
@@ -324,7 +380,11 @@ Located in `code/zero_knowledge_proof_learn/`, this is a structured 12-week lear
 
 ### Web Frontend
 - **HTML5/CSS3** - Modern web standards
-- **CSS Grid** - Photo gallery layout
+- **HTML5 UP Templates** - Multiverse (photo galleries), Ethereal (main site)
+- **Flexbox** - Responsive photo gallery layouts
+- **jQuery** - DOM manipulation and interactions
+- **SimpleLightbox** - Lightbox functionality for photo galleries (replaced jQuery Poptrox)
+- **Font Awesome** - Icon system
 - **JavaScript** - Interactive galleries and visualizations
 - **GitHub Pages** - Static hosting
 - **Git** - Version control and deployment
@@ -413,6 +473,37 @@ The polynomial plotter exists in two locations:
 
 All versions share similar logic for visualizing polynomials and ZK-SNARK concepts.
 
+### Photo Gallery Template Structure
+Individual gallery pages follow the HTML5 UP Multiverse template:
+
+**HTML Structure:**
+```html
+<div id="main">
+    <article class="thumb">
+        <a href="category/photo.jpg" class="image">
+            <img src="category/photo.jpg" alt="" loading="lazy" />
+        </a>
+    </article>
+    <!-- More photos... -->
+</div>
+```
+
+**Key CSS Features:**
+- Flexbox container with `flex-wrap: wrap`
+- `.thumb` elements with percentage-based widths (25%, 33.33%, 50%, 100%)
+- Viewport-based heights: `calc(40vh - 2em)`
+- Responsive breakpoints for different screen sizes
+
+**JavaScript:**
+- SimpleLightbox initialized on `#main .thumb a` selector (via CDN)
+- Handles lightbox, navigation, and captions
+
+**Regenerating Galleries:**
+To regenerate all gallery HTML files after adding photos:
+1. Use the Python generator script (create from template)
+2. Manually edit individual HTML files to add `<article class="thumb">` blocks
+3. Ensure photo paths use relative URLs from `/photos/` directory
+
 ## Important Notes
 
 - **Multi-purpose Repository**: This serves as both a personal portfolio website AND a learning workspace for ZK proofs
@@ -420,9 +511,14 @@ All versions share similar logic for visualizing polynomials and ZK-SNARK concep
 - **Rust Projects Are Independent**: Each week's ZK learning project has its own Cargo.toml and dependencies
 - **Test-Driven Learning**: The ZK learning path emphasizes writing tests to verify understanding of cryptographic concepts
 - **GitHub Pages Multi-Branch**: Always push to main, master, and gh-pages branches to ensure deployment works
+- **HTML5 UP Templates**: Photo galleries use the Multiverse template; main site uses Ethereal template
+- **Photo Gallery Structure**: Individual category pages in `/photos/*.html` use SimpleLightbox (via CDN) for lightbox functionality
 
 ## Legacy Content Notes
 
 - The `/content/` folder was removed (old Pelican setup); the site now uses direct `/photos/` and `/paint/` folders
 - No Pelican build process; this is a pure static HTML site
 - All HTML files are served directly from the root directory
+- Photo galleries updated (Feb 2025) to use HTML5 UP Multiverse template with SimpleLightbox (via CDN)
+- Individual category pages (`photos/*.html`) replaced the previous single-page gallery approach
+- Photo gallery index updated (Feb 2026) to show simple photo count text instead of progress bars

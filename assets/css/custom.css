@@ -181,6 +181,13 @@ html {
     opacity: 0.95;
 }
 
+.photo-count {
+    font-size: 1.1em;
+    font-weight: 500;
+    color: rgba(255,255,255,0.9);
+    margin: 10px 0;
+}
+
 /* Progress Bar */
 .progress-bar {
     background: rgba(0,0,0,0.2);
