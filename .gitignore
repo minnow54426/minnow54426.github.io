@@ -12,3 +12,13 @@ paint/water_color/christmas_snowman_compressed.mp4
 
 # Git worktrees
 .worktrees/
+
+# Rust build artifacts
+**/target/
+**/*.rs.bk
+Cargo.lock
+
+# Other large files
+*.mp4
+*.mov
+*.zip
