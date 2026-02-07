@@ -188,6 +188,7 @@
             max-width: 90vw;
             max-height: 90vh;
             object-fit: contain;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -213,28 +214,37 @@
     </div>
 
     <!-- Scripts -->
+    <!-- Scripts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simplelightbox.min.css">
     <script src="../assets/js/jquery.min.js"></script>
     <script src="../assets/js/browser.min.js"></script>
     <script src="../assets/js/breakpoints.min.js"></script>
     <script src="../assets/js/main.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simplelightbox.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simple-lightbox.min.js"></script>
     <script>
-        $(function() {
-            // Initialize SimpleLightbox
-            new SimpleLightbox('#main .thumb a', {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize SimpleLightbox - single photo view only
+            var lightbox = new SimpleLightbox('#main .thumb a', {
                 overlayOpacity: 0.95,
-                captionDelay: 0,
                 captionType: 'attr',
                 captionsData: 'alt',
-                nav: true,
-                navText: ['&lsaquo;', '&rsaquo;'],
-                closeText: '&times;',
+                nav: false,                    // Disable next/prev navigation
+                closeText: '×',
                 fileExt: false,
                 animationSpeed: 300,
                 animationSlide: true,
                 widthRatio: 0.9,
-                heightRatio: 0.9
+                heightRatio: 0.9,
+                swipeClose: true,               // Allow swipe to close on mobile
+                closeOnOverlayClick: true      // Click overlay to close
+            });
+
+            // Add click-to-close on image - using document delegation
+            document.addEventListener('click', function(e) {
+                const lightboxImg = document.querySelector('.sl-wrapper .sl-image img');
+                if (lightboxImg && (e.target === lightboxImg || e.target.closest('.sl-image') === lightboxImg.parentElement)) {
+                    lightbox.close();
+                }
             });
         });
     </script>
