@@ -18,29 +18,29 @@
         {
             name: 'Jiu Zhai Gou',
             photos: [
-                { src: 'photos/jiu zhai gou/DSC02454--export-by-date.JPG', caption: 'Colorful Lakes' },
-                { src: 'photos/jiu zhai gou/DSC02456--export-by-date.JPG', caption: 'Waterfall Valley' }
+                { src: 'photos/jiu%20zhai%20gou/DSC02454--export-by-date.JPG', caption: 'Colorful Lakes' },
+                { src: 'photos/jiu%20zhai%20gou/DSC02456--export-by-date.JPG', caption: 'Waterfall Valley' }
             ]
         },
         {
             name: 'Zhang Jia Jie',
             photos: [
-                { src: 'photos/zhang jia jie/DSC03250--export-by-date.JPG', caption: 'Sandstone Peaks' },
-                { src: 'photos/zhang jia jie/DSC03253--export-by-date.JPG', caption: 'Mist Forest' }
+                { src: 'photos/zhang%20jia%20jie/DSC03250--export-by-date.JPG', caption: 'Sandstone Peaks' },
+                { src: 'photos/zhang%20jia%20jie/DSC03253--export-by-date.JPG', caption: 'Mist Forest' }
             ]
         },
         {
             name: 'Qian Dao Hu',
             photos: [
-                { src: 'photos/qian dao hu/DSC04956--export-by-date.JPG', caption: 'Thousand Island Lake' },
-                { src: 'photos/qian dao hu/DSC04971--export-by-date.JPG', caption: 'Peaceful Waters' }
+                { src: 'photos/qian%20dao%20hu/DSC04956--export-by-date.JPG', caption: 'Thousand Island Lake' },
+                { src: 'photos/qian%20dao%20hu/DSC04971--export-by-date.JPG', caption: 'Peaceful Waters' }
             ]
         },
         {
             name: 'Nan Xun Gu Zhen',
             photos: [
-                { src: 'photos/nan xun gu zhen/DSC00792--export-by-date.JPG', caption: 'Ancient Water Town' },
-                { src: 'photos/nan xun gu zhen/DSC00843--export-by-date.JPG', caption: 'Traditional Architecture' }
+                { src: 'photos/nan%20xun%20gu%20zhen/DSC00792--export-by-date.JPG', caption: 'Ancient Water Town' },
+                { src: 'photos/nan%20xun%20gu%20zhen/DSC00843--export-by-date.JPG', caption: 'Traditional Architecture' }
             ]
         },
         {
@@ -53,8 +53,8 @@
         {
             name: 'Shang Hai',
             photos: [
-                { src: 'photos/shang hai/DSC01309--export-by-date.JPG', caption: 'City Skyline' },
-                { src: 'photos/shang hai/DSC01311--export-by-date.JPG', caption: 'Urban Nights' }
+                { src: 'photos/shang%20hai/DSC01309--export-by-date.JPG', caption: 'City Skyline' },
+                { src: 'photos/shang%20hai/DSC01311--export-by-date.JPG', caption: 'Urban Nights' }
             ]
         },
         {
@@ -67,8 +67,8 @@
         {
             name: 'Zhu Jia Jiao Gu Zhen',
             photos: [
-                { src: 'photos/zhu jia jiao gu zhen/1--export-by-date.jpg', caption: 'Historic Canals' },
-                { src: 'photos/zhu jia jiao gu zhen/2--export-by-date (2).jpg', caption: 'Riverside Life' }
+                { src: 'photos/zhu%20jia%20jiao%20gu%20zhen/1--export-by-date.jpg', caption: 'Historic Canals' },
+                { src: 'photos/zhu%20jia%20jiao%20gu%20zhen/2--export-by-date (2).jpg', caption: 'Riverside Life' }
             ]
         }
     ];
