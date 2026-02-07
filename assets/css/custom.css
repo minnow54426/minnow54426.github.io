@@ -1,37 +1,15 @@
 /*
  * Custom CSS Overrides for HTML5UP Ethereal Theme
- * Personal portfolio customizations
+ * Convert to simple vertical scrolling layout
  */
 
-/* COMPLETE OVERRIDE: Convert horizontal carousel to vertical layout */
-html, body {
-	height: auto !important;
-	overflow-x: hidden !important;
-	scroll-behavior: smooth !important;
-}
-
-#page-wrapper {
-	width: 100% !important;
-	max-width: 100% !important;
-	height: auto !important;
-	overflow: visible !important;
-}
-
+/* Reset wrapper to be vertical scrolling */
 #wrapper {
-	/* CRITICAL: Override all carousel behavior */
 	display: block !important;
-	flex-direction: column !important;
-	-moz-flex-direction: column !important;
-	-webkit-flex-direction: column !important;
-	-ms-flex-direction: column !important;
-	width: 100% !important;
-	max-width: 100% !important;
 	height: auto !important;
 	min-height: auto !important;
 	position: relative !important;
 	transform: none !important;
-	overflow: visible !important;
-	cursor: auto !important;
 	box-shadow: none !important;
 }
 
@@ -40,107 +18,151 @@ html, body {
 	display: none !important;
 }
 
+/* Make each panel a full-width section */
 .panel {
-	/* Keep internal flex layout but allow vertical stacking */
+	display: block !important;
 	width: 100% !important;
-	max-width: 100% !important;
-	min-height: 400px !important;
+	min-height: 60vh !important;
+	padding: 4rem 2rem !important;
+	margin: 0 !important;
 	position: relative !important;
-	left: auto !important;
-	top: auto !important;
+	left: 0 !important;
+	top: 0 !important;
 	transform: none !important;
-	margin-bottom: 2rem !important;
-	padding: 2rem !important;
 }
 
-/* Fix panel content layout */
-.panel > .intro,
-.panel > .inner,
-.panel > .content {
+/* Panel internal content should stack */
+.panel > div {
+	display: block !important;
 	width: 100% !important;
 	max-width: 1200px !important;
-	margin: 0 auto !important;
+	margin: 0 auto 2rem auto !important;
 	position: relative !important;
 }
 
-/* Fix banner panel specifically */
-.panel.banner .content,
-.panel.banner .image {
-	flex: 0 0 auto !important;
-	width: 100% !important;
-	max-width: 100% !important;
-	position: relative !important;
-}
-
-.panel.banner .image {
-	min-height: 300px !important;
-}
-
+/* Banner panel: stack image and content vertically */
 .panel.banner {
 	flex-direction: column !important;
-	-moz-flex-direction: column !important;
-	-webkit-flex-direction: column !important;
-	-ms-flex-direction: column !important;
 }
 
-/* Disable all carousel transitions */
-#wrapper, .panel {
-	-moz-transition: none !important;
-	-webkit-transition: none !important;
-	-ms-transition: none !important;
-	transition: none !important;
+.panel.banner .content,
+.panel.banner .image {
+	width: 100% !important;
+	max-width: 100% !important;
+	flex: none !important;
+	position: relative !important;
 }
 
-/* Progress Bar Styling for ZK Learning Indicator */
+.panel.banner .image {
+	min-height: 400px !important;
+	margin-top: 2rem !important;
+}
+
+.panel.banner .image img {
+	width: 100% !important;
+	height: auto !important;
+	object-fit: cover !important;
+}
+
+/* Fix gallery layout */
+.gallery {
+	display: block !important;
+}
+
+.gallery > div,
+.gallery > a {
+	display: inline-block !important;
+	width: calc(50% - 1rem) !important;
+	margin: 0.5rem !important;
+	vertical-align: top !important;
+}
+
+/* Fix code panel layout */
+.panel .inner.columns {
+	display: block !important;
+}
+
+.panel .inner.columns > * {
+	display: block !important;
+	width: 100% !important;
+	margin: 1rem 0 !important;
+}
+
+/* Progress bar styling */
 .zk-progress .progress-bar {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    height: 30px;
-    margin: 1em 0;
-    overflow: hidden;
+	background: rgba(255, 255, 255, 0.2);
+	border-radius: 4px;
+	height: 30px;
+	margin: 1em 0;
+	overflow: hidden;
 }
 
 .zk-progress .filled {
-    background: linear-gradient(90deg, #4CAF50, #8BC34A);
-    color: white;
-    padding: 5px 10px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    transition: width 0.5s ease;
+	background: linear-gradient(90deg, #4CAF50, #8BC34A);
+	color: white;
+	padding: 5px 10px;
+	font-weight: bold;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	transition: width 0.5s ease;
 }
 
-/* Video Carousel Hover Effects */
+/* Video carousel styling */
 .paint-video {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
-    transition: transform 0.3s ease;
+	width: 100%;
+	height: 200px;
+	object-fit: cover;
+	border-radius: 8px;
+	transition: transform 0.3s ease;
 }
 
 .paint-video:hover {
-    transform: scale(1.05);
+	transform: scale(1.05);
 }
 
-/* Mini Plotter Canvas Styling */
+/* Canvas styling */
 #polyCanvas {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	background: white;
+	border-radius: 8px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	max-width: 100% !important;
+	height: auto !important;
 }
 
-/* Photo Caption Styling */
+/* Photo captions */
 .image .caption {
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 0.5em;
-    text-align: center;
-    font-size: 0.9em;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+	background: rgba(0, 0, 0, 0.7);
+	color: white;
+	padding: 0.5em;
+	text-align: center;
+	font-size: 0.9em;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
+
+/* Buttons and actions */
+ul.actions {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	gap: 1rem !important;
+}
+
+ul.actions li {
+	display: inline-block !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.panel {
+		padding: 2rem 1rem !important;
+	}
+
+	.gallery > div,
+	.gallery > a {
+		width: 100% !important;
+	}
 }
