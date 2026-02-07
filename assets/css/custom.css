@@ -13,6 +13,20 @@
 	max-width: 100% !important;
 }
 
+/* Hide photo and video galleries from main page */
+#photoGallery,
+#videoCarousel {
+	display: none !important;
+}
+.panel.banner .image {
+	display: none !important;
+}
+
+.panel.banner .content {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
 /* CRITICAL: Enable document scrolling */
 html, body {
 	overflow-y: auto !important;
