@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -24,10 +24,24 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Upload artifact
+      - name: Upload website files only
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: |
+            index.html
+            photo-gallery.html
+            paint.html
+            code.html
+            cryptography.html
+            music.html
+            polynomial-plotter.html
+            assets/
+            js/
+            photos/
+            paint/
+            code/
+            images/
+            .nojekyll
 
       - name: Deploy to GitHub Pages
         id: deployment
