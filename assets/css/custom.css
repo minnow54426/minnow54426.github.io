@@ -3,6 +3,16 @@
  * Convert to simple vertical scrolling layout
  */
 
+/* Hide banner image - show title only */
+.panel.banner .image {
+	display: none !important;
+}
+
+.panel.banner .content {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
 /* CRITICAL: Enable document scrolling */
 html, body {
 	overflow-y: auto !important;
