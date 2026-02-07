@@ -135,7 +135,7 @@
 
     /**
      * Paint videos configuration
-     * TODO: Configure with actual video paths in Task 5
+     * All 12 watercolor videos from paint/water_color/
      */
     const paintVideos = [
         {
@@ -145,21 +145,69 @@
             duration: '2:15'
         },
         {
+            src: 'paint/water_color/single_leaf.mp4',
+            thumbnail: 'paint/water_color/thumbnails/single_leaf.jpg',
+            title: 'Single Leaf',
+            duration: '1:30'
+        },
+        {
             src: 'paint/water_color/mountain.mp4',
             thumbnail: 'paint/water_color/thumbnails/mountain.jpg',
-            title: 'Mountain Landscape',
+            title: 'Mountain',
             duration: '2:30'
+        },
+        {
+            src: 'paint/water_color/leaf_on_water.mp4',
+            thumbnail: 'paint/water_color/thumbnails/leaf_on_water.jpg',
+            title: 'Leaf on Water',
+            duration: '1:45'
         },
         {
             src: 'paint/water_color/flower.mp4',
             thumbnail: 'paint/water_color/thumbnails/flower.jpg',
-            title: 'Floral Design',
-            duration: '1:45'
+            title: 'Flower',
+            duration: '2:00'
+        },
+        {
+            src: 'paint/water_color/autumn_leave.mp4',
+            thumbnail: 'paint/water_color/thumbnails/autumn_leave.jpg',
+            title: 'Autumn Leave',
+            duration: '1:50'
+        },
+        {
+            src: 'paint/water_color/rose.mp4',
+            thumbnail: 'paint/water_color/thumbnails/rose.jpg',
+            title: 'Rose',
+            duration: '2:10'
+        },
+        {
+            src: 'paint/water_color/peach.mp4',
+            thumbnail: 'paint/water_color/thumbnails/peach.jpg',
+            title: 'Peach',
+            duration: '1:55'
+        },
+        {
+            src: 'paint/water_color/cherry_blossoms.mp4',
+            thumbnail: 'paint/water_color/thumbnails/cherry_blossoms.jpg',
+            title: 'Cherry Blossoms',
+            duration: '2:20'
         },
         {
             src: 'paint/water_color/swan.mp4',
             thumbnail: 'paint/water_color/thumbnails/swan.jpg',
-            title: 'Swan on Water',
+            title: 'Swan',
+            duration: '2:05'
+        },
+        {
+            src: 'paint/water_color/flower_bed.mp4',
+            thumbnail: 'paint/water_color/thumbnails/flower_bed.jpg',
+            title: 'Flower Bed',
+            duration: '2:25'
+        },
+        {
+            src: 'paint/water_color/whale.mp4',
+            thumbnail: 'paint/water_color/thumbnails/whale.jpg',
+            title: 'Whale',
             duration: '2:00'
         }
     ];
