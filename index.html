@@ -213,6 +213,23 @@
 
 		<!-- Scripts -->
 			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/main.js"></script>
+			<script>
+				// Disable HTML5UP scroll handler
+				(function() {
+					// Override the scrollKeys function to allow normal scrolling
+					if (typeof $ !== 'undefined') {
+						$(document).ready(function() {
+							$(document).off('keydown', '#wrapper');
+							$('#wrapper').off('scroll');
+							$('#wrapper').off('touchstart');
+							$('#wrapper').off('touchmove');
+						});
+					}
+				})();
+			</script>
 			<script src="js/home.js"></script>
 
 	</body>
