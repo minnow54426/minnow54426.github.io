@@ -217,17 +217,31 @@
 			<script src="assets/js/breakpoints.min.js"></script>
 			<script src="assets/js/main.js"></script>
 			<script>
-				// Disable HTML5UP scroll handler
+				// AGGRESSIVELY disable ALL HTML5UP scroll handlers
 				(function() {
-					// Override the scrollKeys function to allow normal scrolling
-					if (typeof $ !== 'undefined') {
-						$(document).ready(function() {
-							$(document).off('keydown', '#wrapper');
-							$('#wrapper').off('scroll');
-							$('#wrapper').off('touchstart');
-							$('#wrapper').off('touchmove');
+					setTimeout(function() {
+						// Remove all event handlers from wrapper
+						$('#wrapper').off();
+						$(document).off('keydown', '#wrapper');
+						$(document).off('mousewheel', '#wrapper');
+						$(document).off('wheel', '#wrapper');
+
+						// Remove scroll zones
+						$('#wrapper > .scrollZone').remove();
+
+						// Remove transform that blocks scrolling
+						$('#wrapper').css('transform', 'none');
+						$('.panel').css('transform', 'none');
+
+						// Allow document to scroll normally
+						$(document).on('wheel', function(e) {
+							return true;
 						});
-					}
+
+						$(document).on('keydown', function(e) {
+							return true;
+						});
+					}, 100);
 				})();
 			</script>
 			<script src="js/home.js"></script>

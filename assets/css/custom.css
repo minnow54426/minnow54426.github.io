@@ -3,6 +3,14 @@
  * Convert to simple vertical scrolling layout
  */
 
+/* CRITICAL: Enable document scrolling */
+html, body {
+	overflow-y: auto !important;
+	overflow-x: hidden !important;
+	height: auto !important;
+	max-height: none !important;
+}
+
 /* Reset wrapper to be vertical scrolling */
 #wrapper {
 	display: block !important;
@@ -11,6 +19,7 @@
 	position: relative !important;
 	transform: none !important;
 	box-shadow: none !important;
+	overflow: visible !important;
 }
 
 /* Remove scroll zones */
