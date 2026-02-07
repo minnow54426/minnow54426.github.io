@@ -4,6 +4,10 @@
  */
 
 /* Override horizontal scrolling - make layout vertical */
+html, body {
+	scroll-behavior: auto !important;
+}
+
 #wrapper {
 	display: block !important;
 	width: 100% !important;
@@ -17,11 +21,18 @@
 	height: auto !important;
 	left: auto !important;
 	top: auto !important;
+	transform: none !important;
 }
 
 #page-wrapper {
 	width: 100% !important;
 	max-width: 100% !important;
+}
+
+/* Disable scroll snap */
+* {
+	scroll-snap-type: none !important;
+	scroll-behavior: auto !important;
 }
 
 /* Progress Bar Styling for ZK Learning Indicator */
