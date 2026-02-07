@@ -12,37 +12,63 @@
 
     /**
      * Photo categories configuration
-     * Each category has a name and optional seasonal preference
-     * TODO: Configure with actual photo paths in Task 4
+     * Mapped to actual photo directories from the portfolio
      */
     const photoCategories = [
         {
-            name: 'Landscape',
+            name: 'Jiu Zhai Gou',
             photos: [
-                { src: 'photos/landscape/img1.jpg', caption: 'Mountain Vista' },
-                { src: 'photos/landscape/img2.jpg', caption: 'Coastal Sunset' },
-                { src: 'photos/landscape/img3.jpg', caption: 'Forest Trail' }
+                { src: 'photos/jiu zhai gou/DSC02454--export-by-date.JPG', caption: 'Colorful Lakes' },
+                { src: 'photos/jiu zhai gou/DSC02456--export-by-date.JPG', caption: 'Waterfall Valley' }
             ]
         },
         {
-            name: 'Portrait',
+            name: 'Zhang Jia Jie',
             photos: [
-                { src: 'photos/portrait/img1.jpg', caption: 'Studio Portrait' },
-                { src: 'photos/portrait/img2.jpg', caption: 'Natural Light' }
+                { src: 'photos/zhang jia jie/DSC03250--export-by-date.JPG', caption: 'Sandstone Peaks' },
+                { src: 'photos/zhang jia jie/DSC03253--export-by-date.JPG', caption: 'Mist Forest' }
             ]
         },
         {
-            name: 'Street',
+            name: 'Qian Dao Hu',
             photos: [
-                { src: 'photos/street/img1.jpg', caption: 'Urban Life' },
-                { src: 'photos/street/img2.jpg', caption: 'Night Street' }
+                { src: 'photos/qian dao hu/DSC04956--export-by-date.JPG', caption: 'Thousand Island Lake' },
+                { src: 'photos/qian dao hu/DSC04971--export-by-date.JPG', caption: 'Peaceful Waters' }
             ]
         },
         {
-            name: 'Nature',
+            name: 'Nan Xun Gu Zhen',
             photos: [
-                { src: 'photos/nature/img1.jpg', caption: 'Wild Flowers' },
-                { src: 'photos/nature/img2.jpg', caption: 'Ocean Waves' }
+                { src: 'photos/nan xun gu zhen/DSC00792--export-by-date.JPG', caption: 'Ancient Water Town' },
+                { src: 'photos/nan xun gu zhen/DSC00843--export-by-date.JPG', caption: 'Traditional Architecture' }
+            ]
+        },
+        {
+            name: 'Animals',
+            photos: [
+                { src: 'photos/animals/1--export-by-date (1).jpg', caption: 'Wildlife' },
+                { src: 'photos/animals/10--export-by-date (1).jpg', caption: 'Nature Friends' }
+            ]
+        },
+        {
+            name: 'Shang Hai',
+            photos: [
+                { src: 'photos/shang hai/DSC01309--export-by-date.JPG', caption: 'City Skyline' },
+                { src: 'photos/shang hai/DSC01311--export-by-date.JPG', caption: 'Urban Nights' }
+            ]
+        },
+        {
+            name: 'Guitar',
+            photos: [
+                { src: 'photos/guitar/DSC01118--export-by-date.JPG', caption: 'Acoustic Sessions' },
+                { src: 'photos/guitar/DSC01127--export-by-date.JPG', caption: 'Musical Moments' }
+            ]
+        },
+        {
+            name: 'Zhu Jia Jiao Gu Zhen',
+            photos: [
+                { src: 'photos/zhu jia jiao gu zhen/1--export-by-date.jpg', caption: 'Historic Canals' },
+                { src: 'photos/zhu jia jiao gu zhen/2--export-by-date (2).jpg', caption: 'Riverside Life' }
             ]
         }
     ];
