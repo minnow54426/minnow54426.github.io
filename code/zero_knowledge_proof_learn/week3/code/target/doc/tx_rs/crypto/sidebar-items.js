@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["CryptoError"],"fn":["sign","verify"],"struct":["SignedTransaction"]};

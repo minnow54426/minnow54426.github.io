@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"type":["Balance","Hash","Height","Nonce","Timestamp"]};
