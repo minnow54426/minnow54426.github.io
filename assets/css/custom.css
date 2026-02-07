@@ -41,22 +41,46 @@ html, body {
 }
 
 .panel {
-	/* CRITICAL: Make panels stack vertically */
-	display: block !important;
-	-moz-flex-direction: column !important;
-	-webkit-flex-direction: column !important;
-	-ms-flex-direction: column !important;
-	flex-direction: column !important;
+	/* Keep internal flex layout but allow vertical stacking */
 	width: 100% !important;
-	max-width: 1200px !important;
-	margin: 0 auto !important;
-	height: auto !important;
-	min-height: 50vh !important;
+	max-width: 100% !important;
+	min-height: 400px !important;
 	position: relative !important;
 	left: auto !important;
 	top: auto !important;
 	transform: none !important;
-	overflow: visible !important;
+	margin-bottom: 2rem !important;
+	padding: 2rem !important;
+}
+
+/* Fix panel content layout */
+.panel > .intro,
+.panel > .inner,
+.panel > .content {
+	width: 100% !important;
+	max-width: 1200px !important;
+	margin: 0 auto !important;
+	position: relative !important;
+}
+
+/* Fix banner panel specifically */
+.panel.banner .content,
+.panel.banner .image {
+	flex: 0 0 auto !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	position: relative !important;
+}
+
+.panel.banner .image {
+	min-height: 300px !important;
+}
+
+.panel.banner {
+	flex-direction: column !important;
+	-moz-flex-direction: column !important;
+	-webkit-flex-direction: column !important;
+	-ms-flex-direction: column !important;
 }
 
 /* Disable all carousel transitions */
