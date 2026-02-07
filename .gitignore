@@ -7,8 +7,11 @@
 ehthumbs.db
 Thumbs.db
 
-# Video files
-paint/water_color/christmas_snowman_compressed.mp4
+# Video files (too large for GitHub Pages)
+paint/water_color/*.mp4
+paint/water_color/*.mov
+*.mp4
+*.mov
 
 # Git worktrees
 .worktrees/
