@@ -3,36 +3,68 @@
  * Personal portfolio customizations
  */
 
-/* Override horizontal scrolling - make layout vertical */
+/* COMPLETE OVERRIDE: Convert horizontal carousel to vertical layout */
 html, body {
-	scroll-behavior: auto !important;
-}
-
-#wrapper {
-	display: block !important;
-	width: 100% !important;
 	height: auto !important;
-}
-
-.panel {
-	display: block !important;
-	position: relative !important;
-	min-height: auto !important;
-	height: auto !important;
-	left: auto !important;
-	top: auto !important;
-	transform: none !important;
+	overflow-x: hidden !important;
+	scroll-behavior: smooth !important;
 }
 
 #page-wrapper {
 	width: 100% !important;
 	max-width: 100% !important;
+	height: auto !important;
+	overflow: visible !important;
 }
 
-/* Disable scroll snap */
-* {
-	scroll-snap-type: none !important;
-	scroll-behavior: auto !important;
+#wrapper {
+	/* CRITICAL: Override all carousel behavior */
+	display: block !important;
+	flex-direction: column !important;
+	-moz-flex-direction: column !important;
+	-webkit-flex-direction: column !important;
+	-ms-flex-direction: column !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	height: auto !important;
+	min-height: auto !important;
+	position: relative !important;
+	transform: none !important;
+	overflow: visible !important;
+	cursor: auto !important;
+	box-shadow: none !important;
+}
+
+/* Remove scroll zones */
+#wrapper > .scrollZone {
+	display: none !important;
+}
+
+.panel {
+	/* CRITICAL: Make panels stack vertically */
+	display: block !important;
+	-moz-flex-direction: column !important;
+	-webkit-flex-direction: column !important;
+	-ms-flex-direction: column !important;
+	flex-direction: column !important;
+	width: 100% !important;
+	max-width: 1200px !important;
+	margin: 0 auto !important;
+	height: auto !important;
+	min-height: 50vh !important;
+	position: relative !important;
+	left: auto !important;
+	top: auto !important;
+	transform: none !important;
+	overflow: visible !important;
+}
+
+/* Disable all carousel transitions */
+#wrapper, .panel {
+	-moz-transition: none !important;
+	-webkit-transition: none !important;
+	-ms-transition: none !important;
+	transition: none !important;
 }
 
 /* Progress Bar Styling for ZK Learning Indicator */
