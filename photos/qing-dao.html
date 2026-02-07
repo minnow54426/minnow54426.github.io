@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qing Dao (青岛) | Photography</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="gallery.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <h1><a href="../photo-gallery.html"><i class="fas fa-arrow-left"></i> Qing Dao</a></h1>
+        <a href="../" class="back-link"><i class="fas fa-home"></i> Home</a>
+    </header>
+
+    <!-- Main Gallery -->
+    <div id="main">
+                        <article class="thumb">
+                            <a href="../qing dao/2025-11-29-001.jpg" class="image"><img src="../qing dao/2025-11-29-001.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-01-002.jpg" class="image"><img src="../qing dao/2026-01-01-002.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-01-003.jpg" class="image"><img src="../qing dao/2026-01-01-003.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-01-004.jpg" class="image"><img src="../qing dao/2026-01-01-004.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-01-005.jpg" class="image"><img src="../qing dao/2026-01-01-005.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-01-006.jpg" class="image"><img src="../qing dao/2026-01-01-006.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-01-007.jpg" class="image"><img src="../qing dao/2026-01-01-007.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-01-008.jpg" class="image"><img src="../qing dao/2026-01-01-008.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-01-009.jpg" class="image"><img src="../qing dao/2026-01-01-009.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-02-010.jpg" class="image"><img src="../qing dao/2026-01-02-010.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-02-011.jpg" class="image"><img src="../qing dao/2026-01-02-011.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-02-012.jpg" class="image"><img src="../qing dao/2026-01-02-012.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-02-013.jpeg" class="image"><img src="../qing dao/2026-01-02-013.jpeg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-02-014.jpg" class="image"><img src="../qing dao/2026-01-02-014.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-02-015.jpg" class="image"><img src="../qing dao/2026-01-02-015.jpg" alt="" loading="lazy" /></a>
+                        </article>
+                        <article class="thumb">
+                            <a href="../qing dao/2026-01-24-016.jpg" class="image"><img src="../qing dao/2026-01-24-016.jpg" alt="" loading="lazy" /></a>
+                        </article>
+
+    </div>
+
+    <!-- Lightbox -->
+    <div id="lightbox">
+        <span class="close">&times;</span>
+        <span class="nav prev"><i class="fas fa-chevron-left"></i></span>
+        <span class="nav next"><i class="fas fa-chevron-right"></i></span>
+        <img src="" alt="">
+        <div class="counter"></div>
+    </div>
+
+    <script>
+        // Lightbox functionality
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = lightbox.querySelector('img');
+        const closeBtn = lightbox.querySelector('.close');
+        const prevBtn = lightbox.querySelector('.prev');
+        const nextBtn = lightbox.querySelector('.next');
+        const counter = lightbox.querySelector('.counter');
+
+        let currentIndex = 0;
+        const photos = Array.from(document.querySelectorAll('.thumb .image')).map(a => a.getAttribute('href'));
+
+        // Open lightbox
+        document.querySelectorAll('.thumb .image').forEach((link, index) => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentIndex = index;
+                showPhoto(index);
+            });
+        });
+
+        // Close lightbox
+        closeBtn.addEventListener('click', closeLightbox);
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) closeLightbox();
+        });
+
+        // Navigation
+        prevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentIndex = (currentIndex - 1 + photos.length) % photos.length;
+            showPhoto(currentIndex);
+        });
+
+        nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentIndex = (currentIndex + 1) % photos.length;
+            showPhoto(currentIndex);
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (!lightbox.classList.contains('active')) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') {
+                currentIndex = (currentIndex - 1 + photos.length) % photos.length;
+                showPhoto(currentIndex);
+            }
+            if (e.key === 'ArrowRight') {
+                currentIndex = (currentIndex + 1) % photos.length;
+                showPhoto(currentIndex);
+            }
+        });
+
+        function showPhoto(index) {
+            lightboxImg.src = photos[index];
+            counter.textContent = (index + 1) + ' / ' + photos.length;
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+        }
+    </script>
+</body>
+</html>

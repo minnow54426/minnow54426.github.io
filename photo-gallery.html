@@ -3,750 +3,170 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo Gallery</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            background: #f5f5f5;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            padding: 8px 16px;
-            background: #0066cc;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: background 0.3s;
-        }
-
-        .back-link:hover {
-            background: #0052a3;
-        }
-
-        .gallery-container {
-            margin-bottom: 20px;
-        }
-
-        .folder-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            padding: 12px 18px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border: 2px solid #0066cc;
-            border-radius: 8px;
-            margin: 20px 0 10px 0;
-            transition: all 0.3s ease;
-        }
-
-        .folder-header:hover {
-            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,102,204,0.15);
-        }
-
-        .folder-title {
-            font-size: 1.4em;
-            color: #333;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-        }
-
-        .folder-arrow {
-            font-size: 1.2em;
-            color: #0066cc;
-            transition: transform 0.3s ease;
-        }
-
-        .folder-arrow.open {
-            transform: rotate(90deg);
-        }
-
-        .photo-count {
-            background: #0066cc;
-            color: white;
-            padding: 3px 10px;
-            border-radius: 16px;
-            font-size: 0.85em;
-            font-weight: 500;
-        }
-
-        .gallery-content {
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            transition: max-height 0.5s ease, opacity 0.3s ease;
-        }
-
-        .gallery-content.open {
-            max-height: 10000px;
-            opacity: 1;
-            transition: max-height 0.5s ease, opacity 0.5s ease;
-        }
-
-        .photo-gallery {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-          grid-auto-rows: 220px;
-          grid-gap: 2px;
-          margin: 20px 0;
-          padding: 10px 0;
-        }
-
-        .photo-item {
-          position: relative;
-          overflow: hidden;
-          border-radius: 12px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-          cursor: pointer;
-          background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
-        }
-
-        .photo-item:nth-child(3n+1) {
-          grid-row: span 2;
-        }
-
-        .photo-item:nth-child(4n+2) {
-          grid-column: span 2;
-        }
-
-        .photo-item:nth-child(5n) {
-          grid-row: span 1;
-          grid-column: span 1;
-        }
-
-        .photo-item:nth-child(7n+3) {
-          grid-row: span 1;
-          grid-column: span 2;
-        }
-
-        .photo-item:nth-child(8n+4) {
-          grid-row: span 2;
-          grid-column: span 1;
-        }
-
-        .photo-item img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          display: block;
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-          filter: brightness(0.95);
-        }
-
-        .photo-item:hover {
-          transform: translateY(-8px) scale(1.02);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.25);
-          z-index: 10;
-        }
-
-        .photo-item:hover img {
-          filter: brightness(1.05);
-          transform: scale(1.1);
-        }
-
-        .photo-item::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg,
-            rgba(255,255,255,0.1) 0%,
-            rgba(255,255,255,0) 50%,
-            rgba(0,0,0,0.1) 100%);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          pointer-events: none;
-        }
-
-        .photo-item:hover::before {
-          opacity: 1;
-        }
-
-        @media (max-width: 768px) {
-          .photo-gallery {
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            grid-auto-rows: 180px;
-            grid-gap: 2px;
-            margin: 15px 0;
-            padding: 8px 0;
-          }
-
-          .photo-item:nth-child(3n+1),
-          .photo-item:nth-child(4n+2),
-          .photo-item:nth-child(5n),
-          .photo-item:nth-child(7n+3),
-          .photo-item:nth-child(8n+4) {
-            grid-row: span 1;
-            grid-column: span 1;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .photo-gallery {
-            grid-template-columns: 1fr;
-            grid-auto-rows: 220px;
-            grid-gap: 2px;
-            margin: 15px 0;
-            padding: 8px 0;
-          }
-        }
-    </style>
+    <title>Photography | wonderonpathlesspath</title>
+    <link rel="stylesheet" href="assets/css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="assets/css/custom.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,300i,400i">
 </head>
-
 <body>
-    <a href="/" class="back-link">← Back to Home</a>
-
-    <!-- Animals -->
-    <div class="gallery-container">
-        <div class="folder-header" onclick="toggleFolder('animals')">
-            <h2 class="folder-title">
-                <span class="folder-arrow" id="animals-arrow">▶</span>
-                🐾 Animals
-            </h2>
-            <span class="photo-count" id="animals-count">23 photos</span>
-        </div>
-        <div class="gallery-content" id="animals-content">
-            <div class="photo-gallery" id="animals-gallery">
-                <!-- Photos will be loaded here -->
+    <!-- Hero Panel -->
+    <section class="hero-panel" style="background-image: url(../assets/images/overlay.png), linear-gradient(45deg, #726193 20%, #e37b7c 60%, #ffe4b4); background-size: 128px 128px, auto;">
+        <div class="hero-content">
+            <h1><i class="fas fa-camera"></i> Photography</h1>
+            <p class="subtitle">Visual stories captured through the lens</p>
+            <p class="tagline">A collection of moments from my journey across China and beyond</p>
+            <div class="hero-actions">
+                <a href="/" class="button"><i class="fas fa-home"></i> Back to Home</a>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Shanghai -->
-    <div class="gallery-container">
-        <div class="folder-header" onclick="toggleFolder('shanghai')">
-            <h2 class="folder-title">
-                <span class="folder-arrow" id="shanghai-arrow">▶</span>
-                🏙️ 上海 (Shanghai)
-            </h2>
-            <span class="photo-count" id="shanghai-count">62 photos</span>
-        </div>
-        <div class="gallery-content" id="shanghai-content">
-            <div class="photo-gallery" id="shanghai-gallery">
-                <!-- Photos will be loaded here -->
+    <!-- Photo Categories Grid -->
+    <section class="panel">
+        <div class="panel-content">
+            <div class="panel-header">
+                <h2>Photo Collections</h2>
+                <p>Browse through different categories and explore the galleries</p>
+            </div>
+
+            <div class="project-grid">
+                <!-- Shanghai -->
+                <div class="project-card">
+                    <h3><i class="fas fa-city"></i> 上海 (Shanghai)</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 100%">62 photos</div>
+                    </div>
+                    <p>Urban landscapes and city life from the Pearl of the Orient</p>
+                    <a href="photos/shanghai.html" class="button small">View Gallery →</a>
+                </div>
+
+                <!-- Jiu Zhai Gou -->
+                <div class="project-card">
+                    <h3><i class="fas fa-mountain"></i> 九寨沟 (Jiu Zhai Gou)</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 32%">20 photos</div>
+                    </div>
+                    <p>Stunning valley scenery with crystal clear lakes and waterfalls</p>
+                    <a href="photos/jiu-zhai-gou.html" class="button small">View Gallery →</a>
+                </div>
+
+                <!-- Zhang Jia Jie -->
+                <div class="project-card">
+                    <h3><i class="fas fa-mountain"></i> 张家界 (Zhang Jia Jie)</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 21%">13 photos</div>
+                    </div>
+                    <p>Dramatic sandstone pillars and breathtaking mountain vistas</p>
+                    <a href="photos/zhang-jia-jie.html" class="button small">View Gallery →</a>
+                </div>
+
+                <!-- Hu Pao Gong Yuan -->
+                <div class="project-card">
+                    <h3><i class="fas fa-tree"></i> 虎跑公园 (Hu Pao Park)</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 23%">14 photos</div>
+                    </div>
+                    <p>Serene park scenes with spring blossoms and peaceful paths</p>
+                    <a href="photos/hu-pao-gong-yuan.html" class="button small">View Gallery →</a>
+                </div>
+
+                <!-- Qing Dao -->
+                <div class="project-card">
+                    <h3><i class="fas fa-water"></i> 青岛 (Qing Dao)</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 26%">16 photos</div>
+                    </div>
+                    <p>Coastal beauty and seaside landscapes</p>
+                    <a href="photos/qing-dao.html" class="button small">View Gallery →</a>
+                </div>
+
+                <!-- Nan Xun Gu Zhen -->
+                <div class="project-card">
+                    <h3><i class="fas fa-landmark"></i> 南浔古镇 (Nanxun)</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 16%">10 photos</div>
+                    </div>
+                    <p>Ancient water town with traditional architecture and canals</p>
+                    <a href="photos/nan-xun-gu-zhen.html" class="button small">View Gallery →</a>
+                </div>
+
+                <!-- Qian Dao Hu -->
+                <div class="project-card">
+                    <h3><i class="fas fa-water"></i> 千岛湖 (Qian Dao Hu)</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 16%">10 photos</div>
+                    </div>
+                    <p>Pristine lake with countless islands and crystal clear waters</p>
+                    <a href="photos/qian-dao-hu.html" class="button small">View Gallery →</a>
+                </div>
+
+                <!-- Animals -->
+                <div class="project-card">
+                    <h3><i class="fas fa-paw"></i> Animals</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 37%">23 photos</div>
+                    </div>
+                    <p>Captured moments of wildlife and nature</p>
+                    <a href="photos/animals.html" class="button small">View Gallery →</a>
+                </div>
+
+                <!-- Ao Men -->
+                <div class="project-card">
+                    <h3><i class="fas fa-dice"></i> 澳门 (Ao Men)</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 11%">7 photos</div>
+                    </div>
+                    <p>Vibrant cityscape and cultural experiences</p>
+                    <a href="photos/ao-men.html" class="button small">View Gallery →</a>
+                </div>
+
+                <!-- Zhu Hai -->
+                <div class="project-card">
+                    <h3><i class="fas fa-umbrella-beach"></i> 珠海 (Zhu Hai)</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 5%">3 photos</div>
+                    </div>
+                    <p>Coastal charm and seaside moments</p>
+                    <a href="photos/zhu-hai.html" class="button small">View Gallery →</a>
+                </div>
+
+                <!-- On Road -->
+                <div class="project-card">
+                    <h3><i class="fas fa-road"></i> On Road</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 6%">4 photos</div>
+                    </div>
+                    <p>Journey moments captured during travels</p>
+                    <a href="photos/on-road.html" class="button small">View Gallery →</a>
+                </div>
+
+                <!-- Others -->
+                <div class="project-card">
+                    <h3><i class="fas fa-camera-retro"></i> Others</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 3%">2 photos</div>
+                    </div>
+                    <p>Various captured moments and memories</p>
+                    <a href="photos/others.html" class="button small">View Gallery →</a>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Jiu Zhai Gou -->
-    <div class="gallery-container">
-        <div class="folder-header" onclick="toggleFolder('jiu-zhai-gou')">
-            <h2 class="folder-title">
-                <span class="folder-arrow" id="jiu-zhai-gou-arrow">▶</span>
-                🏔️ 九寨沟 (Jiu Zhai Gou)
-            </h2>
-            <span class="photo-count" id="jiu-zhai-gou-count">20 photos</span>
-        </div>
-        <div class="gallery-content" id="jiu-zhai-gou-content">
-            <div class="photo-gallery" id="jiu-zhai-gou-gallery">
-                <!-- Photos will be loaded here -->
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2025 wonderonpathlesspath</p>
+            <div class="footer-links">
+                <a href="/"><i class="fas fa-home"></i> Home</a>
+                <a href="code.html"><i class="fas fa-code"></i> Code Projects</a>
+                <a href="cryptography.html"><i class="fas fa-lock"></i> Cryptography</a>
+                <a href="paint.html"><i class="fas fa-palette"></i> Paint Gallery</a>
             </div>
         </div>
-    </div>
+    </footer>
 
-    <!-- Zhang Jia Jie -->
-    <div class="gallery-container">
-        <div class="folder-header" onclick="toggleFolder('zhang-jia-jie')">
-            <h2 class="folder-title">
-                <span class="folder-arrow" id="zhang-jia-jie-arrow">▶</span>
-                🏔️ 张家界 (Zhang Jia Jie)
-            </h2>
-            <span class="photo-count" id="zhang-jia-jie-count">13 photos</span>
-        </div>
-        <div class="gallery-content" id="zhang-jia-jie-content">
-            <div class="photo-gallery" id="zhang-jia-jie-gallery">
-                <!-- Photos will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Hu Pao Gong Yuan -->
-    <div class="gallery-container">
-        <div class="folder-header" onclick="toggleFolder('hu-pao-gong-yuan')">
-            <h2 class="folder-title">
-                <span class="folder-arrow" id="hu-pao-gong-yuan-arrow">▶</span>
-                🌸 虎跑公园 (Hu Pao Gong Yuan)
-            </h2>
-            <span class="photo-count" id="hu-pao-gong-yuan-count">14 photos</span>
-        </div>
-        <div class="gallery-content" id="hu-pao-gong-yuan-content">
-            <div class="photo-gallery" id="hu-pao-gong-yuan-gallery">
-                <!-- Photos will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Nan Xun Gu Zhen -->
-    <div class="gallery-container">
-        <div class="folder-header" onclick="toggleFolder('nan-xun-gu-zhen')">
-            <h2 class="folder-title">
-                <span class="folder-arrow" id="nan-xun-gu-zhen-arrow">▶</span>
-                🏛️ 南浔古镇 (Nan Xun Gu Zhen)
-            </h2>
-            <span class="photo-count" id="nan-xun-gu-zhen-count">10 photos</span>
-        </div>
-        <div class="gallery-content" id="nan-xun-gu-zhen-content">
-            <div class="photo-gallery" id="nan-xun-gu-zhen-gallery">
-                <!-- Photos will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Qian Dao Hu -->
-    <div class="gallery-container">
-        <div class="folder-header" onclick="toggleFolder('qian-dao-hu')">
-            <h2 class="folder-title">
-                <span class="folder-arrow" id="qian-dao-hu-arrow">▶</span>
-                🏞️ 千岛湖 (Qian Dao Hu)
-            </h2>
-            <span class="photo-count" id="qian-dao-hu-count">10 photos</span>
-        </div>
-        <div class="gallery-content" id="qian-dao-hu-content">
-            <div class="photo-gallery" id="qian-dao-hu-gallery">
-                <!-- Photos will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Qing Dao -->
-    <div class="gallery-container">
-        <div class="folder-header" onclick="toggleFolder('qing-dao')">
-            <h2 class="folder-title">
-                <span class="folder-arrow" id="qing-dao-arrow">▶</span>
-                🌊 青岛 (Qing Dao)
-            </h2>
-            <span class="photo-count" id="qing-dao-count">16 photos</span>
-        </div>
-        <div class="gallery-content" id="qing-dao-content">
-            <div class="photo-gallery" id="qing-dao-gallery">
-                <!-- Photos will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Ao Men -->
-    <div class="gallery-container">
-        <div class="folder-header" onclick="toggleFolder('ao-men')">
-            <h2 class="folder-title">
-                <span class="folder-arrow" id="ao-men-arrow">▶</span>
-                🎰 澳门 (Ao Men)
-            </h2>
-            <span class="photo-count" id="ao-men-count">7 photos</span>
-        </div>
-        <div class="gallery-content" id="ao-men-content">
-            <div class="photo-gallery" id="ao-men-gallery">
-                <!-- Photos will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Zhu Hai -->
-    <div class="gallery-container">
-        <div class="folder-header" onclick="toggleFolder('zhu-hai')">
-            <h2 class="folder-title">
-                <span class="folder-arrow" id="zhu-hai-arrow">▶</span>
-                🌊 珠海 (Zhu Hai)
-            </h2>
-            <span class="photo-count" id="zhu-hai-count">3 photos</span>
-        </div>
-        <div class="gallery-content" id="zhu-hai-content">
-            <div class="photo-gallery" id="zhu-hai-gallery">
-                <!-- Photos will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- On Road -->
-    <div class="gallery-container">
-        <div class="folder-header" onclick="toggleFolder('on-road')">
-            <h2 class="folder-title">
-                <span class="folder-arrow" id="on-road-arrow">▶</span>
-                🛣️ On Road
-            </h2>
-            <span class="photo-count" id="on-road-count">4 photos</span>
-        </div>
-        <div class="gallery-content" id="on-road-content">
-            <div class="photo-gallery" id="on-road-gallery">
-                <!-- Photos will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Others -->
-    <div class="gallery-container">
-        <div class="folder-header" onclick="toggleFolder('others')">
-            <h2 class="folder-title">
-                <span class="folder-arrow" id="others-arrow">▶</span>
-                📷 Others
-            </h2>
-            <span class="photo-count" id="others-count">2 photos</span>
-        </div>
-        <div class="gallery-content" id="others-content">
-            <div class="photo-gallery" id="others-gallery">
-                <!-- Photos will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <script>
-      // Toggle folder open/close
-      function toggleFolder(folderId) {
-        const content = document.getElementById(folderId + '-content');
-        const arrow = document.getElementById(folderId + '-arrow');
-
-        if (content.classList.contains('open')) {
-          content.classList.remove('open');
-          arrow.classList.remove('open');
-        } else {
-          content.classList.add('open');
-          arrow.classList.add('open');
-        }
-      }
-
-      document.addEventListener('DOMContentLoaded', function() {
-        // Function to create photo items
-        function createPhotoItem(src) {
-          const div = document.createElement('div');
-          div.className = 'photo-item';
-
-          const img = document.createElement('img');
-          img.src = src;
-          img.alt = src.split('/').pop();
-
-          div.appendChild(img);
-
-          // Add click functionality
-          div.addEventListener('click', function() {
-            createLightbox(src);
-          });
-
-          return div;
-        }
-
-        // Function to create lightbox
-        function createLightbox(src) {
-          const lightbox = document.createElement('div');
-          lightbox.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-          `;
-
-          const lightboxImg = document.createElement('img');
-          lightboxImg.src = src;
-          lightboxImg.style.cssText = `
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-            border-radius: 8px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            animation: fadeInScale 0.3s ease;
-          `;
-
-          lightbox.appendChild(lightboxImg);
-          document.body.appendChild(lightbox);
-
-          // Add fade in animation
-          const style = document.createElement('style');
-          style.textContent = `
-            @keyframes fadeInScale {
-              from {
-                opacity: 0;
-                transform: scale(0.8);
-              }
-              to {
-                opacity: 1;
-                transform: scale(1);
-              }
-            }
-          `;
-          document.head.appendChild(style);
-
-          // Close on click
-          lightbox.addEventListener('click', function() {
-            lightbox.style.animation = 'fadeOutScale 0.3s ease';
-            setTimeout(() => {
-              document.body.removeChild(lightbox);
-              document.head.removeChild(style);
-            }, 300);
-          });
-        }
-
-        // Load photos into galleries
-        function loadGallery(folderId) {
-          const gallery = document.getElementById(folderId + '-gallery');
-
-          // Photo data by folder - using new EXIF-based filenames
-          const folderPhotos = {
-            'animals': [
-              'photos/animals/2024-08-22-001.jpg',
-              'photos/animals/2024-08-22-002.jpg',
-              'photos/animals/2024-08-22-003.jpg',
-              'photos/animals/2024-08-22-004.jpg',
-              'photos/animals/2024-08-22-005.jpg',
-              'photos/animals/2024-08-22-006.jpg',
-              'photos/animals/2024-11-16-007.jpg',
-              'photos/animals/2024-11-16-008.jpg',
-              'photos/animals/2024-11-16-009.jpg',
-              'photos/animals/2024-11-16-010.jpg',
-              'photos/animals/2024-11-16-011.jpg',
-              'photos/animals/2024-11-16-012.jpg',
-              'photos/animals/2024-11-16-013.jpg',
-              'photos/animals/2024-11-16-014.jpg',
-              'photos/animals/2024-11-16-015.jpg',
-              'photos/animals/2024-11-16-016.jpg',
-              'photos/animals/2024-11-16-017.jpg',
-              'photos/animals/2024-11-16-018.jpg',
-              'photos/animals/2024-11-16-019.jpg',
-              'photos/animals/2024-11-16-020.jpg',
-              'photos/animals/2025-03-09-021.jpg',
-              'photos/animals/2025-08-30-022.jpg',
-              'photos/animals/2025-10-24-023.jpg'
-            ],
-            'shanghai': [
-              'photos/shang hai/2024-08-17-001.jpg',
-              'photos/shang hai/2024-08-17-002.jpg',
-              'photos/shang hai/2024-08-17-003.jpg',
-              'photos/shang hai/2024-08-17-004.jpg',
-              'photos/shang hai/2024-08-17-005.jpg',
-              'photos/shang hai/2024-08-17-006.jpg',
-              'photos/shang hai/2024-08-17-007.jpg',
-              'photos/shang hai/2024-09-14-008.jpg',
-              'photos/shang hai/2024-09-14-009.jpg',
-              'photos/shang hai/2024-09-14-010.jpg',
-              'photos/shang hai/2024-09-14-011.jpg',
-              'photos/shang hai/2024-09-14-012.jpg',
-              'photos/shang hai/2024-09-14-013.jpg',
-              'photos/shang hai/2024-09-14-014.jpg',
-              'photos/shang hai/2024-10-04-015.jpg',
-              'photos/shang hai/2024-10-04-016.jpg',
-              'photos/shang hai/2024-10-04-017.jpg',
-              'photos/shang hai/2024-10-04-018.jpg',
-              'photos/shang hai/2024-10-04-019.jpg',
-              'photos/shang hai/2024-10-04-020.jpg',
-              'photos/shang hai/2024-10-04-021.jpg',
-              'photos/shang hai/2024-10-04-022.jpg',
-              'photos/shang hai/2024-10-04-023.jpg',
-              'photos/shang hai/2024-10-04-024.jpg',
-              'photos/shang hai/2024-10-04-025.jpg',
-              'photos/shang hai/2024-10-04-026.jpg',
-              'photos/shang hai/2024-11-16-027.jpg',
-              'photos/shang hai/2024-12-08-028.jpg',
-              'photos/shang hai/2024-12-08-029.jpg',
-              'photos/shang hai/2024-12-08-030.jpg',
-              'photos/shang hai/2025-03-09-031.jpg',
-              'photos/shang hai/2025-04-05-032.jpg',
-              'photos/shang hai/2025-04-05-033.jpg',
-              'photos/shang hai/2025-04-05-034.jpg',
-              'photos/shang hai/2025-04-05-035.jpg',
-              'photos/shang hai/2025-04-05-036.jpg',
-              'photos/shang hai/2025-04-20-037.jpg',
-              'photos/shang hai/2025-07-26-038.jpg',
-              'photos/shang hai/2025-07-26-039.jpg',
-              'photos/shang hai/2025-07-26-040.jpg',
-              'photos/shang hai/2025-07-26-041.jpg',
-              'photos/shang hai/2025-07-26-042.jpg',
-              'photos/shang hai/2025-08-30-043.jpg',
-              'photos/shang hai/2025-08-30-044.jpg',
-              'photos/shang hai/2025-08-30-045.jpg',
-              'photos/shang hai/2025-10-08-046.jpg',
-              'photos/shang hai/2025-11-09-047.jpg',
-              'photos/shang hai/2025-11-09-048.jpg',
-              'photos/shang hai/2025-11-09-049.jpg',
-              'photos/shang hai/2025-11-09-050.jpg',
-              'photos/shang hai/2025-11-09-051.jpg',
-              'photos/shang hai/2025-11-09-052.jpg',
-              'photos/shang hai/2025-11-29-053.jpg',
-              'photos/shang hai/2025-11-29-054.jpg',
-              'photos/shang hai/2026-01-24-055.jpg',
-              'photos/shang hai/2026-01-25-056.jpg',
-              'photos/shang hai/2026-01-25-057.jpg',
-              'photos/shang hai/2026-01-25-058.jpg',
-              'photos/shang hai/2026-01-25-059.jpg',
-              'photos/shang hai/2026-01-25-060.jpg',
-              'photos/shang hai/2026-01-25-061.jpg',
-              'photos/shang hai/2026-01-26-062.jpg'
-            ],
-            'jiu-zhai-gou': [
-              'photos/jiu zhai gou/2024-09-21-001.jpg',
-              'photos/jiu zhai gou/2024-09-21-002.jpg',
-              'photos/jiu zhai gou/2024-09-21-003.jpg',
-              'photos/jiu zhai gou/2024-09-21-004.jpg',
-              'photos/jiu zhai gou/2024-09-21-005.jpg',
-              'photos/jiu zhai gou/2024-09-21-006.jpg',
-              'photos/jiu zhai gou/2024-09-21-007.jpg',
-              'photos/jiu zhai gou/2024-09-21-008.jpg',
-              'photos/jiu zhai gou/2024-09-21-009.jpg',
-              'photos/jiu zhai gou/2024-09-21-010.jpg',
-              'photos/jiu zhai gou/2024-09-21-011.jpg',
-              'photos/jiu zhai gou/2024-09-21-012.jpg',
-              'photos/jiu zhai gou/2024-09-21-013.jpg',
-              'photos/jiu zhai gou/2024-09-21-014.jpg',
-              'photos/jiu zhai gou/2024-09-21-015.jpg',
-              'photos/jiu zhai gou/2024-09-21-016.jpg',
-              'photos/jiu zhai gou/2024-09-21-017.jpg',
-              'photos/jiu zhai gou/2024-09-21-018.jpg',
-              'photos/jiu zhai gou/2024-09-21-019.jpg',
-              'photos/jiu zhai gou/2024-09-21-020.jpg'
-            ],
-            'zhang-jia-jie': [
-              'photos/zhang jia jie/2025-10-24-001.jpg',
-              'photos/zhang jia jie/2025-10-24-002.jpg',
-              'photos/zhang jia jie/2025-10-24-003.jpg',
-              'photos/zhang jia jie/2025-10-24-004.jpg',
-              'photos/zhang jia jie/2025-10-25-005.jpg',
-              'photos/zhang jia jie/2025-10-25-006.jpg',
-              'photos/zhang jia jie/2025-10-26-007.jpg',
-              'photos/zhang jia jie/2025-10-26-008.jpg',
-              'photos/zhang jia jie/2025-10-26-009.jpg',
-              'photos/zhang jia jie/2025-10-26-010.jpg',
-              'photos/zhang jia jie/2025-10-26-011.jpg',
-              'photos/zhang jia jie/2025-10-26-012.jpg',
-              'photos/zhang jia jie/2025-10-26-013.jpg'
-            ],
-            'hu-pao-gong-yuan': [
-              'photos/hu pao gong yuan/2024-09-01-001.jpg',
-              'photos/hu pao gong yuan/2024-09-01-002.jpg',
-              'photos/hu pao gong yuan/2024-09-01-003.jpg',
-              'photos/hu pao gong yuan/2024-09-01-004.jpg',
-              'photos/hu pao gong yuan/2024-09-01-005.jpg',
-              'photos/hu pao gong yuan/2024-09-01-006.jpg',
-              'photos/hu pao gong yuan/2024-09-01-007.jpg',
-              'photos/hu pao gong yuan/2024-09-01-008.jpg',
-              'photos/hu pao gong yuan/2024-09-01-009.jpg',
-              'photos/hu pao gong yuan/2024-09-01-010.jpg',
-              'photos/hu pao gong yuan/2024-09-01-011.jpg',
-              'photos/hu pao gong yuan/2024-09-01-012.jpg',
-              'photos/hu pao gong yuan/2024-09-01-013.jpg',
-              'photos/hu pao gong yuan/2024-09-01-014.jpg'
-            ],
-            'nan-xun-gu-zhen': [
-              'photos/nan xun gu zhen/2024-12-28-001.jpg',
-              'photos/nan xun gu zhen/2024-12-28-002.jpg',
-              'photos/nan xun gu zhen/2024-12-28-003.jpg',
-              'photos/nan xun gu zhen/2024-12-29-004.jpg',
-              'photos/nan xun gu zhen/2024-12-29-005.jpg',
-              'photos/nan xun gu zhen/2024-12-29-006.jpg',
-              'photos/nan xun gu zhen/2025-03-08-007.jpg',
-              'photos/nan xun gu zhen/2025-03-08-008.jpg',
-              'photos/nan xun gu zhen/2025-03-08-009.jpg',
-              'photos/nan xun gu zhen/2025-03-08-010.jpg'
-            ],
-            'qian-dao-hu': [
-              'photos/qian dao hu/2024-11-09-001.jpg',
-              'photos/qian dao hu/2024-11-09-002.jpg',
-              'photos/qian dao hu/2024-11-09-003.jpg',
-              'photos/qian dao hu/2024-11-09-004.jpg',
-              'photos/qian dao hu/2024-11-09-005.jpg',
-              'photos/qian dao hu/2024-11-10-006.jpg',
-              'photos/qian dao hu/2024-11-10-007.jpg',
-              'photos/qian dao hu/2024-11-10-008.jpg',
-              'photos/qian dao hu/2024-11-10-009.jpg',
-              'photos/qian dao hu/2024-11-10-010.jpg'
-            ],
-            'qing-dao': [
-              'photos/qing dao/2025-11-29-001.jpg',
-              'photos/qing dao/2026-01-01-002.jpg',
-              'photos/qing dao/2026-01-01-003.jpg',
-              'photos/qing dao/2026-01-01-004.jpg',
-              'photos/qing dao/2026-01-01-005.jpg',
-              'photos/qing dao/2026-01-01-006.jpg',
-              'photos/qing dao/2026-01-01-007.jpg',
-              'photos/qing dao/2026-01-01-008.jpg',
-              'photos/qing dao/2026-01-01-009.jpg',
-              'photos/qing dao/2026-01-02-010.jpg',
-              'photos/qing dao/2026-01-02-011.jpg',
-              'photos/qing dao/2026-01-02-012.jpg',
-              'photos/qing dao/2026-01-02-013.jpeg',
-              'photos/qing dao/2026-01-02-014.jpg',
-              'photos/qing dao/2026-01-02-015.jpg',
-              'photos/qing dao/2026-01-24-016.jpg'
-            ],
-            'ao-men': [
-              'photos/ao men/2025-08-30-001.jpg',
-              'photos/ao men/2025-10-09-002.jpg',
-              'photos/ao men/2025-10-09-003.jpg',
-              'photos/ao men/2025-10-09-004.jpg',
-              'photos/ao men/2025-10-09-005.jpg',
-              'photos/ao men/2025-10-09-006.jpg',
-              'photos/ao men/2025-10-09-007.jpg'
-            ],
-            'zhu-hai': [
-              'photos/zhu hai/2025-10-10-001.jpg',
-              'photos/zhu hai/2025-10-11-002.jpg',
-              'photos/zhu hai/2025-10-11-003.jpg'
-            ],
-            'on-road': [
-              'photos/on road/2024-08-22-001.jpg',
-              'photos/on road/2025-10-08-002.jpg',
-              'photos/on road/2025-10-08-003.jpg',
-              'photos/on road/2025-10-08-004.jpg'
-            ],
-            'others': [
-              'photos/others/2025-12-06-001.jpg',
-              'photos/others/2025-12-06-002.jpg'
-            ]
-          };
-
-          const photos = folderPhotos[folderId] || [];
-          photos.forEach(photoPath => {
-            gallery.appendChild(createPhotoItem(photoPath));
-          });
-        }
-
-
-        // Initialize galleries
-        loadGallery('animals');
-        loadGallery('shanghai');
-        loadGallery('jiu-zhai-gou');
-        loadGallery('zhang-jia-jie');
-        loadGallery('hu-pao-gong-yuan');
-        loadGallery('nan-xun-gu-zhen');
-        loadGallery('qian-dao-hu');
-        loadGallery('qing-dao');
-        loadGallery('ao-men');
-        loadGallery('zhu-hai');
-        loadGallery('on-road');
-        loadGallery('others');
-
-        // Add close animation
-        const closeStyle = document.createElement('style');
-        closeStyle.textContent = `
-          @keyframes fadeOutScale {
-            from {
-              opacity: 1;
-              transform: scale(1);
-            }
-            to {
-              opacity: 0;
-              transform: scale(0.8);
-            }
-          }
-        `;
-        document.head.appendChild(closeStyle);
-      });
-    </script>
-
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="js/home.js"></script>
 </body>
 </html>
