@@ -1,1 +1,0 @@
-searchState.loadedDescShard("multiplier_demo", 0, "Multiplier Circuit Demo")

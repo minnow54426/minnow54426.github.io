@@ -1,1 +1,0 @@
-searchState.loadedDescShard("cubic_demo", 0, "Cubic Polynomial Circuit Demo")

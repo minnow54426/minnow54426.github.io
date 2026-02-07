@@ -24,7 +24,7 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Upload website files only
+      - name: Upload website files
         uses: actions/upload-pages-artifact@v3
         with:
           path: |
@@ -39,10 +39,9 @@ jobs:
             js/
             photos/
             paint/
+            code/
             images/
             .nojekyll
-          # Exclude code/ - it contains 21GB of Rust build artifacts
-          # The code.html page links to GitHub directly
 
       - name: Deploy to GitHub Pages
         id: deployment

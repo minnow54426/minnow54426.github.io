@@ -1,1 +1,0 @@
-searchState.loadedDescShard("hash_preimage_demo", 0, "Hash Preimage Circuit Demo")

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["crypto","mempool","transaction"],"struct":["Keypair","PublicKey","SecretKey"]};

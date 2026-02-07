@@ -1,9 +1,0 @@
-(function() {
-    var implementors = Object.fromEntries([["kzg10",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.82.0/core/marker/trait.Sync.html\" title=\"trait core::marker::Sync\">Sync</a> for <a class=\"enum\" href=\"kzg10/error/enum.Error.html\" title=\"enum kzg10::error::Error\">Error</a>",1,["kzg10::error::Error"]],["impl&lt;E&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.82.0/core/marker/trait.Sync.html\" title=\"trait core::marker::Sync\">Sync</a> for <a class=\"struct\" href=\"kzg10/commit/struct.Commitment.html\" title=\"struct kzg10::commit::Commitment\">Commitment</a>&lt;E&gt;",1,["kzg10::commit::Commitment"]],["impl&lt;E&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.82.0/core/marker/trait.Sync.html\" title=\"trait core::marker::Sync\">Sync</a> for <a class=\"struct\" href=\"kzg10/proof/struct.EvaluationProof.html\" title=\"struct kzg10::proof::EvaluationProof\">EvaluationProof</a>&lt;E&gt;",1,["kzg10::proof::EvaluationProof"]],["impl&lt;E&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.82.0/core/marker/trait.Sync.html\" title=\"trait core::marker::Sync\">Sync</a> for <a class=\"struct\" href=\"kzg10/setup/struct.SRS.html\" title=\"struct kzg10::setup::SRS\">SRS</a>&lt;E&gt;",1,["kzg10::setup::SRS"]],["impl&lt;E, F&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.82.0/core/marker/trait.Sync.html\" title=\"trait core::marker::Sync\">Sync</a> for <a class=\"struct\" href=\"kzg10/proof/struct.Opening.html\" title=\"struct kzg10::proof::Opening\">Opening</a>&lt;E, F&gt;",1,["kzg10::proof::Opening"]]]]]);
-    if (window.register_implementors) {
-        window.register_implementors(implementors);
-    } else {
-        window.pending_implementors = implementors;
-    }
-})()
-//{"start":57,"fragment_lengths":[1536]}

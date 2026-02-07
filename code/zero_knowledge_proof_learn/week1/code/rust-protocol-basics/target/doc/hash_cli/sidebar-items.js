@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["collect_inputs","handle_decoding","handle_encoding","handle_hashing","handle_merkle","main"],"struct":["Args"]};

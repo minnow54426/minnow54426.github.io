@@ -1,9 +1,0 @@
-(function() {
-    var implementors = Object.fromEntries([["hash_cli",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.93.0/core/marker/trait.Sync.html\" title=\"trait core::marker::Sync\">Sync</a> for <a class=\"struct\" href=\"hash_cli/struct.Args.html\" title=\"struct hash_cli::Args\">Args</a>",1,["hash_cli::Args"]]]],["rust_protocol_basics",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.93.0/core/marker/trait.Sync.html\" title=\"trait core::marker::Sync\">Sync</a> for <a class=\"struct\" href=\"rust_protocol_basics/struct.ExampleStruct.html\" title=\"struct rust_protocol_basics::ExampleStruct\">ExampleStruct</a>",1,["rust_protocol_basics::bytes::ExampleStruct"]],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.93.0/core/marker/trait.Sync.html\" title=\"trait core::marker::Sync\">Sync</a> for <a class=\"struct\" href=\"rust_protocol_basics/struct.Hash32.html\" title=\"struct rust_protocol_basics::Hash32\">Hash32</a>",1,["rust_protocol_basics::types::Hash32"]],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.93.0/core/marker/trait.Sync.html\" title=\"trait core::marker::Sync\">Sync</a> for <a class=\"struct\" href=\"rust_protocol_basics/struct.MerkleTree.html\" title=\"struct rust_protocol_basics::MerkleTree\">MerkleTree</a>",1,["rust_protocol_basics::hash::MerkleTree"]]]]]);
-    if (window.register_implementors) {
-        window.register_implementors(implementors);
-    } else {
-        window.pending_implementors = implementors;
-    }
-})()
-//{"start":57,"fragment_lengths":[277,1012]}

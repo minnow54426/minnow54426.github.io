@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["bytes_to_field","field_to_bytes"]};

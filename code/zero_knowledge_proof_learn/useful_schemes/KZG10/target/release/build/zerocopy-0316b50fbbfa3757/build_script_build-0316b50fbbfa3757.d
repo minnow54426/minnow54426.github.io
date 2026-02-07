@@ -1,5 +1,0 @@
-/Users/boycrypt/code/python/website/code/zero_knowledge_proof_learn/useful_schemes/KZG10/target/release/build/zerocopy-0316b50fbbfa3757/build_script_build-0316b50fbbfa3757: /Users/boycrypt/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.8.33/build.rs
-
-/Users/boycrypt/code/python/website/code/zero_knowledge_proof_learn/useful_schemes/KZG10/target/release/build/zerocopy-0316b50fbbfa3757/build_script_build-0316b50fbbfa3757.d: /Users/boycrypt/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.8.33/build.rs
-
-/Users/boycrypt/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.8.33/build.rs:

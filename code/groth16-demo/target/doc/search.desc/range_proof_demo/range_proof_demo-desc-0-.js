@@ -1,1 +1,0 @@
-searchState.loadedDescShard("range_proof_demo", 0, "Range Proof Circuit Demo")

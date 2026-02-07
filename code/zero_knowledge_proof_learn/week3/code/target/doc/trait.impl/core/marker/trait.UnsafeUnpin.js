@@ -1,9 +1,0 @@
-(function() {
-    var implementors = Object.fromEntries([["tx_rs",[["impl UnsafeUnpin for <a class=\"enum\" href=\"tx_rs/crypto/enum.CryptoError.html\" title=\"enum tx_rs::crypto::CryptoError\">CryptoError</a>",1,["tx_rs::crypto::CryptoError"]],["impl UnsafeUnpin for <a class=\"enum\" href=\"tx_rs/mempool/enum.MempoolError.html\" title=\"enum tx_rs::mempool::MempoolError\">MempoolError</a>",1,["tx_rs::mempool::MempoolError"]],["impl UnsafeUnpin for <a class=\"struct\" href=\"tx_rs/crypto/struct.SignedTransaction.html\" title=\"struct tx_rs::crypto::SignedTransaction\">SignedTransaction</a>",1,["tx_rs::crypto::SignedTransaction"]],["impl UnsafeUnpin for <a class=\"struct\" href=\"tx_rs/mempool/struct.Mempool.html\" title=\"struct tx_rs::mempool::Mempool\">Mempool</a>",1,["tx_rs::mempool::Mempool"]],["impl UnsafeUnpin for <a class=\"struct\" href=\"tx_rs/transaction/struct.HashablePublicKey.html\" title=\"struct tx_rs::transaction::HashablePublicKey\">HashablePublicKey</a>",1,["tx_rs::transaction::HashablePublicKey"]],["impl UnsafeUnpin for <a class=\"struct\" href=\"tx_rs/transaction/struct.Transaction.html\" title=\"struct tx_rs::transaction::Transaction\">Transaction</a>",1,["tx_rs::transaction::Transaction"]],["impl UnsafeUnpin for <a class=\"struct\" href=\"tx_rs/transaction/struct.TxId.html\" title=\"struct tx_rs::transaction::TxId\">TxId</a>",1,["tx_rs::transaction::TxId"]]]]]);
-    if (window.register_implementors) {
-        window.register_implementors(implementors);
-    } else {
-        window.pending_implementors = implementors;
-    }
-})()
-//{"start":57,"fragment_lengths":[1346]}
