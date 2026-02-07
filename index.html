@@ -4,77 +4,136 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>wonderonpathlesspath</title>
-    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/fontawesome-all.min.css">
     <link rel="stylesheet" href="assets/css/custom.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,300i,400i">
 </head>
-<body class="is-preload">
-    <div class="container">
-        <h1>wonderonpathlesspath</h1>
-        <p>Welcome to my personal space!</p>
+<body>
+    <!-- Hero Panel -->
+    <section class="hero-panel">
+        <div class="hero-content">
+            <h1>wonderonpathlesspath</h1>
+            <p class="subtitle">Capturing moments. Building systems. Exploring cryptography.</p>
+            <p class="tagline">A journey through photography, code, and zero-knowledge proofs</p>
+            <div class="hero-actions">
+                <a href="#photography" class="button primary">Explore</a>
+            </div>
+        </div>
+    </section>
 
-        <!-- Navigation -->
-        <nav class="nav">
-            <a href="#photography">Photography</a>
-            <a href="#code">Code</a>
-            <a href="#cryptography">Cryptography</a>
-            <a href="#music">Music</a>
-            <a href="photo-gallery.html">Photo Gallery</a>
-            <a href="paint.html">Paint Gallery</a>
-        </nav>
-
-        <!-- Photography Section -->
-        <section class="section" id="photography">
-            <h2>Photography</h2>
-            <p>Visual stories captured through the lens</p>
+    <!-- Photography Panel -->
+    <section class="panel color1" id="photography">
+        <div class="panel-content">
+            <div class="panel-header">
+                <i class="fas fa-camera panel-icon"></i>
+                <h2>Photography</h2>
+                <p class="panel-description">Visual stories captured through the lens</p>
+            </div>
             <div class="gallery-preview" id="photoGallery">
                 <!-- Photos injected by JavaScript -->
             </div>
-            <a href="photo-gallery.html" class="btn">View Full Photo Gallery →</a>
-        </section>
+            <div class="panel-actions">
+                <a href="photo-gallery.html" class="button primary"><i class="fas fa-images"></i> View Full Gallery</a>
+            </div>
+        </div>
+    </section>
 
-        <!-- Code Section -->
-        <section class="section" id="code">
-            <h2>Code Projects</h2>
-            <p>From Zero Knowledge Proofs to interactive visualizations</p>
+    <!-- Code Panel -->
+    <section class="panel color2" id="code">
+        <div class="panel-content">
+            <div class="panel-header">
+                <i class="fas fa-code panel-icon"></i>
+                <h2>Code Projects</h2>
+                <p class="panel-description">From Zero Knowledge Proofs to interactive visualizations</p>
+            </div>
 
-            <div class="project">
-                <h3>Zero Knowledge Proof Learning</h3>
-                <div class="progress-bar">
-                    <div class="progress" style="width: 83%">10/12 weeks completed</div>
+            <div class="project-grid">
+                <div class="project-card">
+                    <h3><i class="fas fa-gem"></i> Zero Knowledge Proof Learning</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 83%">10/12 weeks completed</div>
+                    </div>
+                    <p>Exploring ZK-SNARKs through Rust implementation</p>
+                    <a href="code.html" class="button small">Explore Journey →</a>
                 </div>
-                <p>Exploring ZK-SNARKs through Rust implementation</p>
-                <a href="code.html" class="btn">View Projects →</a>
+
+                <div class="project-card">
+                    <h3><i class="fas fa-tree"></i> Christmas Tree</h3>
+                    <p>Interactive visualization</p>
+                    <a href="code/christmas_tree/" class="button small">View →</a>
+                </div>
+
+                <div class="project-card">
+                    <h3><i class="fas fa-chart-area"></i> Interactiva Panel</h3>
+                    <p>Polynomial plotter</p>
+                    <a href="code/interactiva_panel/" class="button small">View →</a>
+                </div>
+
+                <div class="project-card">
+                    <h3><i class="fas fa-book"></i> Groth16 Demo</h3>
+                    <p>Interactive book</p>
+                    <a href="code/groth16-demo/book/book/index.html" class="button small">View →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cryptography Panel -->
+    <section class="panel color3" id="cryptography">
+        <div class="panel-content">
+            <div class="panel-header">
+                <i class="fas fa-lock panel-icon"></i>
+                <h2>Cryptography</h2>
+                <p class="panel-description">Interactive visualizations of cryptographic concepts</p>
             </div>
 
-            <div class="project">
-                <h3>Interactive Tools</h3>
-                <ul>
-                    <li><a href="code/interactiva_panel/polynomial-plotter.html">Polynomial Plotter</a></li>
-                    <li><a href="cryptography.html">Cryptography Tools</a></li>
-                </ul>
+            <div class="crypto-content">
+                <p>Learn about Zero Knowledge Proofs through interactive visualizations. Explore polynomial interpolation, the foundation of ZK-SNARKs.</p>
+                <div class="panel-actions">
+                    <a href="cryptography.html" class="button primary"><i class="fas fa-external-link-alt"></i> Try Interactive Demo</a>
+                    <a href="code.html#zk-learning" class="button"><i class="fas fa-gem"></i> View Learning Journey</a>
+                </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Cryptography Section -->
-        <section class="section" id="cryptography">
-            <h2>Cryptography</h2>
-            <p>Interactive visualizations of cryptographic concepts</p>
-            <p>Learn about Zero Knowledge Proofs through interactive visualizations.</p>
-            <a href="cryptography.html" class="btn">Try Interactive Demo →</a>
-        </section>
+    <!-- Creative Works Panel -->
+    <section class="panel color4" id="creative">
+        <div class="panel-content">
+            <div class="panel-header">
+                <i class="fas fa-palette panel-icon"></i>
+                <h2>Creative Works</h2>
+                <p class="panel-description">Visual art through watercolor and sound</p>
+            </div>
 
-        <!-- Music Section -->
-        <section class="section" id="music">
-            <h2>Music</h2>
-            <p>Creative works and sound</p>
-            <a href="music.html" class="btn">Explore Music →</a>
-        </section>
+            <div class="creative-grid">
+                <div class="creative-card">
+                    <h3><i class="fas fa-film"></i> Watercolor Paintings</h3>
+                    <p>12 artistic videos showing the creation process</p>
+                    <a href="paint.html" class="button small">View Gallery →</a>
+                </div>
 
-        <!-- Footer -->
-        <footer>
+                <div class="creative-card">
+                    <h3><i class="fas fa-music"></i> Music</h3>
+                    <p>Coming soon...</p>
+                    <a href="music.html" class="button small">Explore →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
             <p>&copy; 2025 wonderonpathlesspath</p>
-        </footer>
-    </div>
+            <div class="footer-links">
+                <a href="photo-gallery.html"><i class="fas fa-camera"></i> Photo Gallery</a>
+                <a href="code.html"><i class="fas fa-code"></i> Code Projects</a>
+                <a href="cryptography.html"><i class="fas fa-lock"></i> Cryptography</a>
+                <a href="paint.html"><i class="fas fa-palette"></i> Paint Gallery</a>
+            </div>
+        </div>
+    </footer>
 
     <script src="assets/js/jquery.min.js"></script>
     <script src="js/home.js"></script>
