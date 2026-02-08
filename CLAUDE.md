@@ -309,8 +309,12 @@ Located in `code/zero_knowledge_proof_learn/`, this is a structured 12-week lear
 - Links to individual category pages (e.g., `photos/shang-hai.html`)
 
 ### Individual Photo Galleries (`photos/*.html`)
-- **HTML5 UP Multiverse template** layout
-- **SimpleLightbox** lightbox for full-screen viewing (via CDN)
+- **HTML5 UP Multiverse template** with jQuery Poptrox modal popup
+- **Modal popup functionality**: Click any photo to open modal lightbox
+  - Full image display in centered modal
+  - Close button (×) in top-right corner
+  - Click outside image or press ESC to close
+  - Next/Prev navigation arrows between photos
 - **Flexbox grid** with responsive columns:
   - Desktop: 4 columns (25% width)
   - Medium: 3 columns (33.33% width)
@@ -319,7 +323,9 @@ Located in `code/zero_knowledge_proof_learn/`, this is a structured 12-week lear
 - Viewport-based photo height: `calc(40vh - 2em)`
 - Fixed header with navigation links
 - Gradient overlay effect on hover
-- 12 categories: Shanghai (62 photos), Jiu Zhai Gou (20), Zhang Jia Jie (13), Hu Pao Park (14), Qing Dao (16), Nanxun (10), Qian Dao Hu (10), Animals (23), Ao Men (7), Zhu Hai (3), On Road (4), Others (2)
+- **Shared resources**: `photos/gallery.css` and `photos/gallery.js`
+- **Background-image technique**: Images set as CSS backgrounds for performance
+- 12 categories: Shanghai (62), Jiu Zhai Gou (20), Zhang Jia Jie (13), Hu Pao Park (14), Qing Dao (16), Nanxun (10), Qian Dao Hu (10), Animals (23), Ao Men (7), Zhu Hai (3), On Road (4), Others (2)
 
 ### Paint Gallery (`paint.html`)
 - Folder-based navigation with 12 watercolor videos
@@ -335,10 +341,11 @@ Located in `code/zero_knowledge_proof_learn/`, this is a structured 12-week lear
 - **Responsive breakpoints** for automatic column adjustment
 - **Viewport-based heights** for consistent photo sizing
 - **Article-based structure** (`<article class="thumb">`) for SEO
-- **SimpleLightbox** integration for lightbox functionality (via CDN)
+- **jQuery Poptrox** modal popup for image viewing (via CDN)
 - **CSS gradient overlays** on photo hover
 - **Fixed header** with backdrop blur effect
-- **Keyboard navigation** in lightbox (arrow keys, ESC)
+- **Background-image technique**: Images loaded as CSS backgrounds for better performance
+- **Shared CSS/JS**: `photos/gallery.css` and `photos/gallery.js` for all galleries
 
 ## Deployment Process (Learned from Experience)
 
@@ -383,7 +390,7 @@ Located in `code/zero_knowledge_proof_learn/`, this is a structured 12-week lear
 - **HTML5 UP Templates** - Multiverse (photo galleries), Ethereal (main site)
 - **Flexbox** - Responsive photo gallery layouts
 - **jQuery** - DOM manipulation and interactions
-- **SimpleLightbox** - Lightbox functionality for photo galleries (replaced jQuery Poptrox)
+- **jQuery Poptrox** - Modal popup functionality for photo galleries (HTML5 UP Multiverse template)
 - **Font Awesome** - Icon system
 - **JavaScript** - Interactive galleries and visualizations
 - **GitHub Pages** - Static hosting
@@ -495,8 +502,9 @@ Individual gallery pages follow the HTML5 UP Multiverse template:
 - Responsive breakpoints for different screen sizes
 
 **JavaScript:**
-- SimpleLightbox initialized on `#main .thumb a` selector (via CDN)
-- Handles lightbox, navigation, and captions
+- jQuery Poptrox initialized on `#main .thumb a` selector (via CDN)
+- Handles modal popup, navigation arrows, and ESC key to close
+- jQuery util.js provides browser compatibility helpers
 
 **Regenerating Galleries:**
 To regenerate all gallery HTML files after adding photos:
@@ -512,7 +520,7 @@ To regenerate all gallery HTML files after adding photos:
 - **Test-Driven Learning**: The ZK learning path emphasizes writing tests to verify understanding of cryptographic concepts
 - **GitHub Pages Multi-Branch**: Always push to main, master, and gh-pages branches to ensure deployment works
 - **HTML5 UP Templates**: Photo galleries use the Multiverse template; main site uses Ethereal template
-- **Photo Gallery Structure**: Individual category pages in `/photos/*.html` use SimpleLightbox (via CDN) for lightbox functionality
+- **Photo Gallery Structure**: Individual category pages in `/photos/*.html` use jQuery Poptrox (via CDN) for modal popup functionality
 
 ## Legacy Content Notes
 
@@ -520,5 +528,6 @@ To regenerate all gallery HTML files after adding photos:
 - No Pelican build process; this is a pure static HTML site
 - All HTML files are served directly from the root directory
 - Photo galleries updated (Feb 2025) to use HTML5 UP Multiverse template with SimpleLightbox (via CDN)
+- Photo galleries reverted (Feb 2026) to pure HTML5 UP Multiverse template with jQuery Poptrox modal popup
 - Individual category pages (`photos/*.html`) replaced the previous single-page gallery approach
 - Photo gallery index updated (Feb 2026) to show simple photo count text instead of progress bars

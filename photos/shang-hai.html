@@ -2,197 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <title>Shanghai (上海) | Photography</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="gallery.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,300i,400i">
-    <style>
-        /* Override main.css to enable scrolling */
-        html, body {
-            height: auto !important;
-            overflow: auto !important;
-        }
-
-        body {
-            background: #1a1a1a;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Header */
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: linear-gradient(135deg, rgba(43, 43, 43, 0.98), rgba(30, 30, 30, 0.98));
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 40px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        header h1 {
-            font-size: 1.5em;
-            font-weight: 300;
-        }
-
-        header h1 a {
-            color: #fff;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        header h1 a:hover {
-            color: #e37b7c;
-        }
-
-        header .back-link {
-            color: #fff;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: color 0.3s;
-        }
-
-        header .back-link:hover {
-            color: #e37b7c;
-        }
-
-        /* Multiverse-style Gallery Layout */
-        #main {
-            display: flex;
-            flex-wrap: wrap;
-            padding-top: 80px;
-            width: 100%;
-        }
-
-        .thumb {
-            position: relative;
-            overflow: hidden;
-            width: 25%;
-            height: calc(40vh - 2em);
-            min-height: 18em;
-            cursor: pointer;
-            transition: opacity 0.3s ease;
-        }
-
-        .thumb:after {
-            background-image: linear-gradient(to top, rgba(10, 17, 25, 0.35) 5%, rgba(10, 17, 25, 0) 35%);
-            pointer-events: none;
-            background-size: cover;
-            content: '';
-            display: block;
-            height: 100%;
-            left: 0;
-            position: absolute;
-            top: 0;
-            width: 100%;
-            z-index: 1;
-        }
-
-        .thumb .image {
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
-            border: 0;
-            height: 100%;
-            left: 0;
-            position: absolute;
-            top: 0;
-            width: 100%;
-            display: block;
-        }
-
-        .thumb .image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .thumb:hover {
-            opacity: 0.8;
-            z-index: 2;
-        }
-
-        /* Responsive Breakpoints */
-        @media screen and (max-width: 1680px) {
-            .thumb {
-                width: 33.33333%;
-            }
-        }
-
-        @media screen and (max-width: 1280px) {
-            .thumb {
-                width: 50%;
-            }
-        }
-
-        @media screen and (max-width: 768px) {
-            header {
-                padding: 0 20px;
-            }
-
-            header h1 {
-                font-size: 1.2em;
-            }
-
-            .thumb {
-                width: 50%;
-                height: calc(30vh - 2em);
-                min-height: 15em;
-            }
-        }
-
-        @media screen and (max-width: 480px) {
-            .thumb {
-                width: 100%;
-                height: calc(40vh - 2em);
-            }
-        }
-
-        /* SimpleLightbox overrides */
-        .sl-overlay {
-            background: rgba(0, 0, 0, 0.95);
-        }
-
-        .sl-wrapper .sl-close {
-            color: #fff;
-            font-size: 40px;
-            transition: color 0.3s;
-        }
-
-        .sl-wrapper .sl-close:hover {
-            color: #e37b7c;
-        }
-
-        .sl-wrapper .sl-navigation button {
-            color: #fff;
-            font-size: 40px;
-            transition: color 0.3s;
-        }
-
-        .sl-wrapper .sl-navigation button:hover {
-            color: #e37b7c;
-        }
-
-        .sl-wrapper .sl-image img {
-            max-width: 90vw;
-            max-height: 90vh;
-            object-fit: contain;
-            cursor: pointer;
-        }
-    </style>
 </head>
 <body>
+
     <!-- Header -->
     <header>
         <h1><a href="../photo-gallery.html"><i class="fas fa-arrow-left"></i> Shanghai (上海)</a></h1>
@@ -203,349 +21,324 @@
     <div id="main">
 			<article class="thumb">
 				<a href="shang hai/2024-08-17-001.jpg" class="image">
-					<img src="shang hai/2024-08-17-001.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-08-17-001.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-08-17-002.jpg" class="image">
-					<img src="shang hai/2024-08-17-002.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-08-17-002.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-08-17-003.jpg" class="image">
-					<img src="shang hai/2024-08-17-003.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-08-17-003.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-08-17-004.jpg" class="image">
-					<img src="shang hai/2024-08-17-004.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-08-17-004.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-08-17-005.jpg" class="image">
-					<img src="shang hai/2024-08-17-005.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-08-17-005.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-08-17-006.jpg" class="image">
-					<img src="shang hai/2024-08-17-006.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-08-17-006.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-08-17-007.jpg" class="image">
-					<img src="shang hai/2024-08-17-007.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-08-17-007.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-09-14-008.jpg" class="image">
-					<img src="shang hai/2024-09-14-008.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-09-14-008.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-09-14-009.jpg" class="image">
-					<img src="shang hai/2024-09-14-009.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-09-14-009.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-09-14-010.jpg" class="image">
-					<img src="shang hai/2024-09-14-010.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-09-14-010.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-09-14-011.jpg" class="image">
-					<img src="shang hai/2024-09-14-011.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-09-14-011.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-09-14-012.jpg" class="image">
-					<img src="shang hai/2024-09-14-012.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-09-14-012.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-09-14-013.jpg" class="image">
-					<img src="shang hai/2024-09-14-013.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-09-14-013.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-09-14-014.jpg" class="image">
-					<img src="shang hai/2024-09-14-014.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-09-14-014.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-10-04-015.jpg" class="image">
-					<img src="shang hai/2024-10-04-015.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-10-04-015.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-10-04-016.jpg" class="image">
-					<img src="shang hai/2024-10-04-016.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-10-04-016.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-10-04-017.jpg" class="image">
-					<img src="shang hai/2024-10-04-017.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-10-04-017.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-10-04-018.jpg" class="image">
-					<img src="shang hai/2024-10-04-018.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-10-04-018.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-10-04-019.jpg" class="image">
-					<img src="shang hai/2024-10-04-019.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-10-04-019.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-10-04-020.jpg" class="image">
-					<img src="shang hai/2024-10-04-020.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-10-04-020.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-10-04-021.jpg" class="image">
-					<img src="shang hai/2024-10-04-021.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-10-04-021.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-10-04-022.jpg" class="image">
-					<img src="shang hai/2024-10-04-022.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-10-04-022.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-10-04-023.jpg" class="image">
-					<img src="shang hai/2024-10-04-023.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-10-04-023.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-10-04-024.jpg" class="image">
-					<img src="shang hai/2024-10-04-024.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-10-04-024.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-10-04-025.jpg" class="image">
-					<img src="shang hai/2024-10-04-025.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-10-04-025.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-10-04-026.jpg" class="image">
-					<img src="shang hai/2024-10-04-026.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-10-04-026.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-11-16-027.jpg" class="image">
-					<img src="shang hai/2024-11-16-027.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-11-16-027.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-12-08-028.jpg" class="image">
-					<img src="shang hai/2024-12-08-028.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-12-08-028.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-12-08-029.jpg" class="image">
-					<img src="shang hai/2024-12-08-029.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-12-08-029.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2024-12-08-030.jpg" class="image">
-					<img src="shang hai/2024-12-08-030.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2024-12-08-030.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-03-09-031.jpg" class="image">
-					<img src="shang hai/2025-03-09-031.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-03-09-031.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-04-05-032.jpg" class="image">
-					<img src="shang hai/2025-04-05-032.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-04-05-032.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-04-05-033.jpg" class="image">
-					<img src="shang hai/2025-04-05-033.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-04-05-033.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-04-05-034.jpg" class="image">
-					<img src="shang hai/2025-04-05-034.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-04-05-034.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-04-05-035.jpg" class="image">
-					<img src="shang hai/2025-04-05-035.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-04-05-035.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-04-05-036.jpg" class="image">
-					<img src="shang hai/2025-04-05-036.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-04-05-036.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-04-20-037.jpg" class="image">
-					<img src="shang hai/2025-04-20-037.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-04-20-037.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-07-26-038.jpg" class="image">
-					<img src="shang hai/2025-07-26-038.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-07-26-038.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-07-26-039.jpg" class="image">
-					<img src="shang hai/2025-07-26-039.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-07-26-039.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-07-26-040.jpg" class="image">
-					<img src="shang hai/2025-07-26-040.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-07-26-040.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-07-26-041.jpg" class="image">
-					<img src="shang hai/2025-07-26-041.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-07-26-041.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-07-26-042.jpg" class="image">
-					<img src="shang hai/2025-07-26-042.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-07-26-042.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-08-30-043.jpg" class="image">
-					<img src="shang hai/2025-08-30-043.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-08-30-043.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-08-30-044.jpg" class="image">
-					<img src="shang hai/2025-08-30-044.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-08-30-044.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-08-30-045.jpg" class="image">
-					<img src="shang hai/2025-08-30-045.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-08-30-045.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-10-08-046.jpg" class="image">
-					<img src="shang hai/2025-10-08-046.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-10-08-046.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-11-09-047.jpg" class="image">
-					<img src="shang hai/2025-11-09-047.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-11-09-047.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-11-09-048.jpg" class="image">
-					<img src="shang hai/2025-11-09-048.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-11-09-048.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-11-09-049.jpg" class="image">
-					<img src="shang hai/2025-11-09-049.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-11-09-049.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-11-09-050.jpg" class="image">
-					<img src="shang hai/2025-11-09-050.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-11-09-050.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-11-09-051.jpg" class="image">
-					<img src="shang hai/2025-11-09-051.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-11-09-051.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-11-09-052.jpg" class="image">
-					<img src="shang hai/2025-11-09-052.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-11-09-052.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-11-29-053.jpg" class="image">
-					<img src="shang hai/2025-11-29-053.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-11-29-053.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2025-11-29-054.jpg" class="image">
-					<img src="shang hai/2025-11-29-054.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2025-11-29-054.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2026-01-24-055.jpg" class="image">
-					<img src="shang hai/2026-01-24-055.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2026-01-24-055.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2026-01-25-056.jpg" class="image">
-					<img src="shang hai/2026-01-25-056.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2026-01-25-056.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2026-01-25-057.jpg" class="image">
-					<img src="shang hai/2026-01-25-057.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2026-01-25-057.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2026-01-25-058.jpg" class="image">
-					<img src="shang hai/2026-01-25-058.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2026-01-25-058.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2026-01-25-059.jpg" class="image">
-					<img src="shang hai/2026-01-25-059.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2026-01-25-059.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2026-01-25-060.jpg" class="image">
-					<img src="shang hai/2026-01-25-060.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2026-01-25-060.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2026-01-25-061.jpg" class="image">
-					<img src="shang hai/2026-01-25-061.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2026-01-25-061.jpg" alt="" />
 				</a>
 			</article>
 			<article class="thumb">
 				<a href="shang hai/2026-01-26-062.jpg" class="image">
-					<img src="shang hai/2026-01-26-062.jpg" alt="" loading="lazy" />
+					<img src="shang hai/2026-01-26-062.jpg" alt="" />
 				</a>
 			</article>
     </div>
 
     <!-- Scripts -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simplelightbox.min.css">
     <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.poptrox.min.js"></script>
     <script src="../assets/js/browser.min.js"></script>
     <script src="../assets/js/breakpoints.min.js"></script>
+    <script src="../assets/js/util.js"></script>
     <script src="../assets/js/main.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simple-lightbox.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize SimpleLightbox - single photo view only
-            var lightbox = new SimpleLightbox('#main .thumb a', {
-                overlayOpacity: 0.95,
-                captionType: 'attr',
-                captionsData: 'alt',
-                nav: false,                    // Disable next/prev navigation
-                closeText: '×',
-                fileExt: false,
-                animationSpeed: 300,
-                animationSlide: true,
-                widthRatio: 0.9,
-                heightRatio: 0.9,
-                swipeClose: true,               // Allow swipe to close on mobile
-                closeOnOverlayClick: true      // Click overlay to close
-            });
+    <script src="gallery.js"></script>
 
-            // Add click-to-close on image - using document delegation
-            document.addEventListener('click', function(e) {
-                const lightboxImg = document.querySelector('.sl-wrapper .sl-image img');
-                if (lightboxImg && (e.target === lightboxImg || e.target.closest('.sl-image') === lightboxImg.parentElement)) {
-                    lightbox.close();
-                }
-            });
-        });
-    </script>
 </body>
 </html>
