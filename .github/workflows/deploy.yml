@@ -24,7 +24,7 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Upload website files (excluding large videos)
+      - name: Upload website files
         uses: actions/upload-pages-artifact@v3
         with:
           path: |
@@ -43,8 +43,9 @@ jobs:
             code/christmas_tree/
             code/groth16-demo/
             code/interactiva_panel/
-          # Exclude paint/ videos (100MB) - they cause deployment to fail
-          # The paint.html page will show a placeholder or link to external hosting
+            paint/water_color/
+            paint/learning/
+            paint/creat/
 
       - name: Deploy to GitHub Pages
         id: deployment
