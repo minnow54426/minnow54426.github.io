@@ -158,7 +158,357 @@
 
                 <div id="content" class="content">
                     <main>
-                        
+                        <h1 id="trusted-setup"><a class="header" href="#trusted-setup">Trusted Setup</a></h1>
+<p>We have our QAP polynomials and understand pairings. Now we need to generate the cryptographic keys that will be used for proving and verifying. This process is called the <strong>trusted setup</strong>.</p>
+<h2 id="learning-objectives"><a class="header" href="#learning-objectives">Learning Objectives</a></h2>
+<p>After this chapter, you will understand:</p>
+<ul>
+<li>What trusted setup is and why it's necessary</li>
+<li>The "toxic waste" problem and how to mitigate it</li>
+<li>How proving and verification keys are generated</li>
+<li>The structure of Groth16 keys</li>
+<li>Powers of Tau and structured reference strings</li>
+</ul>
+<h2 id="motivating-example-why-we-need-setup"><a class="header" href="#motivating-example-why-we-need-setup">Motivating Example: Why We Need Setup</a></h2>
+<p>Recall from Chapter 4 that we want to check:</p>
+<pre><code class="language-text">P(x) = H(x) · T(x)
+</code></pre>
+<p>Using pairings, we can check:</p>
+<pre><code class="language-text">e(P₁, G₂) = e(H₁, T₁)
+</code></pre>
+<p><strong>Problem</strong>: We need to encrypt the QAP polynomials!</p>
+<ul>
+<li>We need A(τ)·G₁, B(τ)·G₂, C(τ)·G₁ for each polynomial</li>
+<li>We need random values α, β, γ, δ to ensure soundness</li>
+<li>We need a random τ to evaluate polynomials at</li>
+</ul>
+<p><strong>Solution</strong>: Run a trusted setup ceremony to generate these values!</p>
+<h2 id="theory-deep-dive-what-is-trusted-setup"><a class="header" href="#theory-deep-dive-what-is-trusted-setup">Theory Deep Dive: What is Trusted Setup?</a></h2>
+<h3 id="the-setup-ceremony"><a class="header" href="#the-setup-ceremony">The Setup Ceremony</a></h3>
+<p>Trusted setup generates random secrets that are used to encrypt the QAP:</p>
+<p><strong>Secrets generated</strong>:</p>
+<ul>
+<li><strong>α</strong> (alpha): Used for proof A component</li>
+<li><strong>β</strong> (beta): Used for proof B and C components</li>
+<li><strong>γ</strong> (gamma): Used for public input encryption</li>
+<li><strong>δ</strong> (delta): Used for proof C component</li>
+<li><strong>τ</strong> (tau): Random point to evaluate polynomials at</li>
+</ul>
+<p><strong>Key properties</strong>:</p>
+<ol>
+<li>These secrets are random and unpredictable</li>
+<li>They MUST be deleted after the ceremony</li>
+<li>If leaked, anyone can forge proofs!</li>
+</ol>
+<h3 id="toxic-waste"><a class="header" href="#toxic-waste">Toxic Waste</a></h3>
+<p>The secrets (α, β, γ, δ, τ) are called <strong>"toxic waste"</strong> because:</p>
+<ol>
+<li><strong>Dangerous</strong>: If an attacker obtains them, they can forge proofs</li>
+<li><strong>Must be destroyed</strong>: They should be securely deleted after the ceremony</li>
+<li><strong>Unverifiable</strong>: We can't prove they were deleted (trust required!)</li>
+</ol>
+<h3 id="powers-of-tau"><a class="header" href="#powers-of-tau">Powers of Tau</a></h3>
+<p>The <strong>Powers of Tau</strong> is a structured reference string (SRS):</p>
+<pre><code class="language-text">[τ⁰·G₁, τ¹·G₁, τ²·G₁, ..., τⁿ·G₁]
+[τ⁰·G₂, τ¹·G₂, τ²·G₂, ..., τⁿ·G₂]
+</code></pre>
+<p>These powers of τ allow us to evaluate any polynomial at τ:</p>
+<pre><code class="language-text">P(x) = a₀ + a₁x + a₂x²
+P(τ)·G₁ = a₀·τ⁰·G₁ + a₁·τ¹·G₁ + a₂·τ²·G₁
+</code></pre>
+<p><strong>Key insight</strong>: We can compute P(τ)·G₁ without knowing τ!</p>
+<h2 id="theory-deep-dive-key-structure"><a class="header" href="#theory-deep-dive-key-structure">Theory Deep Dive: Key Structure</a></h2>
+<h3 id="proving-key-pk"><a class="header" href="#proving-key-pk">Proving Key (PK)</a></h3>
+<p>The proving key contains encrypted elements needed to generate proofs:</p>
+<p>From <code>crates/groth16/src/keys.rs:51-86</code>:</p>
+<pre><code class="language-rust ignore">/// Proving key for Groth16
+#[derive(Clone, Debug)]
+pub struct ProvingKey {
+    /// α·G₁ (used in proof A component)
+    pub alpha_g1: G1Affine,
+
+    /// β·G₁ (used in proof A component)
+    pub beta_g1: G1Affine,
+
+    /// β·G₂ (used in verification)
+    pub beta_g2: G2Affine,
+
+    /// δ·G₁ (used in proof C component)
+    pub delta_g1: G1Affine,
+
+    /// δ·G₂ (used in verification)
+    pub delta_g2: G2Affine,
+
+    /// Encrypted A-polynomials: [α·Aᵢ(τ)·G₁] for i=0..m
+    pub a_query: Vec&lt;G1Affine&gt;,
+
+    /// Encrypted B-polynomials in G1: [β·Bᵢ(τ)·G₁] for i=0..m
+    pub b_g1_query: Vec&lt;G1Affine&gt;,
+
+    /// Encrypted B-polynomials in G2: [β·Bᵢ(τ)·G₂] for i=0..m
+    pub b_g2_query: Vec&lt;G2Affine&gt;,
+
+    /// Encrypted C-polynomials: [β·Cᵢ(τ)·G₁] for i=0..m
+    pub c_query: Vec&lt;G1Affine&gt;,
+
+    /// Encrypted division polynomials: [Hᵢ(τ)·G₁] for i=0..n-2
+    pub h_query: Vec&lt;G1Affine&gt;,
+}</code></pre>
+<p><strong>Key components</strong>:</p>
+<ul>
+<li><strong>alpha_g1, beta_g1, beta_g2, delta_g1, delta_g2</strong>: Encrypted secrets</li>
+<li><strong>a_query, b_g1_query, b_g2_query, c_query</strong>: Encrypted QAP polynomials</li>
+<li><strong>h_query</strong>: Encrypted division polynomials (for H(x))</li>
+</ul>
+<h3 id="verification-key-vk"><a class="header" href="#verification-key-vk">Verification Key (VK)</a></h3>
+<p>The verification key contains public elements for verification:</p>
+<p>From <code>crates/groth16/src/keys.rs:166-188</code>:</p>
+<pre><code class="language-rust ignore">/// Verification key for Groth16
+#[derive(Clone, Debug)]
+pub struct VerificationKey {
+    /// α·G₁ (part of verification equation)
+    pub alpha_g1: G1Affine,
+
+    /// β·G₂ (part of verification equation)
+    pub beta_g2: G2Affine,
+
+    /// γ·G₂ (base for public input encryption)
+    pub gamma_g2: G2Affine,
+
+    /// δ·G₂ (base for proof C encryption)
+    pub delta_g2: G2Affine,
+
+    /// Public input encryption: [β·G₁, β·U₁(τ)·G₁ + α·H₁(τ)·G₁, ...]
+    pub ic: Vec&lt;G1Affine&gt;,
+}</code></pre>
+<p><strong>Key components</strong>:</p>
+<ul>
+<li><strong>alpha_g1, beta_g2, gamma_g2, delta_g2</strong>: Public encrypted secrets</li>
+<li><strong>ic</strong>: Input consistency vector for verifying public inputs</li>
+</ul>
+<h2 id="implementation-trusted-setup-in-rust"><a class="header" href="#implementation-trusted-setup-in-rust">Implementation: Trusted Setup in Rust</a></h2>
+<p>Now let's see how trusted setup is implemented.</p>
+<h3 id="the-setup-function"><a class="header" href="#the-setup-function">The Setup Function</a></h3>
+<p>From <code>crates/groth16/src/setup.rs:69-213</code>:</p>
+<pre><code class="language-rust ignore">/// Performs the trusted setup ceremony to generate proving and verification keys.
+pub fn trusted_setup&lt;R&gt;(
+    a_polys: &amp;[Polynomial&lt;ark_bn254::Fq&gt;],
+    b_polys: &amp;[Polynomial&lt;ark_bn254::Fq&gt;],
+    c_polys: &amp;[Polynomial&lt;ark_bn254::Fq&gt;],
+    num_inputs: usize,
+    rng: &amp;mut R,
+) -&gt; Result&lt;(ProvingKey, VerificationKey), Groth16Error&gt;
+where
+    R: Rng,
+{
+    // Step 1: Generate random secrets (TOXIC WASTE)
+    let alpha = Fr::rand(rng);
+    let beta = Fr::rand(rng);
+    let gamma = Fr::rand(rng);
+    let delta = Fr::rand(rng);
+    let tau = Fr::rand(rng);
+
+    // Step 2: Compute powers of tau encrypted in G1 and G2
+    let _tau_powers_g1 = compute_powers_of_tau_g1(tau, num_constraints + 2);
+    let _tau_powers_g2 = compute_powers_of_tau_g2(tau, num_constraints + 2);
+
+    // Step 3: Encrypt the secrets with generators
+    let alpha_g1 = (G1Affine::generator() * alpha).into_affine();
+    let beta_g1 = (G1Affine::generator() * beta).into_affine();
+    let beta_g2 = (G2Affine::generator() * beta).into_affine();
+    let gamma_g2 = (G2Affine::generator() * gamma).into_affine();
+    let delta_g1 = (G1Affine::generator() * delta).into_affine();
+    let delta_g2 = (G2Affine::generator() * delta).into_affine();
+
+    // Step 4: Compute encrypted A-polynomials
+    let mut a_query = Vec::with_capacity(num_vars);
+    for poly in a_polys {
+        let eval = poly.evaluate(&amp;tau_field);
+        let encrypted = (G1Affine::generator() * alpha * eval).into_affine();
+        a_query.push(encrypted);
+    }
+
+    // Step 5: Compute encrypted B-polynomials in G1 and G2
+    let mut b_g1_query = Vec::with_capacity(num_vars);
+    let mut b_g2_query = Vec::with_capacity(num_vars);
+    for poly in b_polys {
+        let eval = poly.evaluate(&amp;tau_field);
+        b_g1_query.push((G1Affine::generator() * beta * eval).into_affine());
+        b_g2_query.push((G2Affine::generator() * beta * eval).into_affine());
+    }
+
+    // Step 6: Compute encrypted C-polynomials in G1
+    let mut c_query = Vec::with_capacity(num_vars);
+    for poly in c_polys {
+        let eval = poly.evaluate(&amp;tau_field);
+        c_query.push((G1Affine::generator() * beta * eval).into_affine());
+    }
+
+    // Step 7: Compute division polynomials
+    let target = target_polynomial::&lt;ark_bn254::Fq&gt;(num_constraints);
+    let h_query = compute_division_polynomials_encrypted(&amp;target, num_constraints, tau_field)?;
+
+    // Step 8: Compute IC for public inputs
+    let mut ic = Vec::with_capacity(num_inputs + 1);
+    ic.push((G1Affine::generator() * beta).into_affine());  // IC[0] = β·G₁
+    for a_poly in a_polys.iter().take(num_inputs + 1).skip(1) {
+        let a_eval = a_poly.evaluate(&amp;tau_field).value;
+        let ic_point = (G1Affine::generator() * beta * a_eval).into_affine();
+        ic.push(ic_point);
+    }
+
+    // Construct keys
+    let pk = ProvingKey { /* ... */ };
+    let vk = VerificationKey { /* ... */ };
+
+    Ok((pk, vk))
+}</code></pre>
+<h3 id="powers-of-tau-computation"><a class="header" href="#powers-of-tau-computation">Powers of Tau Computation</a></h3>
+<p>From <code>crates/groth16/src/setup.rs:231-254</code>:</p>
+<pre><code class="language-rust ignore">/// Computes powers of tau encrypted in G1
+fn compute_powers_of_tau_g1(tau: Fr, degree: usize) -&gt; Vec&lt;G1Affine&gt; {
+    let mut result = Vec::with_capacity(degree);
+    let mut current = G1::from(G1Affine::generator());
+
+    for _ in 0..degree {
+        result.push(current.into_affine());
+        current *= tau;  // Multiply by τ
+    }
+
+    result
+}</code></pre>
+<p>This computes: [G₁, τ·G₁, τ²·G₁, ..., τⁿ·G₁]</p>
+<h3 id="division-polynomials"><a class="header" href="#division-polynomials">Division Polynomials</a></h3>
+<p>From <code>crates/groth16/src/setup.rs:257-288</code>:</p>
+<pre><code class="language-rust ignore">/// Computes division polynomials and encrypts them
+fn compute_division_polynomials_encrypted(
+    target: &amp;Polynomial&lt;ark_bn254::Fq&gt;,
+    num_constraints: usize,
+    tau: FieldWrapper&lt;ark_bn254::Fq&gt;,
+) -&gt; Result&lt;Vec&lt;G1Affine&gt;, Groth16Error&gt; {
+    let mut result = Vec::new();
+
+    for j in 0..num_constraints.saturating_sub(2) {
+        // Compute t(x) / (x - j)
+        let j_field = FieldWrapper::&lt;ark_bn254::Fq&gt;::from(j as u64);
+        let divisor = Polynomial::&lt;ark_bn254::Fq&gt;::new(vec![
+            FieldWrapper::&lt;ark_bn254::Fq&gt;::zero() - j_field.clone(),
+            FieldWrapper::&lt;ark_bn254::Fq&gt;::one(),
+        ]);
+
+        let (quotient, _remainder) = divide_polynomials(target, &amp;divisor)?;
+        let h_j_at_tau = quotient.evaluate(&amp;tau);
+        let encrypted = (G1Affine::generator() * h_j_at_tau).into_affine();
+        result.push(encrypted);
+    }
+
+    Ok(result)
+}</code></pre>
+<h2 id="running-the-code"><a class="header" href="#running-the-code">Running the Code</a></h2>
+<h3 id="example-multiplier-circuit-setup"><a class="header" href="#example-multiplier-circuit-setup">Example: Multiplier Circuit Setup</a></h3>
+<pre><code class="language-bash">cd /path/to/groth16-demo
+cargo test --trusted_setup_test
+</code></pre>
+<h3 id="what-gets-generated"><a class="header" href="#what-gets-generated">What Gets Generated</a></h3>
+<p>For the multiplier circuit (a × b = c):</p>
+<p><strong>Proving Key</strong>:</p>
+<pre><code class="language-text">alpha_g1: α·G₁
+beta_g1: β·G₁
+beta_g2: β·G₂
+delta_g1: δ·G₁
+delta_g2: δ·G₂
+
+a_query: [α·A₀(τ)·G₁, α·A₁(τ)·G₁, α·A₂(τ)·G₁, α·A₃(τ)·G₁]
+b_g1_query: [β·B₀(τ)·G₁, β·B₁(τ)·G₁, β·B₂(τ)·G₁, β·B₃(τ)·G₁]
+b_g2_query: [β·B₀(τ)·G₂, β·B₁(τ)·G₂, β·B₂(τ)·G₂, β·B₃(τ)·G₂]
+c_query: [β·C₀(τ)·G₁, β·C₁(τ)·G₁, β·C₂(τ)·G₁, β·C₃(τ)·G₁]
+
+h_query: []  (no division polynomials for single constraint)
+</code></pre>
+<p><strong>Verification Key</strong>:</p>
+<pre><code class="language-text">alpha_g1: α·G₁
+beta_g2: β·G₂
+gamma_g2: γ·G₂
+delta_g2: δ·G₂
+
+ic: [β·G₁, β·A₁(τ)·G₁]  (for constant 1 and public input c)
+</code></pre>
+<h2 id="security-considerations"><a class="header" href="#security-considerations">Security Considerations</a></h2>
+<h3 id="toxic-waste-destruction"><a class="header" href="#toxic-waste-destruction">Toxic Waste Destruction</a></h3>
+<p>After the ceremony, the secrets (α, β, γ, δ, τ) <strong>must be destroyed</strong>:</p>
+<pre><code class="language-rust ignore">// Security: DO NOT do this!
+let secrets = (alpha, beta, gamma, delta, tau);
+println!("Toxic waste: {:?}", secrets);  // LEAK!
+
+// Correct: Let them go out of scope and be dropped
+drop(rng);  // The secrets only existed in the RNG state</code></pre>
+<h3 id="multi-party-computation-mpc"><a class="header" href="#multi-party-computation-mpc">Multi-Party Computation (MPC)</a></h3>
+<p>To reduce trust, we can use <strong>MPC ceremonies</strong>:</p>
+<ol>
+<li><strong>Participant 1</strong> generates secrets₁ and creates SRS₁</li>
+<li><strong>Participant 2</strong> generates secrets₂ and updates: SRS₂ = SRS₁ · secrets₂</li>
+<li><strong>Participant N</strong> generates secretsₙ and updates: SRSₙ = SRSₙ₋₁ · secretsₙ</li>
+<li><strong>Final</strong>: The toxic waste is secrets₁ · secrets₂ · ... · secretsₙ</li>
+</ol>
+<p><strong>Security</strong>: All N participants must collude to recover the toxic waste!</p>
+<h3 id="per-circuit-setup"><a class="header" href="#per-circuit-setup">Per-Circuit Setup</a></h3>
+<p>Groth16 requires a <strong>new setup for each circuit</strong>:</p>
+<ul>
+<li>Each circuit has its own QAP polynomials</li>
+<li>The setup evaluates these specific polynomials at τ</li>
+<li>Can't reuse keys across different circuits</li>
+</ul>
+<p><strong>Limitation</strong>: This is expensive! Newer protocols (PLONK, Halo 2) support universal setup.</p>
+<h2 id="connection-to-groth16"><a class="header" href="#connection-to-groth16">Connection to Groth16</a></h2>
+<p>Trusted setup is the <strong>preparation step</strong> before proving:</p>
+<pre><code class="language-text">Computation
+    ↓
+R1CS (matrix constraints)
+    ↓
+QAP (polynomial divisibility)
+    ↓
+Elliptic Curve Pairings
+    ↓
+Trusted Setup ← You are here
+    ↓
+Proof Generation (Chapter 6)
+</code></pre>
+<h2 id="exercises"><a class="header" href="#exercises">Exercises</a></h2>
+<ol>
+<li>
+<p><strong>Key structure</strong>:</p>
+<pre><code class="language-text">Why do we need both b_g1_query and b_g2_query?
+Can we use just one?
+</code></pre>
+</li>
+<li>
+<p><strong>Toxic waste</strong>:</p>
+<pre><code class="language-text">If alpha is leaked, what attacks become possible?
+Hint: Look at the proof A component formula
+</code></pre>
+</li>
+<li>
+<p><strong>IC vector</strong>:</p>
+<pre><code class="language-text">Why is IC[0] = β·G₁?
+What does it represent in the witness?
+</code></pre>
+</li>
+<li>
+<p><strong>Challenge question</strong>:</p>
+<pre><code class="language-text">Why can't we use a universal setup for all circuits?
+What part of the setup is circuit-specific?
+</code></pre>
+</li>
+</ol>
+<h2 id="further-reading"><a class="header" href="#further-reading">Further Reading</a></h2>
+<ul>
+<li><strong>Zcash Ceremony</strong>: <a href="https://z.cash/blog/snark-explainer.html">The Powers of Tau Ceremony</a></li>
+<li><strong>Perconia Ceremony</strong>: <a href="https://www.zfnd.org/blog/powers-of-tau/">Zcash Sapling Ceremony</a></li>
+<li><strong>MPC Techniques</strong>: <a href="https://eprint.iacr.org/2017/1050">MPC for ZK-SNARKs</a></li>
+</ul>
+<hr />
+<p><strong>Ready to generate proofs? Continue to <a href="./06-proof-generation.html">Chapter 6: Proof Generation</a></strong></p>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

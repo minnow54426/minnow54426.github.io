@@ -110,38 +110,30 @@ pub fn generate_proof<R: Rng + ?Sized>(
         });
     }
 
-    // Step 1: Compute A_base = Σⱼ witness[j]·Aⱼ(τ) (unblinded, without α)
-    // pk.a_query contains [α·Aⱼ(τ)] so we need to subtract α
-    let mut a_witness_blinded = G1::zero();
+    // Step 1: Compute A_base = Σⱼ witness[j]·Aⱼ(τ)
+    // Standard Groth16: pk.a_query contains [Aⱼ(τ)] (without α)
+    let mut a_base = G1::zero();
     for (j, w) in witness.iter().enumerate() {
         let w_fr = field_wrapper_to_fr(w);
         let g1_point = G1::from(pk.a_query[j]);
-        a_witness_blinded += g1_point * w_fr;
+        a_base += g1_point * w_fr;
     }
-    // Extract α contribution: α·Σ witness[j] where j=0 is the constant 1
-    let alpha_sum = field_wrapper_to_fr(&witness[0]);
-    let a_alpha_part = G1::from(pk.alpha_g1) * alpha_sum;
-    let a_base = a_witness_blinded - a_alpha_part;
 
-    // Step 2: Compute B_base = Σⱼ witness[j]·Bⱼ(τ) (unblinded, without β)
-    let mut b_witness_g1_blinded = G1::zero();
-    let mut b_witness_g2_blinded = G2::zero();
+    // Step 2: Compute B_base = Σⱼ witness[j]·Bⱼ(τ)
+    // Standard Groth16: pk.b_query contains [Bⱼ(τ)] (without β)
+    let mut b_base_g1 = G1::zero();
+    let mut b_base_g2 = G2::zero();
 
     for (j, w) in witness.iter().enumerate() {
         let w_fr = field_wrapper_to_fr(w);
         let bg1_point = G1::from(pk.b_g1_query[j]);
         let bg2_point = G2::from(pk.b_g2_query[j]);
-        b_witness_g1_blinded += bg1_point * w_fr;
-        b_witness_g2_blinded += bg2_point * w_fr;
+        b_base_g1 += bg1_point * w_fr;
+        b_base_g2 += bg2_point * w_fr;
     }
-    // Extract β contribution: β·Σ witness[j]
-    let beta_sum = alpha_sum; // Same sum
-    let b_beta_part_g1 = G1::from(pk.beta_g1) * beta_sum;
-    let b_beta_part_g2 = G2::from(pk.beta_g2) * beta_sum;
-    let b_base_g1 = b_witness_g1_blinded - b_beta_part_g1;
-    let b_base_g2 = b_witness_g2_blinded - b_beta_part_g2;
 
-    // Step 3: Compute C_base = Σⱼ witness[j]·Cⱼ(τ) (already has β)
+    // Step 3: Compute C_base = Σⱼ witness[j]·Cⱼ(τ)
+    // Standard Groth16: pk.c_query contains [Cⱼ(τ)] (without β)
     let mut c_base = G1::zero();
     for (j, w) in witness.iter().enumerate() {
         let w_fr = field_wrapper_to_fr(w);
@@ -154,12 +146,12 @@ pub fn generate_proof<R: Rng + ?Sized>(
     let s = Fr::rand(rng);
 
     // Step 5: Compute proof component A
-    // A = α·G₁ + A_base + r·δ·G₁
+    // Standard Groth16 formula: A = α·G₁ + A(witness)·G₁ + r·δ·G₁
     let delta_g1 = G1::from(pk.delta_g1);
     let a_g1 = G1::from(pk.alpha_g1) + a_base + delta_g1 * r;
 
     // Step 6: Compute proof component B
-    // B = β·G₂ + B_base + s·δ·G₂
+    // Standard Groth16 formula: B = β·G₂ + B(witness)·G₂ + s·δ·G₂
     let delta_g2 = G2::from(pk.delta_g2);
     let b_g2 = G2::from(pk.beta_g2) + b_base_g2 + delta_g2 * s;
 
@@ -209,11 +201,21 @@ pub fn generate_proof<R: Rng + ?Sized>(
         }
     }
 
-    // Now compute C with the correct Groth16 formula:
-    // C = A_base·s + B_base·r + C_base + H(τ) + δ·r·s
-    // where A_base and B_base are unblinded (without α, β)
-    // This matches the Groth16 paper specification for the C component
-    let c_g1 = a_base * s + b_base_g1 * r + c_base + h_tau + delta_g1 * (r * s);
+    // Now compute C with the standard Groth16 formula:
+    // C = β·A_base·s + α·B_base·r + C_base + H(τ) + δ·r·s - s·β - r·α
+    //
+    // With standard queries (no α/β in queries):
+    // - a_base = A(witness)·G₁
+    // - b_base_g1 = B(witness)·G₁
+    // - c_base = C(witness)·G₁
+    let beta_s = pk.beta * s;
+    let alpha_r = pk.alpha * r;
+    let beta_g1 = G1::from(pk.beta_g1);
+    let alpha_g1 = G1::from(pk.alpha_g1);
+
+    let c_g1 = a_base * beta_s + b_base_g1 * alpha_r + c_base + h_tau + delta_g1 * (r * s)
+        - beta_g1 * s
+        - alpha_g1 * r;
 
     // Convert to affine
     let proof = Proof {

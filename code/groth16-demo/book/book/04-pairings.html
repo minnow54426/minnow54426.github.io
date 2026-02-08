@@ -158,7 +158,298 @@
 
                 <div id="content" class="content">
                     <main>
-                        
+                        <h1 id="elliptic-curves-and-pairings"><a class="header" href="#elliptic-curves-and-pairings">Elliptic Curves and Pairings</a></h1>
+<p>We've transformed our computation into polynomial divisibility. Now we need a way to check this divisibility <strong>without revealing the polynomials themselves</strong>. Enter elliptic curve pairings!</p>
+<h2 id="learning-objectives"><a class="header" href="#learning-objectives">Learning Objectives</a></h2>
+<p>After this chapter, you will understand:</p>
+<ul>
+<li>What elliptic curves are and why they're useful in cryptography</li>
+<li>Group operations on elliptic curves</li>
+<li>Bilinear pairings and their magical properties</li>
+<li>How pairings enable efficient ZK verification</li>
+<li>The BN254 curve used in Groth16</li>
+</ul>
+<h2 id="motivating-example-the-pairing-check"><a class="header" href="#motivating-example-the-pairing-check">Motivating Example: The Pairing Check</a></h2>
+<p>In QAP, we want to verify:</p>
+<pre><code class="language-text">P(x) = H(x) · T(x)
+</code></pre>
+<p><strong>Problem</strong>: If we reveal P(x) and H(x), we leak information about the witness!</p>
+<p><strong>Solution with pairings</strong>: Check the equation <strong>in the exponent</strong>:</p>
+<pre><code class="language-text">e(P₁, G₂) = e(H₁, T₁)
+</code></pre>
+<p>Where:</p>
+<ul>
+<li>P₁ = P(x) · G₁ (P encrypted in G₁)</li>
+<li>H₁ = H(x) · G₁ (H encrypted in G₁)</li>
+<li>T₁ = T(x) · G₁ (T encrypted in G₁)</li>
+<li>e(·, ·) is the bilinear pairing</li>
+</ul>
+<p>The verifier can check the equation without learning P(x), H(x), or the witness!</p>
+<h2 id="theory-deep-dive-elliptic-curves"><a class="header" href="#theory-deep-dive-elliptic-curves">Theory Deep Dive: Elliptic Curves</a></h2>
+<h3 id="what-is-an-elliptic-curve"><a class="header" href="#what-is-an-elliptic-curve">What is an Elliptic Curve?</a></h3>
+<p>An <strong>elliptic curve</strong> over a finite field is the set of solutions (x, y) to:</p>
+<pre><code class="language-text">y² = x³ + ax + b
+</code></pre>
+<p>With a special "point at infinity" denoted ∞ (the identity element).</p>
+<p><strong>Example</strong>: The BN254 curve (used in Groth16):</p>
+<pre><code class="language-text">y² = x³ + 3
+</code></pre>
+<p>Over a field with ~2²⁵⁴ elements.</p>
+<h3 id="the-group-law"><a class="header" href="#the-group-law">The Group Law</a></h3>
+<p>Elliptic curves form an <strong>abelian group</strong> under the "chord-and-tangent" addition:</p>
+<p><strong>Addition (P + Q = R)</strong>:</p>
+<ol>
+<li>Draw a line through P and Q</li>
+<li>Find the third intersection with the curve</li>
+<li>Reflect across the x-axis</li>
+</ol>
+<p><strong>Doubling (P + P = 2P)</strong>:</p>
+<ol>
+<li>Draw the tangent line at P</li>
+<li>Find the second intersection with the curve</li>
+<li>Reflect across the x-axis</li>
+</ol>
+<p><strong>Scalar multiplication (k·P)</strong>:</p>
+<pre><code class="language-text">k·P = P + P + ... + P (k times)
+</code></pre>
+<p>This can be computed efficiently using the "double-and-add" algorithm (O(log k) time).</p>
+<h3 id="two-groups-g₁-and-g₂"><a class="header" href="#two-groups-g₁-and-g₂">Two Groups: G₁ and G₂</a></h3>
+<p>In pairing-based cryptography, we use <strong>two groups</strong>:</p>
+<p><strong>G₁</strong>: Points on the curve over the base field 𝔽ₚ</p>
+<ul>
+<li>Smaller elements (more efficient)</li>
+<li>Used for elements that need to be compared/combined</li>
+</ul>
+<p><strong>G₂</strong>: Points on the curve over an extension field 𝔽ₚ²</p>
+<ul>
+<li>Larger elements (less efficient)</li>
+<li>Used for pairing targets</li>
+</ul>
+<p>Both groups have the same order (number of elements): a large prime r.</p>
+<h2 id="theory-deep-dive-bilinear-pairings"><a class="header" href="#theory-deep-dive-bilinear-pairings">Theory Deep Dive: Bilinear Pairings</a></h2>
+<h3 id="what-is-a-pairing"><a class="header" href="#what-is-a-pairing">What is a Pairing?</a></h3>
+<p>A <strong>bilinear pairing</strong> is a function:</p>
+<pre><code class="language-text">e: G₁ × G₂ → Gₜ
+</code></pre>
+<p>Where Gₜ is a target group (usually 𝔽ₚⁿ).</p>
+<p><strong>Key properties</strong>:</p>
+<ol>
+<li>
+<p><strong>Bilinearity</strong>:</p>
+<pre><code class="language-text">e(a·P, b·Q) = e(P, Q)ᵃ·ᵇ = e(a·P, Q)ᵇ = e(P, b·Q)ᵃ
+</code></pre>
+</li>
+<li>
+<p><strong>Non-degeneracy</strong>:</p>
+<pre><code class="language-text">If e(P, Q) = 1 for all Q, then P = ∞
+</code></pre>
+</li>
+<li>
+<p><strong>Computability</strong>:</p>
+<pre><code class="language-text">e(P, Q) can be computed efficiently
+</code></pre>
+</li>
+</ol>
+<h3 id="the-pairing-equation"><a class="header" href="#the-pairing-equation">The Pairing Equation</a></h3>
+<p>The pairing enables us to check equations <strong>in the exponent</strong>:</p>
+<p><strong>Integer equation</strong>:</p>
+<pre><code class="language-text">a = b
+</code></pre>
+<p><strong>Pairing check</strong>:</p>
+<pre><code class="language-text">e(a·G₁, G₂) = e(b·G₁, G₂)
+</code></pre>
+<p>This works because:</p>
+<pre><code class="language-text">e(a·G₁, G₂) = e(G₁, G₂)ᵃ
+e(b·G₁, G₂) = e(G₁, G₂)ᵇ
+
+If a = b, then e(G₁, G₂)ᵃ = e(G₁, G₂)ᵇ
+</code></pre>
+<h3 id="product-equations"><a class="header" href="#product-equations">Product Equations</a></h3>
+<p>Pairings also work for products:</p>
+<p><strong>Integer equation</strong>:</p>
+<pre><code class="language-text">a · b = c · d
+</code></pre>
+<p><strong>Pairing check</strong>:</p>
+<pre><code class="language-text">e(a·G₁, b·G₂) = e(c·G₁, d·G₂)
+</code></pre>
+<p>This works because:</p>
+<pre><code class="language-text">e(a·G₁, b·G₂) = e(G₁, G₂)ᵃ·ᵇ
+e(c·G₁, d·G₂) = e(G₁, G₂)ᶜ·ᵈ
+</code></pre>
+<h2 id="implementation-pairings-in-rust"><a class="header" href="#implementation-pairings-in-rust">Implementation: Pairings in Rust</a></h2>
+<p>Now let's see how pairings are implemented in our codebase.</p>
+<h3 id="the-bn254-curve"><a class="header" href="#the-bn254-curve">The BN254 Curve</a></h3>
+<p>We use the BN254 curve from the <code>arkworks</code> library:</p>
+<pre><code class="language-rust ignore">use ark_bn254::{Bn254, G1Affine, G2Affine};
+use ark_ec::pairing::Pairing;
+
+// Bn254 is a pairing-friendly curve
+type G1 = &lt;Bn254 as Pairing&gt;::G1;  // G₁ group
+type G2 = &lt;Bn254 as Pairing&gt;::G2;  // G₂ group
+type Gt = &lt;Bn254 as Pairing&gt;::TargetField;  // Gₜ (target field)</code></pre>
+<h3 id="computing-pairings"><a class="header" href="#computing-pairings">Computing Pairings</a></h3>
+<p>From <code>crates/math/src/pairing.rs:6-17</code>:</p>
+<pre><code class="language-rust ignore">use ark_bn254::Bn254;
+use ark_ec::pairing::Pairing;
+
+pub struct PairingGroup;
+
+impl PairingGroup {
+    pub fn verify_pairing_equation(
+        a: &amp;&lt;Bn254 as Pairing&gt;::G1,
+        b: &amp;&lt;Bn254 as Pairing&gt;::G2,
+        c: &amp;&lt;Bn254 as Pairing&gt;::G1,
+        d: &amp;&lt;Bn254 as Pairing&gt;::G2,
+    ) -&gt; bool {
+        // e(a, b) == e(c, d)
+        let left = Bn254::pairing(*a, *b);
+        let right = Bn254::pairing(*c, *d);
+        left == right
+    }
+}</code></pre>
+<p>This checks if a·b = c·d in the exponent:</p>
+<pre><code class="language-text">e(a, b) = e(G₁, G₂)ᵃ·ᵇ
+e(c, d) = e(G₁, G₂)ᶜ·ᵈ
+
+e(a, b) == e(c, d) ⟺ a·b = c·d
+</code></pre>
+<h3 id="group-operations"><a class="header" href="#group-operations">Group Operations</a></h3>
+<pre><code class="language-rust ignore">use ark_bn254::{G1Projective as G1, G2Projective as G2};
+use ark_ec::{AffineRepr, CurveGroup};
+
+// Point addition
+let p = G1::from(G1Affine::generator());
+let q = G1::from(G1Affine::generator());
+let r = p + q;  // 2·G₁
+
+// Scalar multiplication
+let scalar = 5u64;
+let s = G1::from(G1Affine::generator()) * scalar;  // 5·G₁
+
+// Convert between affine and projective representations
+let affine_point = s.into_affine();
+let projective_point = G1::from(affine_point);</code></pre>
+<h3 id="the-verification-equation"><a class="header" href="#the-verification-equation">The Verification Equation</a></h3>
+<p>In Groth16, the verification equation is:</p>
+<pre><code class="language-text">e(A, B) = e(α, β) · e(Σ publicᵢ · ICᵢ, γ) · e(C, δ)
+</code></pre>
+<p>This checks that:</p>
+<ol>
+<li>A and B were constructed using the toxic waste (α, β, γ, δ)</li>
+<li>The witness matches the public inputs</li>
+<li>The QAP division polynomial exists (H(x) is valid)</li>
+</ol>
+<p>We'll see this in detail in Chapter 7!</p>
+<h2 id="running-the-code"><a class="header" href="#running-the-code">Running the Code</a></h2>
+<h3 id="example-basic-pairing"><a class="header" href="#example-basic-pairing">Example: Basic Pairing</a></h3>
+<pre><code class="language-rust ignore">use ark_bn254::{Bn254, G1Affine, G2Affine};
+use ark_ec::pairing::Pairing;
+
+// Get generators
+let g1 = G1Affine::generator();
+let g2 = G2Affine::generator();
+
+// Compute e(5·G₁, 3·G₂)
+let five_g1 = g1 * 5u64;
+let three_g2 = g2 * 3u64;
+let left = Bn254::pairing(five_g1, three_g2);
+
+// Compute e(15·G₁, G₂)
+let fifteen_g1 = g1 * 15u64;
+let right = Bn254::pairing(fifteen_g1, g2);
+
+// Check: e(5·G₁, 3·G₂) = e(15·G₁, G₂) because 5·3 = 15
+assert_eq!(left, right);</code></pre>
+<h3 id="example-product-check"><a class="header" href="#example-product-check">Example: Product Check</a></h3>
+<pre><code class="language-rust ignore">// Check if a·b = c·d
+let a = 5u64;
+let b = 3u64;
+let c = 15u64;
+let d = 1u64;
+
+// e(a·G₁, b·G₂) = e(c·G₁, d·G₂)?
+let left = Bn254::pairing(g1 * a, g2 * b);
+let right = Bn254::pairing(g1 * c, g2 * d);
+
+// 5·3 = 15·1, so this should be true
+assert_eq!(left, right);</code></pre>
+<h2 id="connection-to-groth16"><a class="header" href="#connection-to-groth16">Connection to Groth16</a></h2>
+<p>Pairings are the <strong>final piece</strong> that makes Groth16 work:</p>
+<pre><code class="language-text">Computation
+    ↓
+R1CS (matrix constraints)
+    ↓
+QAP (polynomial divisibility)
+    ↓
+Elliptic Curve Pairings ← You are here
+    ↓
+Zero-Knowledge Proof!
+</code></pre>
+<p><strong>Key insight</strong>: Pairings allow us to check polynomial equations without revealing the polynomials themselves!</p>
+<h3 id="the-encryption-trick"><a class="header" href="#the-encryption-trick">The Encryption Trick</a></h3>
+<p>We can "encrypt" field elements by multiplying by a generator:</p>
+<pre><code class="language-text">plaintext: x
+ciphertext: x·G₁
+</code></pre>
+<p>The pairing allows us to check equations on ciphertexts:</p>
+<pre><code class="language-text">Check: a + b = c
+Pairing: e(a·G₁, G₂) · e(b·G₁, G₂) = e(c·G₁, G₂)
+
+Check: a · b = c
+Pairing: e(a·G₁, b·G₂) = e(c·G₁, G₂)
+</code></pre>
+<h2 id="security-properties"><a class="header" href="#security-properties">Security Properties</a></h2>
+<h3 id="the-discrete-logarithm-problem"><a class="header" href="#the-discrete-logarithm-problem">The Discrete Logarithm Problem</a></h3>
+<p>Given P = x·G, it's computationally infeasible to find x.</p>
+<p>This is the <strong>Elliptic Curve Discrete Logarithm Problem (ECDLP)</strong> and is the foundation of elliptic curve cryptography.</p>
+<h3 id="pairing-friendly-curves"><a class="header" href="#pairing-friendly-curves">Pairing-Friendly Curves</a></h3>
+<p>Not all elliptic curves support efficient pairings. The BN254 curve is specifically designed for:</p>
+<ul>
+<li>Efficient pairing computation</li>
+<li>Security level of ~128 bits</li>
+<li>Compatibility with the BN254 pairing</li>
+</ul>
+<p><strong>Warning</strong>: Curves not designed for pairings may have vulnerabilities!</p>
+<h2 id="exercises"><a class="header" href="#exercises">Exercises</a></h2>
+<ol>
+<li>
+<p><strong>Scalar multiplication</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Compute 7·G₁ using double-and-add
+// Hint: 7 = 4 + 2 + 1 (binary: 111)
+<span class="boring">}</span></code></pre></pre>
+</li>
+<li>
+<p><strong>Pairing check</strong>:</p>
+<pre><code class="language-text">Is e(3·G₁, 4·G₂) = e(6·G₁, 2·G₂)?
+Why or why not?
+</code></pre>
+</li>
+<li>
+<p><strong>Verification equation</strong>:</p>
+<pre><code class="language-text">Given: e(A, B) = e(α, β) · e(public·IC, γ) · e(C, δ)
+
+If we know public, IC, α, β, γ, δ,
+what can we verify about A, B, C?
+</code></pre>
+</li>
+<li>
+<p><strong>Challenge question</strong>:</p>
+<pre><code class="language-text">Why do we need two groups (G₁ and G₂)?
+What would break if we only used G₁?
+</code></pre>
+</li>
+</ol>
+<h2 id="further-reading"><a class="header" href="#further-reading">Further Reading</a></h2>
+<ul>
+<li><strong>Pairings for Beginners</strong>: <a href="https://vitalik.ca/general/2017/01/14/exploring_ecp.html">Vitalik Buterin's Blog</a></li>
+<li><strong>BN254 Curve</strong>: <a href="https://www.hyperelliptic.org/EFD/g1p/auto-shortw-jacobian-0.html">Barreto-Naehrig Curves</a></li>
+<li><strong>Pairing-Based Crypto</strong>: <a href="https://crypto.stanford.edu/pbc/">The Pairing-Based Crypto Lounge</a></li>
+</ul>
+<hr />
+<p><strong>Ready to generate the proving keys? Continue to <a href="./05-trusted-setup.html">Chapter 5: Trusted Setup</a></strong></p>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

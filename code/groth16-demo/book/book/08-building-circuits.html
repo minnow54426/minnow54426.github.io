@@ -158,7 +158,404 @@
 
                 <div id="content" class="content">
                     <main>
-                        
+                        <h1 id="building-your-own-circuits"><a class="header" href="#building-your-own-circuits">Building Your Own Circuits</a></h1>
+<p>Congratulations! You've made it through the theory. Now let's put it all together and learn how to build your own zero-knowledge circuits!</p>
+<h2 id="learning-objectives"><a class="header" href="#learning-objectives">Learning Objectives</a></h2>
+<p>After this chapter, you will understand:</p>
+<ul>
+<li>How to design a circuit from a computation</li>
+<li>Best practices for circuit construction</li>
+<li>Common circuit patterns and idioms</li>
+<li>How to test and debug circuits</li>
+<li>Performance considerations</li>
+</ul>
+<h2 id="motivating-example-from-idea-to-circuit"><a class="header" href="#motivating-example-from-idea-to-circuit">Motivating Example: From Idea to Circuit</a></h2>
+<p>Let's say you want to prove you know a secret password hash without revealing the password.</p>
+<p><strong>Computation</strong>: Hash(password) = claimed_hash</p>
+<p><strong>Circuit design</strong>:</p>
+<ol>
+<li>Identify inputs: password (private), claimed_hash (public)</li>
+<li>Define the computation: Hash function</li>
+<li>Encode as R1CS constraints</li>
+<li>Generate witness, proof, and verify!</li>
+</ol>
+<h2 id="circuit-design-process"><a class="header" href="#circuit-design-process">Circuit Design Process</a></h2>
+<h3 id="step-1-identify-inputs-and-outputs"><a class="header" href="#step-1-identify-inputs-and-outputs">Step 1: Identify Inputs and Outputs</a></h3>
+<p>First, clearly define what's private and what's public:</p>
+<p><strong>Example</strong>: Age verification</p>
+<ul>
+<li><strong>Private</strong>: Your age</li>
+<li><strong>Public</strong>: Threshold (e.g., 18)</li>
+<li><strong>Output</strong>: Are you over 18? (yes/no)</li>
+</ul>
+<h3 id="step-2-break-down-the-computation"><a class="header" href="#step-2-break-down-the-computation">Step 2: Break Down the Computation</a></h3>
+<p>Complex computations need to be broken into simple operations:</p>
+<p><strong>Supported operations</strong>:</p>
+<ul>
+<li>Addition: <code>a + b = c</code></li>
+<li>Multiplication: <code>a × b = c</code></li>
+<li>Subtraction: <code>a - b = c</code> (addition with negative)</li>
+<li>Division: <code>a / b = c</code> (multiplication with inverse)</li>
+</ul>
+<p><strong>Not directly supported</strong>:</p>
+<ul>
+<li>Bitwise operations (need to decompose into bits)</li>
+<li>Comparison (need to decompose into bits)</li>
+<li>Range checks (need specialized circuits)</li>
+</ul>
+<h3 id="step-3-add-intermediate-variables"><a class="header" href="#step-3-add-intermediate-variables">Step 3: Add Intermediate Variables</a></h3>
+<p>For complex computations, introduce intermediate variables:</p>
+<p><strong>Example</strong>: <code>(a + b) × (a - b) = c</code></p>
+<p>Variables: <code>z = [1, c, a, b, t₁, t₂]</code></p>
+<p>Constraints:</p>
+<pre><code class="language-text">t₁ = a + b
+t₂ = a - b
+c = t₁ × t₂
+</code></pre>
+<h3 id="step-4-encode-as-r1cs"><a class="header" href="#step-4-encode-as-r1cs">Step 4: Encode as R1CS</a></h3>
+<p>Convert each operation into an R1CS constraint:</p>
+<p><strong>Addition constraint</strong>: <code>t₁ = a + b</code></p>
+<pre><code class="language-text">A = [0, 0, 1, 1, 0, 0]  ← a + b
+B = [1, 0, 0, 0, 0, 0]  ← 1
+C = [0, 0, 0, 0, 1, 0]  ← t₁
+</code></pre>
+<p><strong>Multiplication constraint</strong>: <code>c = t₁ × t₂</code></p>
+<pre><code class="language-text">A = [0, 0, 0, 0, 1, 0]  ← t₁
+B = [0, 0, 0, 0, 0, 1]  ← t₂
+C = [0, 1, 0, 0, 0, 0]  ← c
+</code></pre>
+<h2 id="circuit-patterns"><a class="header" href="#circuit-patterns">Circuit Patterns</a></h2>
+<h3 id="pattern-1-boolean-circuits"><a class="header" href="#pattern-1-boolean-circuits">Pattern 1: Boolean Circuits</a></h3>
+<p>For operations on bits (0 or 1):</p>
+<p><strong>Bit constraint</strong>: <code>b ∈ {0, 1}</code></p>
+<pre><code class="language-text">b × (1 - b) = 0
+</code></pre>
+<p>R1CS:</p>
+<pre><code class="language-text">A = [0, 0, 1, 0]  ← b
+B = [1, 0, -1, 0] ← 1 - b
+C = [0, 1, 0, 0]  ← 0
+</code></pre>
+<p><strong>Bitwise AND</strong>: <code>c = a AND b</code></p>
+<pre><code class="language-text">c = a × b
+</code></pre>
+<p><strong>Bitwise OR</strong>: <code>c = a OR b</code></p>
+<pre><code class="language-text">c = a + b - (a × b)
+</code></pre>
+<p><strong>Bitwise XOR</strong>: <code>c = a XOR b</code></p>
+<pre><code class="language-text">c = a + b - 2(a × b)
+</code></pre>
+<h3 id="pattern-2-comparison-circuits"><a class="header" href="#pattern-2-comparison-circuits">Pattern 2: Comparison Circuits</a></h3>
+<p>To check if <code>a &gt; b</code>:</p>
+<ol>
+<li>Compute <code>d = a - b</code></li>
+<li>Decompose <code>d</code> into bits</li>
+<li>Use the most significant bit (sign bit) to determine comparison</li>
+</ol>
+<h3 id="pattern-3-range-check-circuits"><a class="header" href="#pattern-3-range-check-circuits">Pattern 3: Range Check Circuits</a></h3>
+<p>To check if <code>x</code> is in range <code>[0, 2ⁿ)</code>:</p>
+<ol>
+<li>Decompose <code>x</code> into <code>n</code> bits</li>
+<li>Each bit must satisfy the bit constraint</li>
+<li>This ensures <code>0 ≤ x &lt; 2ⁿ</code></li>
+</ol>
+<h3 id="pattern-4-equality-check"><a class="header" href="#pattern-4-equality-check">Pattern 4: Equality Check</a></h3>
+<p>To check if <code>a = b</code>:</p>
+<ol>
+<li>Compute <code>d = a - b</code></li>
+<li>Check if <code>d = 0</code> using <code>d × d = 0</code> (or more sophisticated methods)</li>
+</ol>
+<h2 id="implementation-building-a-circuit"><a class="header" href="#implementation-building-a-circuit">Implementation: Building a Circuit</a></h2>
+<p>Let's implement a simple circuit from scratch.</p>
+<h3 id="example-cubic-circuit"><a class="header" href="#example-cubic-circuit">Example: Cubic Circuit</a></h3>
+<p>Circuit: <code>y = x³</code></p>
+<pre><code class="language-rust ignore">use ark_bn254::Fq;
+use groth16_math::fields::FieldWrapper;
+use groth16_r1cs::constraint::R1CSConstraint;
+
+pub struct CubicCircuit {
+    pub x: u64,
+    pub y: u64,
+}
+
+impl CubicCircuit {
+    pub fn new(x: u64, y: u64) -&gt; Self {
+        Self { x, y }
+    }
+
+    pub fn to_r1cs(&amp;self) -&gt; Vec&lt;R1CSConstraint&lt;Fq&gt;&gt; {
+        let mut constraints = Vec::new();
+
+        // Constraint 1: t = x × x (square)
+        let mut c1 = R1CSConstraint::&lt;Fq&gt;::new();
+        c1.add_a_variable(1, FieldWrapper::&lt;Fq&gt;::from(1u64));  // x
+        c1.add_b_variable(1, FieldWrapper::&lt;Fq&gt;::from(1u64));  // x
+        c1.add_c_variable(2, FieldWrapper::&lt;Fq&gt;::from(1u64));  // t
+        constraints.push(c1);
+
+        // Constraint 2: y = t × x (cube)
+        let mut c2 = R1CSConstraint::&lt;Fq&gt;::new();
+        c2.add_a_variable(2, FieldWrapper::&lt;Fq&gt;::from(1u64));  // t
+        c2.add_b_variable(1, FieldWrapper::&lt;Fq&gt;::from(1u64));  // x
+        c2.add_c_variable(3, FieldWrapper::&lt;Fq&gt;::from(1u64));  // y
+        constraints.push(c2);
+
+        constraints
+    }
+
+    pub fn witness(&amp;self) -&gt; Vec&lt;FieldWrapper&lt;Fq&gt;&gt; {
+        vec![
+            FieldWrapper::&lt;Fq&gt;::from(1u64),   // constant 1
+            FieldWrapper::&lt;Fq&gt;::from(self.x),  // x
+            FieldWrapper::&lt;Fq&gt;::from(self.x * self.x),  // t = x²
+            FieldWrapper::&lt;Fq&gt;::from(self.y),  // y
+        ]
+    }
+}</code></pre>
+<h3 id="example-multiplier-circuit-recap"><a class="header" href="#example-multiplier-circuit-recap">Example: Multiplier Circuit (Recap)</a></h3>
+<p>From <code>crates/circuits/src/multiplier.rs:45-131</code>:</p>
+<pre><code class="language-rust ignore">pub struct MultiplierCircuit {
+    pub a: u64,
+    pub b: u64,
+    pub c: u64,
+}
+
+impl MultiplierCircuit {
+    pub fn new(a: u64, b: u64, c: u64) -&gt; Self {
+        Self { a, b, c }
+    }
+
+    pub fn to_r1cs(&amp;self) -&gt; Vec&lt;R1CSConstraint&lt;Fq&gt;&gt; {
+        let mut constraint = R1CSConstraint::&lt;Fq&gt;::new();
+
+        // A vector: selects variable a (index 2)
+        constraint.add_a_variable(2, FieldWrapper::&lt;Fq&gt;::from(1u64));
+
+        // B vector: selects variable b (index 3)
+        constraint.add_b_variable(3, FieldWrapper::&lt;Fq&gt;::from(1u64));
+
+        // C vector: selects variable c (index 1)
+        constraint.add_c_variable(1, FieldWrapper::&lt;Fq&gt;::from(1u64));
+
+        vec![constraint]
+    }
+
+    pub fn witness(&amp;self) -&gt; Vec&lt;FieldWrapper&lt;Fq&gt;&gt; {
+        vec![
+            FieldWrapper::&lt;Fq&gt;::from(1u64),   // constant 1
+            FieldWrapper::&lt;Fq&gt;::from(self.c), // public output c
+            FieldWrapper::&lt;Fq&gt;::from(self.a), // private input a
+            FieldWrapper::&lt;Fq&gt;::from(self.b), // private input b
+        ]
+    }
+}</code></pre>
+<h2 id="testing-your-circuit"><a class="header" href="#testing-your-circuit">Testing Your Circuit</a></h2>
+<p>Always test your circuit thoroughly!</p>
+<h3 id="unit-tests"><a class="header" href="#unit-tests">Unit Tests</a></h3>
+<pre><code class="language-rust ignore">#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_circuit_valid() {
+        let circuit = CubicCircuit::new(3, 27);  // 3³ = 27
+        let constraints = circuit.to_r1cs();
+        let witness = circuit.witness();
+
+        // Verify each constraint
+        for constraint in &amp;constraints {
+            assert!(constraint.is_satisfied(&amp;witness));
+        }
+    }
+
+    #[test]
+    fn test_circuit_invalid() {
+        let circuit = CubicCircuit::new(3, 26);  // 3³ ≠ 26
+        let constraints = circuit.to_r1cs();
+        let witness = circuit.witness();
+
+        // Should fail at least one constraint
+        let all_satisfied = constraints.iter()
+            .all(|c| c.is_satisfied(&amp;witness));
+        assert!(!all_satisfied);
+    }
+}</code></pre>
+<h3 id="integration-tests"><a class="header" href="#integration-tests">Integration Tests</a></h3>
+<pre><code class="language-rust ignore">#[test]
+fn test_full_groth16_flow() {
+    use groth16_groth16::{trusted_setup, generate_proof, verify_proof};
+    use groth16_qap::r1cs_to_qap;
+
+    // Create circuit
+    let circuit = CubicCircuit::new(3, 27);
+    let witness = circuit.witness();
+    let constraints = circuit.to_r1cs();
+
+    // Convert to QAP
+    let (a_polys, b_polys, c_polys) = r1cs_to_qap(&amp;constraints, witness.len()).unwrap();
+
+    // Trusted setup
+    let (pk, vk) = trusted_setup(&amp;a_polys, &amp;b_polys, &amp;c_polys, 1, &amp;mut rng).unwrap();
+
+    // Generate proof
+    let proof = generate_proof(&amp;pk, &amp;witness, &amp;a_polys, &amp;b_polys, &amp;c_polys, 1, &amp;mut rng).unwrap();
+
+    // Verify with public input y=27
+    let public_inputs = vec![FieldWrapper::&lt;Fq&gt;::from(27u64)];
+    let is_valid = verify_proof(&amp;vk, &amp;proof, &amp;public_inputs).unwrap();
+
+    assert!(is_valid);
+}</code></pre>
+<h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
+<h3 id="1-minimize-constraints"><a class="header" href="#1-minimize-constraints">1. Minimize Constraints</a></h3>
+<p>Fewer constraints = faster proving and smaller keys.</p>
+<p><strong>Bad</strong>:</p>
+<pre><code class="language-text">a + a + a + a + a = b  (5 additions)
+</code></pre>
+<p><strong>Good</strong>:</p>
+<pre><code class="language-text">t = a × 5  (1 multiplication)
+t = b
+</code></pre>
+<h3 id="2-reuse-intermediate-values"><a class="header" href="#2-reuse-intermediate-values">2. Reuse Intermediate Values</a></h3>
+<p>Compute once, use multiple times.</p>
+<p><strong>Bad</strong>:</p>
+<pre><code class="language-text">t₁ = x × x
+t₂ = x × x
+</code></pre>
+<p><strong>Good</strong>:</p>
+<pre><code class="language-text">t = x × x
+</code></pre>
+<h3 id="3-use-field-arithmetic"><a class="header" href="#3-use-field-arithmetic">3. Use Field Arithmetic</a></h3>
+<p>Take advantage of field properties:</p>
+<ul>
+<li>Modular arithmetic is automatic</li>
+<li>No overflow concerns</li>
+<li>Use field inverses for division</li>
+</ul>
+<h3 id="4-document-your-circuits"><a class="header" href="#4-document-your-circuits">4. Document Your Circuits</a></h3>
+<p>Other developers need to understand your circuit:</p>
+<pre><code class="language-rust ignore">/// Range proof circuit: proves that x is in range [0, 2ⁿ)
+///
+/// Private inputs:
+/// - x: the value to prove is in range
+///
+/// Public inputs:
+/// - n: the bit length
+///
+/// Constraints:
+/// - Decompose x into n bits
+/// - Each bit must satisfy b × (1 - b) = 0</code></pre>
+<h2 id="performance-considerations"><a class="header" href="#performance-considerations">Performance Considerations</a></h2>
+<h3 id="proving-time"><a class="header" href="#proving-time">Proving Time</a></h3>
+<p>Proving time is <strong>O(n)</strong> where n is the number of constraints:</p>
+<ul>
+<li>Small circuits (&lt; 1000 constraints): &lt; 1 second</li>
+<li>Medium circuits (1000-100000): 1-10 seconds</li>
+<li>Large circuits (&gt; 100000): 10+ seconds</li>
+</ul>
+<p><strong>Optimization</strong>: Use parallelization for large circuits.</p>
+<h3 id="proof-size"><a class="header" href="#proof-size">Proof Size</a></h3>
+<p>Proof size is <strong>constant</strong>: 128 bytes</p>
+<ul>
+<li>Doesn't grow with circuit complexity</li>
+<li>Efficient for transmission and storage</li>
+</ul>
+<h3 id="verification-time"><a class="header" href="#verification-time">Verification Time</a></h3>
+<p>Verification time is <strong>O(1)</strong>: constant regardless of circuit size</p>
+<ul>
+<li>Usually &lt; 10 milliseconds</li>
+<li>Efficient for on-chain verification</li>
+</ul>
+<h2 id="common-pitfalls"><a class="header" href="#common-pitfalls">Common Pitfalls</a></h2>
+<h3 id="1-incorrect-witness-order"><a class="header" href="#1-incorrect-witness-order">1. Incorrect Witness Order</a></h3>
+<p>The witness order matters: <code>[1, public..., private...]</code></p>
+<p><strong>Bad</strong>:</p>
+<pre><code class="language-rust ignore">vec![
+    FieldWrapper::&lt;Fq&gt;::from(self.a),  // Wrong order!
+    FieldWrapper::&lt;Fq&gt;::from(self.b),
+    FieldWrapper::&lt;Fq&gt;::from(self.c),
+]</code></pre>
+<p><strong>Good</strong>:</p>
+<pre><code class="language-rust ignore">vec![
+    FieldWrapper::&lt;Fq&gt;::from(1u64),   // Constant first
+    FieldWrapper::&lt;Fq&gt;::from(self.c), // Public output
+    FieldWrapper::&lt;Fq&gt;::from(self.a), // Private inputs
+    FieldWrapper::&lt;Fq&gt;::from(self.b),
+]</code></pre>
+<h3 id="2-forgetting-intermediate-variables"><a class="header" href="#2-forgetting-intermediate-variables">2. Forgetting Intermediate Variables</a></h3>
+<p>Complex computations need intermediate variables:</p>
+<p><strong>Bad</strong>:</p>
+<pre><code class="language-text">y = (a + b) × (c + d)  // Can't encode directly!
+</code></pre>
+<p><strong>Good</strong>:</p>
+<pre><code class="language-text">t₁ = a + b
+t₂ = c + d
+y = t₁ × t₂
+</code></pre>
+<h3 id="3-not-testing-edge-cases"><a class="header" href="#3-not-testing-edge-cases">3. Not Testing Edge Cases</a></h3>
+<p>Test with:</p>
+<ul>
+<li>Zero values</li>
+<li>Maximum values</li>
+<li>Boundary conditions</li>
+<li>Invalid inputs</li>
+</ul>
+<h2 id="next-steps"><a class="header" href="#next-steps">Next Steps</a></h2>
+<p>Now that you know how to build circuits:</p>
+<ol>
+<li><strong>Practice</strong>: Implement your own circuits</li>
+<li><strong>Optimize</strong>: Learn circuit optimization techniques</li>
+<li><strong>Explore</strong>: Study advanced circuit patterns</li>
+<li><strong>Build</strong>: Create real-world applications!</li>
+</ol>
+<h2 id="exercises"><a class="header" href="#exercises">Exercises</a></h2>
+<ol>
+<li>
+<p><strong>Square circuit</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>Implement a circuit that computes y = x²
+Test it with various inputs
+<span class="boring">}</span></code></pre></pre>
+</li>
+<li>
+<p><strong>Comparison circuit</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>Implement a circuit that checks if a &gt; b
+Hint: Decompose into bits and compare
+<span class="boring">}</span></code></pre></pre>
+</li>
+<li>
+<p><strong>Range proof</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>Implement a circuit that proves x is in [0, 256)
+Hint: Use 8 bits and bit constraints
+<span class="boring">}</span></code></pre></pre>
+</li>
+<li>
+<p><strong>Challenge question</strong>:</p>
+<pre><code class="language-text">How would you implement a hash function circuit?
+What operations do you need?
+</code></pre>
+</li>
+</ol>
+<h2 id="further-reading"><a class="header" href="#further-reading">Further Reading</a></h2>
+<ul>
+<li><strong>Circuit Optimization</strong>: <a href="https://github.com/zkcrypto/bellman">Bellman Documentation</a></li>
+<li><strong>Circuit Patterns</strong>: <a href="https://media.githubusercontent.com/media/zcash/zcash/master/doc/protocol/sapling.pdf">ZK-SNARKs Circuit Design</a></li>
+<li><strong>Advanced Circuits</strong>: <a href="https://zips.z.cash/protocol/protocol.pdf#orchard">Zcash Orchard Specification</a></li>
+</ul>
+<hr />
+<p><strong>Congratulations! You've completed the Groth16 tutorial!</strong></p>
+<p>Now you're ready to:</p>
+<ul>
+<li>Build your own zero-knowledge proofs</li>
+<li>Contribute to zk-SNARK projects</li>
+<li>Explore advanced protocols (PLONK, Halo 2, etc.)</li>
+</ul>
+<p><strong>Happy proving!</strong> 🎉</p>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

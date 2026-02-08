@@ -577,7 +577,2311 @@ T(x) = (x - 1)(x - 2)(x - 3)
 </ul>
 <hr />
 <p><strong>Ready to encode computations? Continue to <a href="./02-r1cs.html">Chapter 2: Rank-1 Constraint Systems</a></strong></p>
-<div style="break-before: page; page-break-before: always;"></div><div style="break-before: page; page-break-before: always;"></div><div style="break-before: page; page-break-before: always;"></div><div style="break-before: page; page-break-before: always;"></div><div style="break-before: page; page-break-before: always;"></div><div style="break-before: page; page-break-before: always;"></div><div style="break-before: page; page-break-before: always;"></div>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="rank-1-constraint-systems-r1cs"><a class="header" href="#rank-1-constraint-systems-r1cs">Rank-1 Constraint Systems (R1CS)</a></h1>
+<p>Now that we understand finite fields and polynomials, let's learn how to encode computations as constraints. This is where the magic begins!</p>
+<h2 id="learning-objectives-2"><a class="header" href="#learning-objectives-2">Learning Objectives</a></h2>
+<p>After this chapter, you will understand:</p>
+<ul>
+<li>What R1CS is and why it's used in zero-knowledge proofs</li>
+<li>How to represent arithmetic expressions as matrix constraints</li>
+<li>The form Az ∘ Bz = Cz and what each component means</li>
+<li>How to convert a simple computation like <code>a × b = c</code> into R1CS</li>
+<li>How to verify a witness satisfies R1CS constraints</li>
+</ul>
+<h2 id="motivating-example-a-simple-multiplier"><a class="header" href="#motivating-example-a-simple-multiplier">Motivating Example: A Simple Multiplier</a></h2>
+<p>Let's start with a concrete problem. Suppose you want to prove you know two secret numbers <code>a</code> and <code>b</code> such that <code>a × b = 12</code>, without revealing <code>a</code> and <code>b</code> themselves.</p>
+<p><strong>Example</strong>: If <code>c = 12</code>, the prover could know:</p>
+<ul>
+<li><code>a = 3, b = 4</code> (since 3 × 4 = 12)</li>
+<li><code>a = 2, b = 6</code> (since 2 × 6 = 12)</li>
+<li><code>a = 1, b = 12</code> (since 1 × 12 = 12)</li>
+</ul>
+<p>But the verifier should only learn that <strong>some valid pair exists</strong>, not which one!</p>
+<p><strong>The challenge</strong>: How do we encode "a × b = c" as a mathematical constraint that we can verify?</p>
+<h2 id="theory-deep-dive-what-is-r1cs"><a class="header" href="#theory-deep-dive-what-is-r1cs">Theory Deep Dive: What is R1CS?</a></h2>
+<h3 id="the-big-picture-1"><a class="header" href="#the-big-picture-1">The Big Picture</a></h3>
+<p><strong>R1CS (Rank-1 Constraint System)</strong> is a way to represent computations as quadratic constraints. It's the standard input format for modern zk-SNARK systems like Groth16.</p>
+<p><strong>Key idea</strong>: Any computation can be broken down into a sequence of multiplications and additions, where each multiplication is a constraint.</p>
+<h3 id="the-r1cs-form"><a class="header" href="#the-r1cs-form">The R1CS Form</a></h3>
+<p>An R1CS constraint has the form:</p>
+<pre><code class="language-text">Az ∘ Bz = Cz
+</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>A, B, C</code> are matrices (vectors for a single constraint)</li>
+<li><code>z</code> is the <strong>witness vector</strong> (assignment to all variables)</li>
+<li><code>∘</code> denotes <strong>element-wise multiplication</strong></li>
+<li>The equation must hold for each row (constraint)</li>
+</ul>
+<p><strong>For a single constraint</strong>:</p>
+<ul>
+<li><code>A, B, C</code> are vectors (not matrices)</li>
+<li><code>z</code> is the witness vector</li>
+<li>We check: <code>&lt;A, z&gt; · &lt;B, z&gt; = &lt;C, z&gt;</code> (dot products)</li>
+</ul>
+<h3 id="the-witness-vector"><a class="header" href="#the-witness-vector">The Witness Vector</a></h3>
+<p>The <strong>witness</strong> <code>z</code> contains all values in the computation:</p>
+<pre><code class="language-text">z = [1, public_outputs..., private_inputs...]
+</code></pre>
+<p>The <code>1</code> at the beginning is a constant (for convenience in encoding constant terms).</p>
+<p><strong>Example for <code>a × b = c</code></strong>:</p>
+<pre><code class="language-text">z = [1, c, a, b]
+   = [1, 12, 3, 4]
+</code></pre>
+<h3 id="from-arithmetic-to-constraints"><a class="header" href="#from-arithmetic-to-constraints">From Arithmetic to Constraints</a></h3>
+<p>Let's convert <code>a × b = c</code> to R1CS step by step:</p>
+<p><strong>Step 1: Identify variables</strong></p>
+<pre><code class="language-text">z = [1, c, a, b]
+    [0, 1, 2, 3]  ← indices
+</code></pre>
+<p><strong>Step 2: Create constraint vectors</strong></p>
+<p>We want: <code>a × b = c</code></p>
+<p>We need three vectors <code>A, B, C</code> such that:</p>
+<pre><code class="language-text">&lt;A, z&gt; · &lt;B, z&gt; = &lt;C, z&gt;
+</code></pre>
+<p>The solution:</p>
+<pre><code class="language-text">A = [0, 0, 1, 0]  ← selects 'a' (index 2)
+B = [0, 0, 0, 1]  ← selects 'b' (index 3)
+C = [0, 1, 0, 0]  ← selects 'c' (index 1)
+</code></pre>
+<p><strong>Step 3: Verify the constraint</strong></p>
+<p>Compute each dot product:</p>
+<pre><code class="language-text">&lt;A, z&gt; = 0·1 + 0·c + 1·a + 0·b = a
+&lt;B, z&gt; = 0·1 + 0·c + 0·a + 1·b = b
+&lt;C, z&gt; = 0·1 + 1·c + 0·a + 0·b = c
+</code></pre>
+<p>Check the constraint:</p>
+<pre><code class="language-text">&lt;A, z&gt; · &lt;B, z&gt; = a · b
+&lt;C, z&gt;         = c
+
+Verify: a · b = c ✓
+</code></pre>
+<p><strong>With concrete numbers</strong> (a=3, b=4, c=12):</p>
+<pre><code class="language-text">&lt;A, z&gt; = 0·1 + 0·12 + 1·3 + 0·4 = 3
+&lt;B, z&gt; = 0·1 + 0·12 + 0·3 + 1·4 = 4
+&lt;C, z&gt; = 0·1 + 1·12 + 0·3 + 0·4 = 12
+
+Check: 3 · 4 = 12 ✓
+</code></pre>
+<h3 id="why-rank-1"><a class="header" href="#why-rank-1">Why "Rank-1"?</a></h3>
+<p>The "Rank-1" refers to the structure of the constraint matrices. In a single constraint:</p>
+<ul>
+<li><code>A</code> is a rank-1 matrix (can be written as outer product of vectors)</li>
+<li><code>B</code> is a rank-1 matrix</li>
+<li><code>C</code> is a rank-1 matrix</li>
+</ul>
+<p>This structure enables the transformation to Quadratic Arithmetic Programs (QAP) in Chapter 3!</p>
+<h2 id="implementation-r1cs-in-rust"><a class="header" href="#implementation-r1cs-in-rust">Implementation: R1CS in Rust</a></h2>
+<p>Now let's see how R1CS is implemented in our codebase.</p>
+<h3 id="the-constraint-structure"><a class="header" href="#the-constraint-structure">The Constraint Structure</a></h3>
+<p>From <code>crates/r1cs/src/constraint.rs:5-43</code>:</p>
+<pre><code class="language-rust ignore">/// Represents a single Rank-1 Constraint System (R1CS) constraint.
+///
+/// An R1CS constraint has the form: &lt;a, x&gt; · &lt;b, x&gt; = &lt;c, x&gt;
+///
+/// where:
+/// - a, b, c are vectors of coefficients (sparse, represented as HashMaps)
+/// - x is the assignment vector (witness)
+/// - &lt;·, ·&gt; denotes the dot product
+pub struct R1CSConstraint&lt;F: PrimeField&gt; {
+    /// Coefficients for the A vector (left input of multiplication)
+    pub a: HashMap&lt;usize, FieldWrapper&lt;F&gt;&gt;,
+    /// Coefficients for the B vector (right input of multiplication)
+    pub b: HashMap&lt;usize, FieldWrapper&lt;F&gt;&gt;,
+    /// Coefficients for the C vector (output of multiplication)
+    pub c: HashMap&lt;usize, FieldWrapper&lt;F&gt;&gt;,
+}</code></pre>
+<p><strong>Key design choice</strong>: We use <strong>sparse representation</strong> (HashMap) instead of dense vectors. This is efficient because most variables don't appear in most constraints!</p>
+<h3 id="creating-a-multiplier-circuit"><a class="header" href="#creating-a-multiplier-circuit">Creating a Multiplier Circuit</a></h3>
+<p>From <code>crates/circuits/src/multiplier.rs:76-88</code>:</p>
+<pre><code class="language-rust ignore">pub fn to_r1cs(&amp;self) -&gt; Vec&lt;R1CSConstraint&lt;Fq&gt;&gt; {
+    let mut constraint = R1CSConstraint::&lt;Fq&gt;::new();
+
+    // A vector: selects variable a (index 2, after 1 and c)
+    constraint.add_a_variable(2, FieldWrapper::&lt;Fq&gt;::from(1u64));
+
+    // B vector: selects variable b (index 3)
+    constraint.add_b_variable(3, FieldWrapper::&lt;Fq&gt;::from(1u64));
+
+    // C vector: selects variable c (index 1, the public output)
+    constraint.add_c_variable(1, FieldWrapper::&lt;Fq&gt;::from(1u64));
+
+    vec![constraint]
+}</code></pre>
+<p><strong>Note on indexing</strong>: The witness is <code>[1, c, a, b]</code>, so:</p>
+<ul>
+<li>Index 0: constant <code>1</code></li>
+<li>Index 1: public output <code>c</code></li>
+<li>Index 2: private input <code>a</code></li>
+<li>Index 3: private input <code>b</code></li>
+</ul>
+<h3 id="verifying-a-witness"><a class="header" href="#verifying-a-witness">Verifying a Witness</a></h3>
+<p>The constraint satisfaction check from <code>crates/r1cs/src/constraint.rs:126-134</code>:</p>
+<pre><code class="language-rust ignore">pub fn is_satisfied(&amp;self, witness: &amp;[FieldWrapper&lt;F&gt;]) -&gt; bool {
+    let a_value = self.evaluate_linear_combination(&amp;self.a, witness);
+    let b_value = self.evaluate_linear_combination(&amp;self.b, witness);
+    let c_value = self.evaluate_linear_combination(&amp;self.c, witness);
+
+    // Check: a · b = c
+    let product = a_value.clone() * b_value;
+    product.value == c_value.value
+}</code></pre>
+<p>This computes:</p>
+<pre><code class="language-text">a_value = Σ A[i] · witness[i]
+b_value = Σ B[i] · witness[i]
+c_value = Σ C[i] · witness[i]
+
+Check: a_value · b_value = c_value
+</code></pre>
+<h3 id="generating-a-witness"><a class="header" href="#generating-a-witness">Generating a Witness</a></h3>
+<p>From <code>crates/circuits/src/multiplier.rs:109-116</code>:</p>
+<pre><code class="language-rust ignore">pub fn witness(&amp;self) -&gt; Vec&lt;FieldWrapper&lt;Fq&gt;&gt; {
+    vec![
+        FieldWrapper::&lt;Fq&gt;::from(1u64),   // constant 1
+        FieldWrapper::&lt;Fq&gt;::from(self.c), // public output c
+        FieldWrapper::&lt;Fq&gt;::from(self.a), // private input a
+        FieldWrapper::&lt;Fq&gt;::from(self.b), // private input b
+    ]
+}</code></pre>
+<p>The witness ordering is crucial! Groth16 expects:</p>
+<pre><code class="language-text">[1, public_outputs..., private_inputs...]
+</code></pre>
+<h2 id="running-the-code"><a class="header" href="#running-the-code">Running the Code</a></h2>
+<p>Let's see the R1CS in action with the multiplier demo.</p>
+<h3 id="run-the-demo"><a class="header" href="#run-the-demo">Run the Demo</a></h3>
+<pre><code class="language-bash">cd /path/to/groth16-demo
+cargo run --example multiplier_demo
+</code></pre>
+<h3 id="expected-output"><a class="header" href="#expected-output">Expected Output</a></h3>
+<pre><code>Groth16 Multiplier Circuit Demo
+===============================
+
+Step 1: Creating circuit
+----------------------
+Private inputs: a = 3, b = 4
+Public output:  c = 12
+
+✓ Computation verified: 3 × 4 = 12
+
+Step 2: Converting to R1CS
+-------------------------
+Number of R1CS constraints: 1
+Number of variables per constraint: 3
+
+R1CS Constraint Structure:
+A = [0, 0, 1, 0]  (selects variable 'a')
+B = [0, 0, 0, 1]  (selects variable 'b')
+C = [0, 1, 0, 0]  (selects variable 'c')
+Verification: a · b = c
+
+Step 3: Generating witness
+--------------------------
+Witness assignment: [1, c, a, b] = [1, 12, 3, 4]
+
+Step 4: Verifying R1CS satisfaction
+-----------------------------------
+R1CS constraint satisfied: true
+✓ R1CS verification passed
+
+Step 5: Converting R1CS to QAP
+----------------------------
+...
+</code></pre>
+<h3 id="key-observations"><a class="header" href="#key-observations">Key Observations</a></h3>
+<ol>
+<li><strong>Single constraint</strong> for the multiplier circuit (it's very simple!)</li>
+<li><strong>3 variables</strong> used in the constraint (a, b, c)</li>
+<li><strong>Witness order</strong>: <code>[1, c, a, b]</code> (constant first, then public output, then private inputs)</li>
+<li><strong>Satisfaction check</strong>: Verifies <code>3 × 4 = 12</code></li>
+</ol>
+<h2 id="more-complex-example-multiple-constraints"><a class="header" href="#more-complex-example-multiple-constraints">More Complex Example: Multiple Constraints</a></h2>
+<p>Real circuits have multiple constraints. Let's sketch how this works:</p>
+<p><strong>Example</strong>: <code>(x + y) × (x - y) = z</code></p>
+<p>Let's break this down:</p>
+<ol>
+<li><code>t₁ = x + y</code> (addition)</li>
+<li><code>t₂ = x - y</code> (addition with negative)</li>
+<li><code>z = t₁ × t₂</code> (multiplication)</li>
+</ol>
+<p><strong>Witness</strong>: <code>z = [1, z, x, y, t₁, t₂]</code></p>
+<p><strong>Constraints</strong>:</p>
+<pre><code class="language-text">Constraint 1: t₁ = x + y
+  A = [0, 0, 1, 1, 0, 0]  ← x + y
+  B = [1, 0, 0, 0, 0, 0]  ← 1 (for no multiplication)
+  C = [0, 0, 0, 0, 1, 0]  ← t₁
+
+Constraint 2: t₂ = x - y
+  A = [0, 0, 1, -1, 0, 0] ← x - y
+  B = [1, 0, 0, 0, 0, 0]  ← 1
+  C = [0, 0, 0, 0, 0, 1]  ← t₂
+
+Constraint 3: z = t₁ × t₂
+  A = [0, 0, 0, 0, 1, 0]  ← t₁
+  B = [0, 0, 0, 0, 0, 1]  ← t₂
+  C = [0, 1, 0, 0, 0, 0]  ← z
+</code></pre>
+<p>Each row of A, B, C matrices is one constraint!</p>
+<h2 id="connection-to-groth16"><a class="header" href="#connection-to-groth16">Connection to Groth16</a></h2>
+<p>R1CS is the <strong>first step</strong> in the Groth16 pipeline:</p>
+<pre><code class="language-text">Computation (e.g., a × b = c)
+    ↓
+R1CS (matrix constraints) ← You are here
+    ↓
+QAP (polynomial divisibility) ← Chapter 3
+    ↓
+Elliptic Curve Pairings ← Chapter 4
+    ↓
+Zero-Knowledge Proof!
+</code></pre>
+<p><strong>Key insight</strong>: R1CS transforms computation into a form that can be efficiently verified using polynomial arithmetic (Chapter 3) and pairings (Chapter 4).</p>
+<h2 id="exercises-2"><a class="header" href="#exercises-2">Exercises</a></h2>
+<ol>
+<li>
+<p><strong>Basic R1CS construction</strong>:</p>
+<pre><code class="language-text">Convert "x² = y" to R1CS form.
+Hint: You need x × x = y.
+</code></pre>
+</li>
+<li>
+<p><strong>Witness verification</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Given the constraint: a × b = c
+// With A = [0, 0, 1, 0], B = [0, 0, 0, 1], C = [0, 1, 0, 0]
+// And witness z = [1, 20, 4, 5]
+//
+// Does this witness satisfy the constraint?
+// Verify using the is_satisfied() method.
+<span class="boring">}</span></code></pre></pre>
+</li>
+<li>
+<p><strong>Multi-constraint circuit</strong>:</p>
+<pre><code class="language-text">Create R1CS constraints for: (x + 1) × (y + 1) = z
+Variables: x, y (private), z (public)
+You'll need intermediate variables!
+</code></pre>
+</li>
+<li>
+<p><strong>Challenge question</strong>:</p>
+<pre><code class="language-text">Why is the witness ordered as [1, public_outputs..., private_inputs...]
+instead of [1, private_inputs..., public_outputs...]?
+Think about what needs to be revealed to the verifier.
+</code></pre>
+</li>
+</ol>
+<h2 id="further-reading-2"><a class="header" href="#further-reading-2">Further Reading</a></h2>
+<ul>
+<li><strong>R1CS Primer</strong>: <a href="https://www.youtube.com/watch?v=m7WjUDLEws4">ZK-SNARKs in a Nutshell by Micali</a></li>
+<li><strong>Constraint Systems</strong>: <a href="https://github.com/zkcrypto/bellman">Bellman documentation</a></li>
+<li><strong>Sparse Representations</strong>: <a href="https://en.wikipedia.org/wiki/Sparse_matrix">Wikipedia: Sparse Matrix</a></li>
+</ul>
+<hr />
+<p><strong>Ready to transform R1CS to polynomials? Continue to <a href="./03-qap.html">Chapter 3: Quadratic Arithmetic Programs</a></strong></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="quadratic-arithmetic-programs-qap"><a class="header" href="#quadratic-arithmetic-programs-qap">Quadratic Arithmetic Programs (QAP)</a></h1>
+<p>Now that we understand R1CS, let's transform those matrix constraints into polynomial equations. This is where the real magic happens!</p>
+<h2 id="learning-objectives-3"><a class="header" href="#learning-objectives-3">Learning Objectives</a></h2>
+<p>After this chapter, you will understand:</p>
+<ul>
+<li>What QAP is and why it's more powerful than R1CS</li>
+<li>How to transform R1CS constraints into polynomial divisibility</li>
+<li>The target polynomial and why it matters</li>
+<li>Lagrange interpolation for constructing QAP polynomials</li>
+<li>How polynomial divisibility proves constraint satisfaction</li>
+</ul>
+<h2 id="motivating-example-from-r1cs-to-qap"><a class="header" href="#motivating-example-from-r1cs-to-qap">Motivating Example: From R1CS to QAP</a></h2>
+<p>Recall from Chapter 2 that our multiplier circuit has one R1CS constraint:</p>
+<pre><code class="language-text">A = [0, 0, 1, 0]  ← selects 'a'
+B = [0, 0, 0, 1]  ← selects 'b'
+C = [0, 1, 0, 0]  ← selects 'c'
+</code></pre>
+<p><strong>The problem</strong>: R1CS requires checking each constraint individually. For large circuits with thousands of constraints, this is slow!</p>
+<p><strong>The QAP solution</strong>: Transform the constraints into a single polynomial divisibility check:</p>
+<pre><code class="language-text">P(x) = A(x) · B(x) - C(x)
+Is P(x) divisible by T(x)?
+</code></pre>
+<p>If yes, the witness satisfies ALL constraints at once!</p>
+<h2 id="theory-deep-dive-what-is-qap"><a class="header" href="#theory-deep-dive-what-is-qap">Theory Deep Dive: What is QAP?</a></h2>
+<h3 id="the-big-picture-2"><a class="header" href="#the-big-picture-2">The Big Picture</a></h3>
+<p><strong>QAP (Quadratic Arithmetic Program)</strong> is a transformation that converts R1CS constraints into polynomial equations. Instead of checking n constraints separately, we check if one polynomial divides another.</p>
+<p><strong>Key insight</strong>: Polynomial divisibility at specific points (1, 2, ..., n) is equivalent to satisfying n R1CS constraints!</p>
+<h3 id="from-r1cs-matrices-to-polynomials"><a class="header" href="#from-r1cs-matrices-to-polynomials">From R1CS Matrices to Polynomials</a></h3>
+<p>For each variable j (0 to m), we create three polynomials:</p>
+<ul>
+<li><strong>Aⱼ(x)</strong>: interpolates the A-coefficients of variable j across all constraints</li>
+<li><strong>Bⱼ(x)</strong>: interpolates the B-coefficients of variable j across all constraints</li>
+<li><strong>Cⱼ(x)</strong>: interpolates the C-coefficients of variable j across all constraints</li>
+</ul>
+<p><strong>Example</strong>: Suppose we have 2 constraints and variable j appears as:</p>
+<ul>
+<li>Constraint 1: A₁ⱼ = 1, B₁ⱼ = 0, C₁ⱼ = 2</li>
+<li>Constraint 2: A₂ⱼ = 3, B₂ⱼ = 1, C₂ⱼ = 0</li>
+</ul>
+<p>Then we construct:</p>
+<pre><code class="language-text">Aⱼ(x): passes through points (1, 1) and (2, 3)
+Bⱼ(x): passes through points (1, 0) and (2, 1)
+Cⱼ(x): passes through points (1, 2) and (2, 0)
+</code></pre>
+<h3 id="the-target-polynomial-tx"><a class="header" href="#the-target-polynomial-tx">The Target Polynomial T(x)</a></h3>
+<p>The <strong>target polynomial</strong> is:</p>
+<pre><code class="language-text">T(x) = (x - 1)(x - 2)...(x - n)
+</code></pre>
+<p>Where n is the number of constraints.</p>
+<p><strong>Key property</strong>: T(x) has roots exactly at x = 1, 2, ..., n (the constraint indices).</p>
+<h3 id="the-qap-satisfaction-check"><a class="header" href="#the-qap-satisfaction-check">The QAP Satisfaction Check</a></h3>
+<p>Given a witness z = [z₀, z₁, ..., zₘ], we:</p>
+<ol>
+<li>Compute A(x) = Σⱼ zⱼ · Aⱼ(x)</li>
+<li>Compute B(x) = Σⱼ zⱼ · Bⱼ(x)</li>
+<li>Compute C(x) = Σⱼ zⱼ · Cⱼ(x)</li>
+<li>Compute P(x) = A(x) · B(x) - C(x)</li>
+<li>Check if P(x) is divisible by T(x)</li>
+</ol>
+<p><strong>Why this works</strong>:</p>
+<ul>
+<li>P(i) = A(i) · B(i) - C(i) for i = 1, ..., n</li>
+<li>If the witness satisfies constraint i, then P(i) = 0</li>
+<li>If P(i) = 0 for all i = 1, ..., n, then T(x) divides P(x)</li>
+<li>Checking one polynomial division is faster than checking n constraints!</li>
+</ul>
+<h3 id="lagrange-interpolation"><a class="header" href="#lagrange-interpolation">Lagrange Interpolation</a></h3>
+<p>To construct Aⱼ(x), Bⱼ(x), Cⱼ(x), we use <strong>Lagrange interpolation</strong>:</p>
+<p>Given points (x₁, y₁), (x₂, y₂), ..., (xₙ, yₙ), the unique polynomial passing through them is:</p>
+<pre><code class="language-text">P(x) = Σᵢ yᵢ · Lᵢ(x)
+</code></pre>
+<p>Where Lᵢ(x) is the i-th Lagrange basis polynomial:</p>
+<pre><code class="language-text">Lᵢ(x) = Πⱼ≠ᵢ (x - xⱼ) / (xᵢ - xⱼ)
+</code></pre>
+<p><strong>Example</strong>: Points (1, 2), (2, 4)</p>
+<pre><code class="language-text">L₁(x) = (x - 2) / (1 - 2) = 2 - x
+L₂(x) = (x - 1) / (2 - 1) = x - 1
+
+P(x) = 2·L₁(x) + 4·L₂(x)
+     = 2(2 - x) + 4(x - 1)
+     = 4 - 2x + 4x - 4
+     = 2x
+</code></pre>
+<p>Verify: P(1) = 2 ✓, P(2) = 4 ✓</p>
+<h2 id="implementation-qap-in-rust"><a class="header" href="#implementation-qap-in-rust">Implementation: QAP in Rust</a></h2>
+<p>Now let's see how QAP is implemented in our codebase.</p>
+<h3 id="r1cs-to-qap-transformation"><a class="header" href="#r1cs-to-qap-transformation">R1CS to QAP Transformation</a></h3>
+<p>From <code>crates/qap/src/polynomials.rs:60-129</code>:</p>
+<pre><code class="language-rust ignore">/// Transforms an R1CS constraint system into a Quadratic Arithmetic Program.
+///
+/// For each variable j (0..m), this creates three polynomials Aⱼ(x), Bⱼ(x), Cⱼ(x)
+/// such that for any constraint i (1..n):
+///   Aⱼ(i) = coefficient of variable j in A vector of constraint i
+pub fn r1cs_to_qap&lt;F&gt;(
+    constraints: &amp;[R1CSConstraint&lt;F&gt;],
+    num_variables: usize,
+) -&gt; Result&lt;QapPolynomials&lt;F&gt;, QapError&gt;
+where
+    F: PrimeField,
+{
+    let n = constraints.len();
+    let mut a_polys = Vec::with_capacity(num_variables);
+    let mut b_polys = Vec::with_capacity(num_variables);
+    let mut c_polys = Vec::with_capacity(num_variables);
+
+    for j in 0..num_variables {
+        // Collect points for variable j across all constraints
+        let mut a_points = Vec::with_capacity(n);
+        let mut b_points = Vec::with_capacity(n);
+        let mut c_points = Vec::with_capacity(n);
+
+        for (i, constraint) in constraints.iter().enumerate() {
+            let x = F::from((i + 1) as u64); // 1-based constraint index
+
+            let a_coeff = constraint.a.get(&amp;j)
+                .cloned().unwrap_or_else(FieldWrapper::zero);
+            let b_coeff = constraint.b.get(&amp;j)
+                .cloned().unwrap_or_else(FieldWrapper::zero);
+            let c_coeff = constraint.c.get(&amp;j)
+                .cloned().unwrap_or_else(FieldWrapper::zero);
+
+            a_points.push((x, a_coeff));
+            b_points.push((x, b_coeff));
+            c_points.push((x, c_coeff));
+        }
+
+        // Interpolate polynomials for this variable
+        let a_poly = lagrange_interpolate(&amp;a_points)?;
+        let b_poly = lagrange_interpolate(&amp;b_points)?;
+        let c_poly = lagrange_interpolate(&amp;c_points)?;
+
+        a_polys.push(a_poly);
+        b_polys.push(b_poly);
+        c_polys.push(c_poly);
+    }
+
+    Ok((a_polys, b_polys, c_polys))
+}</code></pre>
+<p><strong>Key observations</strong>:</p>
+<ul>
+<li>For each variable, we collect its coefficients across all constraints</li>
+<li>We use 1-based indexing for constraint positions (x = 1, 2, ..., n)</li>
+<li>Missing coefficients default to 0 (sparse representation)</li>
+</ul>
+<h3 id="lagrange-interpolation-implementation"><a class="header" href="#lagrange-interpolation-implementation">Lagrange Interpolation Implementation</a></h3>
+<p>From <code>crates/qap/src/polynomials.rs:152-238</code>:</p>
+<pre><code class="language-rust ignore">pub fn lagrange_interpolate&lt;F&gt;(
+    points: &amp;[(F, FieldWrapper&lt;F&gt;)],
+) -&gt; Result&lt;Polynomial&lt;F&gt;, QapError&gt;
+where
+    F: PrimeField,
+{
+    let n = points.len();
+
+    // Start with zero polynomial
+    let mut result_coeffs = vec![FieldWrapper::&lt;F&gt;::zero(); n];
+
+    for i in 0..n {
+        let (xi, yi) = &amp;points[i];
+
+        // Compute Lagrange basis polynomial Lᵢ(x)
+        let mut li_coeffs = vec![FieldWrapper::&lt;F&gt;::one()];
+        let mut denominator = FieldWrapper::&lt;F&gt;::one();
+
+        for (j, xj) in points.iter().enumerate() {
+            if i == j { continue; }
+
+            // Multiply by (x - xj)
+            let mut new_coeffs = vec![FieldWrapper::&lt;F&gt;::zero(); li_coeffs.len() + 1];
+            for (k, coeff) in li_coeffs.iter().enumerate() {
+                new_coeffs[k + 1] += coeff.clone();  // x * coeff
+                new_coeffs[k] -= coeff.clone() * FieldWrapper::&lt;F&gt;::from(xj.0);  // -xj * coeff
+            }
+            li_coeffs = new_coeffs;
+
+            // Multiply denominator by (xi - xj)
+            denominator = denominator * (FieldWrapper::&lt;F&gt;::from(*xi) - FieldWrapper::&lt;F&gt;::from(xj.0));
+        }
+
+        // Scale by yi / denominator
+        let inv_denominator = FieldWrapper::&lt;F&gt;::from(denominator.value.inverse().unwrap());
+        let scalar = yi.clone() * inv_denominator;
+
+        // Add scaled Lᵢ(x) to result
+        for (k, coeff) in li_coeffs.iter().enumerate() {
+            if k &lt; result_coeffs.len() {
+                result_coeffs[k] += coeff.clone() * scalar.clone();
+            }
+        }
+    }
+
+    Ok(Polynomial::new(result_coeffs))
+}</code></pre>
+<h3 id="polynomial-divisibility-check"><a class="header" href="#polynomial-divisibility-check">Polynomial Divisibility Check</a></h3>
+<p>From <code>crates/qap/src/divisibility.rs:46-99</code>:</p>
+<pre><code class="language-rust ignore">/// Checks if a witness polynomial is divisible by the target polynomial.
+pub fn check_divisibility&lt;F&gt;(
+    witness: &amp;[FieldWrapper&lt;F&gt;],
+    a_polynomials: &amp;[Polynomial&lt;F&gt;],
+    b_polynomials: &amp;[Polynomial&lt;F&gt;],
+    c_polynomials: &amp;[Polynomial&lt;F&gt;],
+    target: &amp;Polynomial&lt;F&gt;,
+) -&gt; Result&lt;bool, QapError&gt;
+where
+    F: PrimeField,
+{
+    // Compute a(x) = Σⱼ witness[j] · Aⱼ(x)
+    let mut a = Polynomial::&lt;F&gt;::new(vec![FieldWrapper::zero()]);
+    for (j, poly) in a_polynomials.iter().enumerate() {
+        let scaled = scale_polynomial(poly, &amp;witness[j]);
+        a = a + scaled;
+    }
+
+    // Compute b(x) = Σⱼ witness[j] · Bⱼ(x)
+    let mut b = Polynomial::&lt;F&gt;::new(vec![FieldWrapper::zero()]);
+    for (j, poly) in b_polynomials.iter().enumerate() {
+        let scaled = scale_polynomial(poly, &amp;witness[j]);
+        b = b + scaled;
+    }
+
+    // Compute c(x) = Σⱼ witness[j] · Cⱼ(x)
+    let mut c = Polynomial::&lt;F&gt;::new(vec![FieldWrapper::zero()]);
+    for (j, poly) in c_polynomials.iter().enumerate() {
+        let scaled = scale_polynomial(poly, &amp;witness[j]);
+        c = c + scaled;
+    }
+
+    // Compute p(x) = a(x) · b(x) - c(x)
+    let ab = a.clone() * b.clone();
+    let p = ab - c;
+
+    // Check if p(x) is divisible by t(x)
+    let (_quotient, remainder) = polynomial_long_division(&amp;p, target)?;
+
+    // Witness is valid iff remainder is zero
+    Ok(remainder.is_zero())
+}</code></pre>
+<h3 id="target-polynomial"><a class="header" href="#target-polynomial">Target Polynomial</a></h3>
+<p>From <code>crates/qap/src/divisibility.rs:218-243</code>:</p>
+<pre><code class="language-rust ignore">/// Constructs the target polynomial t(x) = ∏ᵢ₌₁ⁿ (x - i).
+pub fn target_polynomial&lt;F&gt;(num_constraints: usize) -&gt; Polynomial&lt;F&gt;
+where
+    F: PrimeField,
+{
+    if num_constraints == 0 {
+        return Polynomial::&lt;F&gt;::new(vec![]);
+    }
+
+    // Start with (x - 1)
+    let mut result = Polynomial::&lt;F&gt;::new(vec![
+        FieldWrapper::&lt;F&gt;::zero() - FieldWrapper::&lt;F&gt;::one(),  // -1
+        FieldWrapper::&lt;F&gt;::one(),                              // x
+    ]);
+
+    // Multiply by (x - i) for i = 2..num_constraints
+    for i in 2..=num_constraints {
+        let i_field = FieldWrapper::&lt;F&gt;::from(i as u64);
+        let factor = Polynomial::&lt;F&gt;::new(vec![
+            FieldWrapper::&lt;F&gt;::zero() - i_field,  // -i
+            FieldWrapper::&lt;F&gt;::one(),              // x
+        ]);
+        result = result * factor;
+    }
+
+    result
+}</code></pre>
+<h2 id="running-the-code-1"><a class="header" href="#running-the-code-1">Running the Code</a></h2>
+<p>Let's see QAP transformation in action.</p>
+<h3 id="example-multiplier-circuit-1"><a class="header" href="#example-multiplier-circuit-1">Example: Multiplier Circuit</a></h3>
+<p>For the multiplier <code>a × b = c</code> with witness <code>z = [1, 12, 3, 4]</code>:</p>
+<pre><code class="language-text">Constraint 1: a × b = c
+A = [0, 0, 1, 0]  (selects a)
+B = [0, 0, 0, 1]  (selects b)
+C = [0, 1, 0, 0]  (selects c)
+</code></pre>
+<p><strong>Single constraint QAP</strong>:</p>
+<ul>
+<li>T(x) = (x - 1) = x - 1</li>
+<li>A₀(x) = 0, A₁(x) = 0, A₂(x) = 1, A₃(x) = 0</li>
+<li>B₀(x) = 0, B₁(x) = 0, B₂(x) = 0, B₃(x) = 1</li>
+<li>C₀(x) = 0, C₁(x) = 1, C₂(x) = 0, C₃(x) = 0</li>
+</ul>
+<p><strong>Check divisibility</strong>:</p>
+<pre><code class="language-text">A(x) = Σⱼ zⱼ · Aⱼ(x) = 1·0 + 12·0 + 3·1 + 4·0 = 3
+B(x) = Σⱼ zⱼ · Bⱼ(x) = 1·0 + 12·0 + 3·0 + 4·1 = 4
+C(x) = Σⱼ zⱼ · Cⱼ(x) = 1·0 + 12·1 + 3·0 + 4·0 = 12
+
+P(x) = A(x) · B(x) - C(x) = 3·4 - 12 = 0
+
+Is 0 divisible by T(x)? Yes! (0 = 0 · T(x))
+</code></pre>
+<h3 id="two-constraint-example"><a class="header" href="#two-constraint-example">Two-Constraint Example</a></h3>
+<p>Let's create a more interesting example with 2 constraints:</p>
+<pre><code class="language-text">Constraint 1: a × b = c
+Constraint 2: c × c = d
+
+A vectors:
+  C1: [0, 0, 1, 0, 0]  (selects a)
+  C2: [0, 0, 0, 1, 0]  (selects c)
+
+B vectors:
+  C1: [0, 0, 0, 1, 0]  (selects b)
+  C2: [0, 0, 0, 1, 0]  (selects c)
+
+C vectors:
+  C1: [0, 1, 0, 0, 0]  (selects c)
+  C2: [0, 0, 0, 0, 1]  (selects d)
+
+Target: T(x) = (x - 1)(x - 2)
+</code></pre>
+<p>For witness <code>z = [1, 4, 2, 2, 16]</code>:</p>
+<pre><code class="language-text">Constraint 1: 2 × 2 = 4 ✓
+Constraint 2: 4 × 4 = 16 ✓
+</code></pre>
+<h2 id="connection-to-groth16-1"><a class="header" href="#connection-to-groth16-1">Connection to Groth16</a></h2>
+<p>QAP is the <strong>bridge</strong> between R1CS and elliptic curve pairings:</p>
+<pre><code class="language-text">Computation
+    ↓
+R1CS (matrix constraints)
+    ↓
+QAP (polynomial divisibility) ← You are here
+    ↓
+Elliptic Curve Pairings (Chapter 4)
+    ↓
+Zero-Knowledge Proof!
+</code></pre>
+<p><strong>Key insight</strong>: Polynomial equations can be "checked in the exponent" using pairings, enabling efficient verification!</p>
+<h2 id="exercises-3"><a class="header" href="#exercises-3">Exercises</a></h2>
+<ol>
+<li>
+<p><strong>Lagrange interpolation</strong>:</p>
+<pre><code class="language-text">Given points (1, 3), (2, 5), (3, 9), find the polynomial P(x).
+Verify: P(1) = 3, P(2) = 5, P(3) = 9
+</code></pre>
+</li>
+<li>
+<p><strong>QAP construction</strong>:</p>
+<pre><code class="language-text">Given constraints:
+C1: x × y = z
+C2: x × x = w
+
+Construct A₂(x) (for variable x).
+Points: (1, 1), (2, 1)
+</code></pre>
+</li>
+<li>
+<p><strong>Divisibility check</strong>:</p>
+<pre><code class="language-text">P(x) = x² - 3x + 2
+T(x) = (x - 1)(x - 2)
+
+Is P(x) divisible by T(x)?
+Hint: Check if P(1) = 0 and P(2) = 0
+</code></pre>
+</li>
+<li>
+<p><strong>Challenge question</strong>:</p>
+<pre><code class="language-text">Why do we need at least 2 constraints for QAP?
+What happens with only 1 constraint?
+</code></pre>
+</li>
+</ol>
+<h2 id="further-reading-3"><a class="header" href="#further-reading-3">Further Reading</a></h2>
+<ul>
+<li><strong>QAP Paper</strong>: <a href="https://eprint.iacr.org/2013/718">GGPR13 (Bitansky et al.)</a></li>
+<li><strong>Lagrange Interpolation</strong>: <a href="https://brilliant.org/wiki/lagrange-interpolation/">Brilliant Wiki</a></li>
+<li><strong>Polynomial Division</strong>: <a href="https://www.khanacademy.org/math/algebra2/x2ec2f6f830c9fb89:poly-div">Khan Academy: Dividing Polynomials</a></li>
+</ul>
+<hr />
+<p><strong>Ready for elliptic curves? Continue to <a href="./04-pairings.html">Chapter 4: Elliptic Curves and Pairings</a></strong></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="elliptic-curves-and-pairings"><a class="header" href="#elliptic-curves-and-pairings">Elliptic Curves and Pairings</a></h1>
+<p>We've transformed our computation into polynomial divisibility. Now we need a way to check this divisibility <strong>without revealing the polynomials themselves</strong>. Enter elliptic curve pairings!</p>
+<h2 id="learning-objectives-4"><a class="header" href="#learning-objectives-4">Learning Objectives</a></h2>
+<p>After this chapter, you will understand:</p>
+<ul>
+<li>What elliptic curves are and why they're useful in cryptography</li>
+<li>Group operations on elliptic curves</li>
+<li>Bilinear pairings and their magical properties</li>
+<li>How pairings enable efficient ZK verification</li>
+<li>The BN254 curve used in Groth16</li>
+</ul>
+<h2 id="motivating-example-the-pairing-check"><a class="header" href="#motivating-example-the-pairing-check">Motivating Example: The Pairing Check</a></h2>
+<p>In QAP, we want to verify:</p>
+<pre><code class="language-text">P(x) = H(x) · T(x)
+</code></pre>
+<p><strong>Problem</strong>: If we reveal P(x) and H(x), we leak information about the witness!</p>
+<p><strong>Solution with pairings</strong>: Check the equation <strong>in the exponent</strong>:</p>
+<pre><code class="language-text">e(P₁, G₂) = e(H₁, T₁)
+</code></pre>
+<p>Where:</p>
+<ul>
+<li>P₁ = P(x) · G₁ (P encrypted in G₁)</li>
+<li>H₁ = H(x) · G₁ (H encrypted in G₁)</li>
+<li>T₁ = T(x) · G₁ (T encrypted in G₁)</li>
+<li>e(·, ·) is the bilinear pairing</li>
+</ul>
+<p>The verifier can check the equation without learning P(x), H(x), or the witness!</p>
+<h2 id="theory-deep-dive-elliptic-curves"><a class="header" href="#theory-deep-dive-elliptic-curves">Theory Deep Dive: Elliptic Curves</a></h2>
+<h3 id="what-is-an-elliptic-curve"><a class="header" href="#what-is-an-elliptic-curve">What is an Elliptic Curve?</a></h3>
+<p>An <strong>elliptic curve</strong> over a finite field is the set of solutions (x, y) to:</p>
+<pre><code class="language-text">y² = x³ + ax + b
+</code></pre>
+<p>With a special "point at infinity" denoted ∞ (the identity element).</p>
+<p><strong>Example</strong>: The BN254 curve (used in Groth16):</p>
+<pre><code class="language-text">y² = x³ + 3
+</code></pre>
+<p>Over a field with ~2²⁵⁴ elements.</p>
+<h3 id="the-group-law"><a class="header" href="#the-group-law">The Group Law</a></h3>
+<p>Elliptic curves form an <strong>abelian group</strong> under the "chord-and-tangent" addition:</p>
+<p><strong>Addition (P + Q = R)</strong>:</p>
+<ol>
+<li>Draw a line through P and Q</li>
+<li>Find the third intersection with the curve</li>
+<li>Reflect across the x-axis</li>
+</ol>
+<p><strong>Doubling (P + P = 2P)</strong>:</p>
+<ol>
+<li>Draw the tangent line at P</li>
+<li>Find the second intersection with the curve</li>
+<li>Reflect across the x-axis</li>
+</ol>
+<p><strong>Scalar multiplication (k·P)</strong>:</p>
+<pre><code class="language-text">k·P = P + P + ... + P (k times)
+</code></pre>
+<p>This can be computed efficiently using the "double-and-add" algorithm (O(log k) time).</p>
+<h3 id="two-groups-g₁-and-g₂"><a class="header" href="#two-groups-g₁-and-g₂">Two Groups: G₁ and G₂</a></h3>
+<p>In pairing-based cryptography, we use <strong>two groups</strong>:</p>
+<p><strong>G₁</strong>: Points on the curve over the base field 𝔽ₚ</p>
+<ul>
+<li>Smaller elements (more efficient)</li>
+<li>Used for elements that need to be compared/combined</li>
+</ul>
+<p><strong>G₂</strong>: Points on the curve over an extension field 𝔽ₚ²</p>
+<ul>
+<li>Larger elements (less efficient)</li>
+<li>Used for pairing targets</li>
+</ul>
+<p>Both groups have the same order (number of elements): a large prime r.</p>
+<h2 id="theory-deep-dive-bilinear-pairings"><a class="header" href="#theory-deep-dive-bilinear-pairings">Theory Deep Dive: Bilinear Pairings</a></h2>
+<h3 id="what-is-a-pairing"><a class="header" href="#what-is-a-pairing">What is a Pairing?</a></h3>
+<p>A <strong>bilinear pairing</strong> is a function:</p>
+<pre><code class="language-text">e: G₁ × G₂ → Gₜ
+</code></pre>
+<p>Where Gₜ is a target group (usually 𝔽ₚⁿ).</p>
+<p><strong>Key properties</strong>:</p>
+<ol>
+<li>
+<p><strong>Bilinearity</strong>:</p>
+<pre><code class="language-text">e(a·P, b·Q) = e(P, Q)ᵃ·ᵇ = e(a·P, Q)ᵇ = e(P, b·Q)ᵃ
+</code></pre>
+</li>
+<li>
+<p><strong>Non-degeneracy</strong>:</p>
+<pre><code class="language-text">If e(P, Q) = 1 for all Q, then P = ∞
+</code></pre>
+</li>
+<li>
+<p><strong>Computability</strong>:</p>
+<pre><code class="language-text">e(P, Q) can be computed efficiently
+</code></pre>
+</li>
+</ol>
+<h3 id="the-pairing-equation"><a class="header" href="#the-pairing-equation">The Pairing Equation</a></h3>
+<p>The pairing enables us to check equations <strong>in the exponent</strong>:</p>
+<p><strong>Integer equation</strong>:</p>
+<pre><code class="language-text">a = b
+</code></pre>
+<p><strong>Pairing check</strong>:</p>
+<pre><code class="language-text">e(a·G₁, G₂) = e(b·G₁, G₂)
+</code></pre>
+<p>This works because:</p>
+<pre><code class="language-text">e(a·G₁, G₂) = e(G₁, G₂)ᵃ
+e(b·G₁, G₂) = e(G₁, G₂)ᵇ
+
+If a = b, then e(G₁, G₂)ᵃ = e(G₁, G₂)ᵇ
+</code></pre>
+<h3 id="product-equations"><a class="header" href="#product-equations">Product Equations</a></h3>
+<p>Pairings also work for products:</p>
+<p><strong>Integer equation</strong>:</p>
+<pre><code class="language-text">a · b = c · d
+</code></pre>
+<p><strong>Pairing check</strong>:</p>
+<pre><code class="language-text">e(a·G₁, b·G₂) = e(c·G₁, d·G₂)
+</code></pre>
+<p>This works because:</p>
+<pre><code class="language-text">e(a·G₁, b·G₂) = e(G₁, G₂)ᵃ·ᵇ
+e(c·G₁, d·G₂) = e(G₁, G₂)ᶜ·ᵈ
+</code></pre>
+<h2 id="implementation-pairings-in-rust"><a class="header" href="#implementation-pairings-in-rust">Implementation: Pairings in Rust</a></h2>
+<p>Now let's see how pairings are implemented in our codebase.</p>
+<h3 id="the-bn254-curve"><a class="header" href="#the-bn254-curve">The BN254 Curve</a></h3>
+<p>We use the BN254 curve from the <code>arkworks</code> library:</p>
+<pre><code class="language-rust ignore">use ark_bn254::{Bn254, G1Affine, G2Affine};
+use ark_ec::pairing::Pairing;
+
+// Bn254 is a pairing-friendly curve
+type G1 = &lt;Bn254 as Pairing&gt;::G1;  // G₁ group
+type G2 = &lt;Bn254 as Pairing&gt;::G2;  // G₂ group
+type Gt = &lt;Bn254 as Pairing&gt;::TargetField;  // Gₜ (target field)</code></pre>
+<h3 id="computing-pairings"><a class="header" href="#computing-pairings">Computing Pairings</a></h3>
+<p>From <code>crates/math/src/pairing.rs:6-17</code>:</p>
+<pre><code class="language-rust ignore">use ark_bn254::Bn254;
+use ark_ec::pairing::Pairing;
+
+pub struct PairingGroup;
+
+impl PairingGroup {
+    pub fn verify_pairing_equation(
+        a: &amp;&lt;Bn254 as Pairing&gt;::G1,
+        b: &amp;&lt;Bn254 as Pairing&gt;::G2,
+        c: &amp;&lt;Bn254 as Pairing&gt;::G1,
+        d: &amp;&lt;Bn254 as Pairing&gt;::G2,
+    ) -&gt; bool {
+        // e(a, b) == e(c, d)
+        let left = Bn254::pairing(*a, *b);
+        let right = Bn254::pairing(*c, *d);
+        left == right
+    }
+}</code></pre>
+<p>This checks if a·b = c·d in the exponent:</p>
+<pre><code class="language-text">e(a, b) = e(G₁, G₂)ᵃ·ᵇ
+e(c, d) = e(G₁, G₂)ᶜ·ᵈ
+
+e(a, b) == e(c, d) ⟺ a·b = c·d
+</code></pre>
+<h3 id="group-operations"><a class="header" href="#group-operations">Group Operations</a></h3>
+<pre><code class="language-rust ignore">use ark_bn254::{G1Projective as G1, G2Projective as G2};
+use ark_ec::{AffineRepr, CurveGroup};
+
+// Point addition
+let p = G1::from(G1Affine::generator());
+let q = G1::from(G1Affine::generator());
+let r = p + q;  // 2·G₁
+
+// Scalar multiplication
+let scalar = 5u64;
+let s = G1::from(G1Affine::generator()) * scalar;  // 5·G₁
+
+// Convert between affine and projective representations
+let affine_point = s.into_affine();
+let projective_point = G1::from(affine_point);</code></pre>
+<h3 id="the-verification-equation"><a class="header" href="#the-verification-equation">The Verification Equation</a></h3>
+<p>In Groth16, the verification equation is:</p>
+<pre><code class="language-text">e(A, B) = e(α, β) · e(Σ publicᵢ · ICᵢ, γ) · e(C, δ)
+</code></pre>
+<p>This checks that:</p>
+<ol>
+<li>A and B were constructed using the toxic waste (α, β, γ, δ)</li>
+<li>The witness matches the public inputs</li>
+<li>The QAP division polynomial exists (H(x) is valid)</li>
+</ol>
+<p>We'll see this in detail in Chapter 7!</p>
+<h2 id="running-the-code-2"><a class="header" href="#running-the-code-2">Running the Code</a></h2>
+<h3 id="example-basic-pairing"><a class="header" href="#example-basic-pairing">Example: Basic Pairing</a></h3>
+<pre><code class="language-rust ignore">use ark_bn254::{Bn254, G1Affine, G2Affine};
+use ark_ec::pairing::Pairing;
+
+// Get generators
+let g1 = G1Affine::generator();
+let g2 = G2Affine::generator();
+
+// Compute e(5·G₁, 3·G₂)
+let five_g1 = g1 * 5u64;
+let three_g2 = g2 * 3u64;
+let left = Bn254::pairing(five_g1, three_g2);
+
+// Compute e(15·G₁, G₂)
+let fifteen_g1 = g1 * 15u64;
+let right = Bn254::pairing(fifteen_g1, g2);
+
+// Check: e(5·G₁, 3·G₂) = e(15·G₁, G₂) because 5·3 = 15
+assert_eq!(left, right);</code></pre>
+<h3 id="example-product-check"><a class="header" href="#example-product-check">Example: Product Check</a></h3>
+<pre><code class="language-rust ignore">// Check if a·b = c·d
+let a = 5u64;
+let b = 3u64;
+let c = 15u64;
+let d = 1u64;
+
+// e(a·G₁, b·G₂) = e(c·G₁, d·G₂)?
+let left = Bn254::pairing(g1 * a, g2 * b);
+let right = Bn254::pairing(g1 * c, g2 * d);
+
+// 5·3 = 15·1, so this should be true
+assert_eq!(left, right);</code></pre>
+<h2 id="connection-to-groth16-2"><a class="header" href="#connection-to-groth16-2">Connection to Groth16</a></h2>
+<p>Pairings are the <strong>final piece</strong> that makes Groth16 work:</p>
+<pre><code class="language-text">Computation
+    ↓
+R1CS (matrix constraints)
+    ↓
+QAP (polynomial divisibility)
+    ↓
+Elliptic Curve Pairings ← You are here
+    ↓
+Zero-Knowledge Proof!
+</code></pre>
+<p><strong>Key insight</strong>: Pairings allow us to check polynomial equations without revealing the polynomials themselves!</p>
+<h3 id="the-encryption-trick"><a class="header" href="#the-encryption-trick">The Encryption Trick</a></h3>
+<p>We can "encrypt" field elements by multiplying by a generator:</p>
+<pre><code class="language-text">plaintext: x
+ciphertext: x·G₁
+</code></pre>
+<p>The pairing allows us to check equations on ciphertexts:</p>
+<pre><code class="language-text">Check: a + b = c
+Pairing: e(a·G₁, G₂) · e(b·G₁, G₂) = e(c·G₁, G₂)
+
+Check: a · b = c
+Pairing: e(a·G₁, b·G₂) = e(c·G₁, G₂)
+</code></pre>
+<h2 id="security-properties"><a class="header" href="#security-properties">Security Properties</a></h2>
+<h3 id="the-discrete-logarithm-problem"><a class="header" href="#the-discrete-logarithm-problem">The Discrete Logarithm Problem</a></h3>
+<p>Given P = x·G, it's computationally infeasible to find x.</p>
+<p>This is the <strong>Elliptic Curve Discrete Logarithm Problem (ECDLP)</strong> and is the foundation of elliptic curve cryptography.</p>
+<h3 id="pairing-friendly-curves"><a class="header" href="#pairing-friendly-curves">Pairing-Friendly Curves</a></h3>
+<p>Not all elliptic curves support efficient pairings. The BN254 curve is specifically designed for:</p>
+<ul>
+<li>Efficient pairing computation</li>
+<li>Security level of ~128 bits</li>
+<li>Compatibility with the BN254 pairing</li>
+</ul>
+<p><strong>Warning</strong>: Curves not designed for pairings may have vulnerabilities!</p>
+<h2 id="exercises-4"><a class="header" href="#exercises-4">Exercises</a></h2>
+<ol>
+<li>
+<p><strong>Scalar multiplication</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Compute 7·G₁ using double-and-add
+// Hint: 7 = 4 + 2 + 1 (binary: 111)
+<span class="boring">}</span></code></pre></pre>
+</li>
+<li>
+<p><strong>Pairing check</strong>:</p>
+<pre><code class="language-text">Is e(3·G₁, 4·G₂) = e(6·G₁, 2·G₂)?
+Why or why not?
+</code></pre>
+</li>
+<li>
+<p><strong>Verification equation</strong>:</p>
+<pre><code class="language-text">Given: e(A, B) = e(α, β) · e(public·IC, γ) · e(C, δ)
+
+If we know public, IC, α, β, γ, δ,
+what can we verify about A, B, C?
+</code></pre>
+</li>
+<li>
+<p><strong>Challenge question</strong>:</p>
+<pre><code class="language-text">Why do we need two groups (G₁ and G₂)?
+What would break if we only used G₁?
+</code></pre>
+</li>
+</ol>
+<h2 id="further-reading-4"><a class="header" href="#further-reading-4">Further Reading</a></h2>
+<ul>
+<li><strong>Pairings for Beginners</strong>: <a href="https://vitalik.ca/general/2017/01/14/exploring_ecp.html">Vitalik Buterin's Blog</a></li>
+<li><strong>BN254 Curve</strong>: <a href="https://www.hyperelliptic.org/EFD/g1p/auto-shortw-jacobian-0.html">Barreto-Naehrig Curves</a></li>
+<li><strong>Pairing-Based Crypto</strong>: <a href="https://crypto.stanford.edu/pbc/">The Pairing-Based Crypto Lounge</a></li>
+</ul>
+<hr />
+<p><strong>Ready to generate the proving keys? Continue to <a href="./05-trusted-setup.html">Chapter 5: Trusted Setup</a></strong></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="trusted-setup"><a class="header" href="#trusted-setup">Trusted Setup</a></h1>
+<p>We have our QAP polynomials and understand pairings. Now we need to generate the cryptographic keys that will be used for proving and verifying. This process is called the <strong>trusted setup</strong>.</p>
+<h2 id="learning-objectives-5"><a class="header" href="#learning-objectives-5">Learning Objectives</a></h2>
+<p>After this chapter, you will understand:</p>
+<ul>
+<li>What trusted setup is and why it's necessary</li>
+<li>The "toxic waste" problem and how to mitigate it</li>
+<li>How proving and verification keys are generated</li>
+<li>The structure of Groth16 keys</li>
+<li>Powers of Tau and structured reference strings</li>
+</ul>
+<h2 id="motivating-example-why-we-need-setup"><a class="header" href="#motivating-example-why-we-need-setup">Motivating Example: Why We Need Setup</a></h2>
+<p>Recall from Chapter 4 that we want to check:</p>
+<pre><code class="language-text">P(x) = H(x) · T(x)
+</code></pre>
+<p>Using pairings, we can check:</p>
+<pre><code class="language-text">e(P₁, G₂) = e(H₁, T₁)
+</code></pre>
+<p><strong>Problem</strong>: We need to encrypt the QAP polynomials!</p>
+<ul>
+<li>We need A(τ)·G₁, B(τ)·G₂, C(τ)·G₁ for each polynomial</li>
+<li>We need random values α, β, γ, δ to ensure soundness</li>
+<li>We need a random τ to evaluate polynomials at</li>
+</ul>
+<p><strong>Solution</strong>: Run a trusted setup ceremony to generate these values!</p>
+<h2 id="theory-deep-dive-what-is-trusted-setup"><a class="header" href="#theory-deep-dive-what-is-trusted-setup">Theory Deep Dive: What is Trusted Setup?</a></h2>
+<h3 id="the-setup-ceremony"><a class="header" href="#the-setup-ceremony">The Setup Ceremony</a></h3>
+<p>Trusted setup generates random secrets that are used to encrypt the QAP:</p>
+<p><strong>Secrets generated</strong>:</p>
+<ul>
+<li><strong>α</strong> (alpha): Used for proof A component</li>
+<li><strong>β</strong> (beta): Used for proof B and C components</li>
+<li><strong>γ</strong> (gamma): Used for public input encryption</li>
+<li><strong>δ</strong> (delta): Used for proof C component</li>
+<li><strong>τ</strong> (tau): Random point to evaluate polynomials at</li>
+</ul>
+<p><strong>Key properties</strong>:</p>
+<ol>
+<li>These secrets are random and unpredictable</li>
+<li>They MUST be deleted after the ceremony</li>
+<li>If leaked, anyone can forge proofs!</li>
+</ol>
+<h3 id="toxic-waste"><a class="header" href="#toxic-waste">Toxic Waste</a></h3>
+<p>The secrets (α, β, γ, δ, τ) are called <strong>"toxic waste"</strong> because:</p>
+<ol>
+<li><strong>Dangerous</strong>: If an attacker obtains them, they can forge proofs</li>
+<li><strong>Must be destroyed</strong>: They should be securely deleted after the ceremony</li>
+<li><strong>Unverifiable</strong>: We can't prove they were deleted (trust required!)</li>
+</ol>
+<h3 id="powers-of-tau"><a class="header" href="#powers-of-tau">Powers of Tau</a></h3>
+<p>The <strong>Powers of Tau</strong> is a structured reference string (SRS):</p>
+<pre><code class="language-text">[τ⁰·G₁, τ¹·G₁, τ²·G₁, ..., τⁿ·G₁]
+[τ⁰·G₂, τ¹·G₂, τ²·G₂, ..., τⁿ·G₂]
+</code></pre>
+<p>These powers of τ allow us to evaluate any polynomial at τ:</p>
+<pre><code class="language-text">P(x) = a₀ + a₁x + a₂x²
+P(τ)·G₁ = a₀·τ⁰·G₁ + a₁·τ¹·G₁ + a₂·τ²·G₁
+</code></pre>
+<p><strong>Key insight</strong>: We can compute P(τ)·G₁ without knowing τ!</p>
+<h2 id="theory-deep-dive-key-structure"><a class="header" href="#theory-deep-dive-key-structure">Theory Deep Dive: Key Structure</a></h2>
+<h3 id="proving-key-pk"><a class="header" href="#proving-key-pk">Proving Key (PK)</a></h3>
+<p>The proving key contains encrypted elements needed to generate proofs:</p>
+<p>From <code>crates/groth16/src/keys.rs:51-86</code>:</p>
+<pre><code class="language-rust ignore">/// Proving key for Groth16
+#[derive(Clone, Debug)]
+pub struct ProvingKey {
+    /// α·G₁ (used in proof A component)
+    pub alpha_g1: G1Affine,
+
+    /// β·G₁ (used in proof A component)
+    pub beta_g1: G1Affine,
+
+    /// β·G₂ (used in verification)
+    pub beta_g2: G2Affine,
+
+    /// δ·G₁ (used in proof C component)
+    pub delta_g1: G1Affine,
+
+    /// δ·G₂ (used in verification)
+    pub delta_g2: G2Affine,
+
+    /// Encrypted A-polynomials: [α·Aᵢ(τ)·G₁] for i=0..m
+    pub a_query: Vec&lt;G1Affine&gt;,
+
+    /// Encrypted B-polynomials in G1: [β·Bᵢ(τ)·G₁] for i=0..m
+    pub b_g1_query: Vec&lt;G1Affine&gt;,
+
+    /// Encrypted B-polynomials in G2: [β·Bᵢ(τ)·G₂] for i=0..m
+    pub b_g2_query: Vec&lt;G2Affine&gt;,
+
+    /// Encrypted C-polynomials: [β·Cᵢ(τ)·G₁] for i=0..m
+    pub c_query: Vec&lt;G1Affine&gt;,
+
+    /// Encrypted division polynomials: [Hᵢ(τ)·G₁] for i=0..n-2
+    pub h_query: Vec&lt;G1Affine&gt;,
+}</code></pre>
+<p><strong>Key components</strong>:</p>
+<ul>
+<li><strong>alpha_g1, beta_g1, beta_g2, delta_g1, delta_g2</strong>: Encrypted secrets</li>
+<li><strong>a_query, b_g1_query, b_g2_query, c_query</strong>: Encrypted QAP polynomials</li>
+<li><strong>h_query</strong>: Encrypted division polynomials (for H(x))</li>
+</ul>
+<h3 id="verification-key-vk"><a class="header" href="#verification-key-vk">Verification Key (VK)</a></h3>
+<p>The verification key contains public elements for verification:</p>
+<p>From <code>crates/groth16/src/keys.rs:166-188</code>:</p>
+<pre><code class="language-rust ignore">/// Verification key for Groth16
+#[derive(Clone, Debug)]
+pub struct VerificationKey {
+    /// α·G₁ (part of verification equation)
+    pub alpha_g1: G1Affine,
+
+    /// β·G₂ (part of verification equation)
+    pub beta_g2: G2Affine,
+
+    /// γ·G₂ (base for public input encryption)
+    pub gamma_g2: G2Affine,
+
+    /// δ·G₂ (base for proof C encryption)
+    pub delta_g2: G2Affine,
+
+    /// Public input encryption: [β·G₁, β·U₁(τ)·G₁ + α·H₁(τ)·G₁, ...]
+    pub ic: Vec&lt;G1Affine&gt;,
+}</code></pre>
+<p><strong>Key components</strong>:</p>
+<ul>
+<li><strong>alpha_g1, beta_g2, gamma_g2, delta_g2</strong>: Public encrypted secrets</li>
+<li><strong>ic</strong>: Input consistency vector for verifying public inputs</li>
+</ul>
+<h2 id="implementation-trusted-setup-in-rust"><a class="header" href="#implementation-trusted-setup-in-rust">Implementation: Trusted Setup in Rust</a></h2>
+<p>Now let's see how trusted setup is implemented.</p>
+<h3 id="the-setup-function"><a class="header" href="#the-setup-function">The Setup Function</a></h3>
+<p>From <code>crates/groth16/src/setup.rs:69-213</code>:</p>
+<pre><code class="language-rust ignore">/// Performs the trusted setup ceremony to generate proving and verification keys.
+pub fn trusted_setup&lt;R&gt;(
+    a_polys: &amp;[Polynomial&lt;ark_bn254::Fq&gt;],
+    b_polys: &amp;[Polynomial&lt;ark_bn254::Fq&gt;],
+    c_polys: &amp;[Polynomial&lt;ark_bn254::Fq&gt;],
+    num_inputs: usize,
+    rng: &amp;mut R,
+) -&gt; Result&lt;(ProvingKey, VerificationKey), Groth16Error&gt;
+where
+    R: Rng,
+{
+    // Step 1: Generate random secrets (TOXIC WASTE)
+    let alpha = Fr::rand(rng);
+    let beta = Fr::rand(rng);
+    let gamma = Fr::rand(rng);
+    let delta = Fr::rand(rng);
+    let tau = Fr::rand(rng);
+
+    // Step 2: Compute powers of tau encrypted in G1 and G2
+    let _tau_powers_g1 = compute_powers_of_tau_g1(tau, num_constraints + 2);
+    let _tau_powers_g2 = compute_powers_of_tau_g2(tau, num_constraints + 2);
+
+    // Step 3: Encrypt the secrets with generators
+    let alpha_g1 = (G1Affine::generator() * alpha).into_affine();
+    let beta_g1 = (G1Affine::generator() * beta).into_affine();
+    let beta_g2 = (G2Affine::generator() * beta).into_affine();
+    let gamma_g2 = (G2Affine::generator() * gamma).into_affine();
+    let delta_g1 = (G1Affine::generator() * delta).into_affine();
+    let delta_g2 = (G2Affine::generator() * delta).into_affine();
+
+    // Step 4: Compute encrypted A-polynomials
+    let mut a_query = Vec::with_capacity(num_vars);
+    for poly in a_polys {
+        let eval = poly.evaluate(&amp;tau_field);
+        let encrypted = (G1Affine::generator() * alpha * eval).into_affine();
+        a_query.push(encrypted);
+    }
+
+    // Step 5: Compute encrypted B-polynomials in G1 and G2
+    let mut b_g1_query = Vec::with_capacity(num_vars);
+    let mut b_g2_query = Vec::with_capacity(num_vars);
+    for poly in b_polys {
+        let eval = poly.evaluate(&amp;tau_field);
+        b_g1_query.push((G1Affine::generator() * beta * eval).into_affine());
+        b_g2_query.push((G2Affine::generator() * beta * eval).into_affine());
+    }
+
+    // Step 6: Compute encrypted C-polynomials in G1
+    let mut c_query = Vec::with_capacity(num_vars);
+    for poly in c_polys {
+        let eval = poly.evaluate(&amp;tau_field);
+        c_query.push((G1Affine::generator() * beta * eval).into_affine());
+    }
+
+    // Step 7: Compute division polynomials
+    let target = target_polynomial::&lt;ark_bn254::Fq&gt;(num_constraints);
+    let h_query = compute_division_polynomials_encrypted(&amp;target, num_constraints, tau_field)?;
+
+    // Step 8: Compute IC for public inputs
+    let mut ic = Vec::with_capacity(num_inputs + 1);
+    ic.push((G1Affine::generator() * beta).into_affine());  // IC[0] = β·G₁
+    for a_poly in a_polys.iter().take(num_inputs + 1).skip(1) {
+        let a_eval = a_poly.evaluate(&amp;tau_field).value;
+        let ic_point = (G1Affine::generator() * beta * a_eval).into_affine();
+        ic.push(ic_point);
+    }
+
+    // Construct keys
+    let pk = ProvingKey { /* ... */ };
+    let vk = VerificationKey { /* ... */ };
+
+    Ok((pk, vk))
+}</code></pre>
+<h3 id="powers-of-tau-computation"><a class="header" href="#powers-of-tau-computation">Powers of Tau Computation</a></h3>
+<p>From <code>crates/groth16/src/setup.rs:231-254</code>:</p>
+<pre><code class="language-rust ignore">/// Computes powers of tau encrypted in G1
+fn compute_powers_of_tau_g1(tau: Fr, degree: usize) -&gt; Vec&lt;G1Affine&gt; {
+    let mut result = Vec::with_capacity(degree);
+    let mut current = G1::from(G1Affine::generator());
+
+    for _ in 0..degree {
+        result.push(current.into_affine());
+        current *= tau;  // Multiply by τ
+    }
+
+    result
+}</code></pre>
+<p>This computes: [G₁, τ·G₁, τ²·G₁, ..., τⁿ·G₁]</p>
+<h3 id="division-polynomials"><a class="header" href="#division-polynomials">Division Polynomials</a></h3>
+<p>From <code>crates/groth16/src/setup.rs:257-288</code>:</p>
+<pre><code class="language-rust ignore">/// Computes division polynomials and encrypts them
+fn compute_division_polynomials_encrypted(
+    target: &amp;Polynomial&lt;ark_bn254::Fq&gt;,
+    num_constraints: usize,
+    tau: FieldWrapper&lt;ark_bn254::Fq&gt;,
+) -&gt; Result&lt;Vec&lt;G1Affine&gt;, Groth16Error&gt; {
+    let mut result = Vec::new();
+
+    for j in 0..num_constraints.saturating_sub(2) {
+        // Compute t(x) / (x - j)
+        let j_field = FieldWrapper::&lt;ark_bn254::Fq&gt;::from(j as u64);
+        let divisor = Polynomial::&lt;ark_bn254::Fq&gt;::new(vec![
+            FieldWrapper::&lt;ark_bn254::Fq&gt;::zero() - j_field.clone(),
+            FieldWrapper::&lt;ark_bn254::Fq&gt;::one(),
+        ]);
+
+        let (quotient, _remainder) = divide_polynomials(target, &amp;divisor)?;
+        let h_j_at_tau = quotient.evaluate(&amp;tau);
+        let encrypted = (G1Affine::generator() * h_j_at_tau).into_affine();
+        result.push(encrypted);
+    }
+
+    Ok(result)
+}</code></pre>
+<h2 id="running-the-code-3"><a class="header" href="#running-the-code-3">Running the Code</a></h2>
+<h3 id="example-multiplier-circuit-setup"><a class="header" href="#example-multiplier-circuit-setup">Example: Multiplier Circuit Setup</a></h3>
+<pre><code class="language-bash">cd /path/to/groth16-demo
+cargo test --trusted_setup_test
+</code></pre>
+<h3 id="what-gets-generated"><a class="header" href="#what-gets-generated">What Gets Generated</a></h3>
+<p>For the multiplier circuit (a × b = c):</p>
+<p><strong>Proving Key</strong>:</p>
+<pre><code class="language-text">alpha_g1: α·G₁
+beta_g1: β·G₁
+beta_g2: β·G₂
+delta_g1: δ·G₁
+delta_g2: δ·G₂
+
+a_query: [α·A₀(τ)·G₁, α·A₁(τ)·G₁, α·A₂(τ)·G₁, α·A₃(τ)·G₁]
+b_g1_query: [β·B₀(τ)·G₁, β·B₁(τ)·G₁, β·B₂(τ)·G₁, β·B₃(τ)·G₁]
+b_g2_query: [β·B₀(τ)·G₂, β·B₁(τ)·G₂, β·B₂(τ)·G₂, β·B₃(τ)·G₂]
+c_query: [β·C₀(τ)·G₁, β·C₁(τ)·G₁, β·C₂(τ)·G₁, β·C₃(τ)·G₁]
+
+h_query: []  (no division polynomials for single constraint)
+</code></pre>
+<p><strong>Verification Key</strong>:</p>
+<pre><code class="language-text">alpha_g1: α·G₁
+beta_g2: β·G₂
+gamma_g2: γ·G₂
+delta_g2: δ·G₂
+
+ic: [β·G₁, β·A₁(τ)·G₁]  (for constant 1 and public input c)
+</code></pre>
+<h2 id="security-considerations"><a class="header" href="#security-considerations">Security Considerations</a></h2>
+<h3 id="toxic-waste-destruction"><a class="header" href="#toxic-waste-destruction">Toxic Waste Destruction</a></h3>
+<p>After the ceremony, the secrets (α, β, γ, δ, τ) <strong>must be destroyed</strong>:</p>
+<pre><code class="language-rust ignore">// Security: DO NOT do this!
+let secrets = (alpha, beta, gamma, delta, tau);
+println!("Toxic waste: {:?}", secrets);  // LEAK!
+
+// Correct: Let them go out of scope and be dropped
+drop(rng);  // The secrets only existed in the RNG state</code></pre>
+<h3 id="multi-party-computation-mpc"><a class="header" href="#multi-party-computation-mpc">Multi-Party Computation (MPC)</a></h3>
+<p>To reduce trust, we can use <strong>MPC ceremonies</strong>:</p>
+<ol>
+<li><strong>Participant 1</strong> generates secrets₁ and creates SRS₁</li>
+<li><strong>Participant 2</strong> generates secrets₂ and updates: SRS₂ = SRS₁ · secrets₂</li>
+<li><strong>Participant N</strong> generates secretsₙ and updates: SRSₙ = SRSₙ₋₁ · secretsₙ</li>
+<li><strong>Final</strong>: The toxic waste is secrets₁ · secrets₂ · ... · secretsₙ</li>
+</ol>
+<p><strong>Security</strong>: All N participants must collude to recover the toxic waste!</p>
+<h3 id="per-circuit-setup"><a class="header" href="#per-circuit-setup">Per-Circuit Setup</a></h3>
+<p>Groth16 requires a <strong>new setup for each circuit</strong>:</p>
+<ul>
+<li>Each circuit has its own QAP polynomials</li>
+<li>The setup evaluates these specific polynomials at τ</li>
+<li>Can't reuse keys across different circuits</li>
+</ul>
+<p><strong>Limitation</strong>: This is expensive! Newer protocols (PLONK, Halo 2) support universal setup.</p>
+<h2 id="connection-to-groth16-3"><a class="header" href="#connection-to-groth16-3">Connection to Groth16</a></h2>
+<p>Trusted setup is the <strong>preparation step</strong> before proving:</p>
+<pre><code class="language-text">Computation
+    ↓
+R1CS (matrix constraints)
+    ↓
+QAP (polynomial divisibility)
+    ↓
+Elliptic Curve Pairings
+    ↓
+Trusted Setup ← You are here
+    ↓
+Proof Generation (Chapter 6)
+</code></pre>
+<h2 id="exercises-5"><a class="header" href="#exercises-5">Exercises</a></h2>
+<ol>
+<li>
+<p><strong>Key structure</strong>:</p>
+<pre><code class="language-text">Why do we need both b_g1_query and b_g2_query?
+Can we use just one?
+</code></pre>
+</li>
+<li>
+<p><strong>Toxic waste</strong>:</p>
+<pre><code class="language-text">If alpha is leaked, what attacks become possible?
+Hint: Look at the proof A component formula
+</code></pre>
+</li>
+<li>
+<p><strong>IC vector</strong>:</p>
+<pre><code class="language-text">Why is IC[0] = β·G₁?
+What does it represent in the witness?
+</code></pre>
+</li>
+<li>
+<p><strong>Challenge question</strong>:</p>
+<pre><code class="language-text">Why can't we use a universal setup for all circuits?
+What part of the setup is circuit-specific?
+</code></pre>
+</li>
+</ol>
+<h2 id="further-reading-5"><a class="header" href="#further-reading-5">Further Reading</a></h2>
+<ul>
+<li><strong>Zcash Ceremony</strong>: <a href="https://z.cash/blog/snark-explainer.html">The Powers of Tau Ceremony</a></li>
+<li><strong>Perconia Ceremony</strong>: <a href="https://www.zfnd.org/blog/powers-of-tau/">Zcash Sapling Ceremony</a></li>
+<li><strong>MPC Techniques</strong>: <a href="https://eprint.iacr.org/2017/1050">MPC for ZK-SNARKs</a></li>
+</ul>
+<hr />
+<p><strong>Ready to generate proofs? Continue to <a href="./06-proof-generation.html">Chapter 6: Proof Generation</a></strong></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="proof-generation"><a class="header" href="#proof-generation">Proof Generation</a></h1>
+<p>We have our proving key from the trusted setup. Now we can finally generate a zero-knowledge proof! This is where all the pieces come together.</p>
+<h2 id="learning-objectives-6"><a class="header" href="#learning-objectives-6">Learning Objectives</a></h2>
+<p>After this chapter, you will understand:</p>
+<ul>
+<li>How to generate a Groth16 proof from a witness</li>
+<li>The proof structure (A, B, C components)</li>
+<li>Random blinding and zero-knowledge</li>
+<li>The division polynomial H(x)</li>
+<li>How the proof demonstrates constraint satisfaction</li>
+</ul>
+<h2 id="motivating-example-proving-knowledge"><a class="header" href="#motivating-example-proving-knowledge">Motivating Example: Proving Knowledge</a></h2>
+<p>Recall our multiplier circuit: a × b = c</p>
+<p><strong>Scenario</strong>: You want to prove you know factors of 12 without revealing them.</p>
+<p><strong>Goal</strong>: Generate a proof π = (A, B, C) such that:</p>
+<ul>
+<li>The verifier can check π against public input c = 12</li>
+<li>The verifier learns nothing about a = 3 and b = 4</li>
+<li>The proof is only 128 bytes (three elliptic curve points)</li>
+</ul>
+<h2 id="theory-deep-dive-the-proof-structure"><a class="header" href="#theory-deep-dive-the-proof-structure">Theory Deep Dive: The Proof Structure</a></h2>
+<h3 id="the-proof-components"><a class="header" href="#the-proof-components">The Proof Components</a></h3>
+<p>A Groth16 proof consists of three elliptic curve points:</p>
+<pre><code class="language-text">π = (A, B, C)
+</code></pre>
+<ul>
+<li><strong>A</strong> ∈ G₁: Proof component from A-polynomials</li>
+<li><strong>B</strong> ∈ G₂: Proof component from B-polynomials</li>
+<li><strong>C</strong> ∈ G₁: Proof component from C-polynomials and division polynomial</li>
+</ul>
+<h3 id="the-proof-equations"><a class="header" href="#the-proof-equations">The Proof Equations</a></h3>
+<p>The prover generates A, B, C to satisfy:</p>
+<pre><code class="language-text">A = [α]₁ + Σⱼ zⱼ·[Aⱼ(τ)]₁ + r·[δ]₁
+B = [β]₂ + Σⱼ zⱼ·[Bⱼ(τ)]₂ + s·[δ]₂
+C = Σⱼ zⱼ·[β·Aⱼ(τ) + α·Bⱼ(τ) + Cⱼ(τ)]₁ + [H(τ)]₁ + r·s·[δ]₁ - s·[β]₁ - r·[α]₁
+</code></pre>
+<p>Where:</p>
+<ul>
+<li>zⱼ are witness values</li>
+<li>r, s are random blinding factors</li>
+<li>[·]₁ means "encrypted in G₁" (··G₁)</li>
+<li>[·]₂ means "encrypted in G₂" (··G₂)</li>
+</ul>
+<h3 id="zero-knowledge-via-blinding"><a class="header" href="#zero-knowledge-via-blinding">Zero-Knowledge via Blinding</a></h3>
+<p>The random values <strong>r</strong> and <strong>s</strong> ensure zero-knowledge:</p>
+<pre><code class="language-text">A = ... + r·δ
+B = ... + s·δ
+C = ... + r·s·δ - s·β - r·α
+</code></pre>
+<p><strong>Key insight</strong>: Different (r, s) values produce different-looking proofs for the same witness, preventing the verifier from learning anything about the witness.</p>
+<h3 id="the-division-polynomial-hx"><a class="header" href="#the-division-polynomial-hx">The Division Polynomial H(x)</a></h3>
+<p>Recall from QAP that we check:</p>
+<pre><code class="language-text">P(x) = A(x) · B(x) - C(x) = H(x) · T(x)
+</code></pre>
+<p>The prover computes H(x) = P(x) / T(x) and includes H(τ) in the C component.</p>
+<p><strong>Why this works</strong>:</p>
+<ul>
+<li>If the witness is valid, P(x) is divisible by T(x)</li>
+<li>The prover can compute H(x) = P(x) / T(x)</li>
+<li>H(τ)·G₁ is included in the proof</li>
+<li>The verifier checks that H(x) exists (using the pairing equation)</li>
+</ul>
+<h2 id="implementation-proof-generation-in-rust"><a class="header" href="#implementation-proof-generation-in-rust">Implementation: Proof Generation in Rust</a></h2>
+<p>Now let's see how proof generation is implemented.</p>
+<h3 id="the-proof-structure"><a class="header" href="#the-proof-structure">The Proof Structure</a></h3>
+<p>From <code>crates/groth16/src/prove.rs:24-36</code>:</p>
+<pre><code class="language-rust ignore">/// Groth16 proof
+///
+/// A Groth16 proof consists of three group elements that demonstrate
+/// knowledge of a valid witness without revealing it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Proof {
+    /// Proof component A in G₁
+    pub a: G1Affine,
+    /// Proof component B in G₂
+    pub b: G2Affine,
+    /// Proof component C in G₁
+    pub c: G1Affine,
+}</code></pre>
+<h3 id="the-main-proof-function"><a class="header" href="#the-main-proof-function">The Main Proof Function</a></h3>
+<p>From <code>crates/groth16/src/prove.rs:89-200</code>:</p>
+<pre><code class="language-rust ignore">/// Generates a Groth16 zero-knowledge proof.
+pub fn generate_proof&lt;R: Rng + ?Sized&gt;(
+    pk: &amp;ProvingKey,
+    witness: &amp;[FieldWrapper&lt;Fq&gt;],
+    a_polys: &amp;[Polynomial&lt;Fq&gt;],
+    b_polys: &amp;[Polynomial&lt;Fq&gt;],
+    c_polys: &amp;[Polynomial&lt;Fq&gt;],
+    _public_inputs: usize,
+    rng: &amp;mut R,
+) -&gt; Result&lt;Proof, Groth16Error&gt; {
+    // Step 1: Compute A_base = Σⱼ witness[j]·Aⱼ(τ) (unblinded, without α)
+    let mut a_witness_blinded = G1::zero();
+    for (j, w) in witness.iter().enumerate() {
+        let w_fr = field_wrapper_to_fr(w);
+        let g1_point = G1::from(pk.a_query[j]);
+        a_witness_blinded += g1_point * w_fr;
+    }
+    // Extract α contribution: α·Σ witness[j] where j=0 is the constant 1
+    let alpha_sum = field_wrapper_to_fr(&amp;witness[0]);
+    let a_alpha_part = G1::from(pk.alpha_g1) * alpha_sum;
+    let a_base = a_witness_blinded - a_alpha_part;
+
+    // Step 2: Compute B_base = Σⱼ witness[j]·Bⱼ(τ) (unblinded, without β)
+    let mut b_witness_g2_blinded = G2::zero();
+    for (j, w) in witness.iter().enumerate() {
+        let w_fr = field_wrapper_to_fr(w);
+        let bg2_point = G2::from(pk.b_g2_query[j]);
+        b_witness_g2_blinded += bg2_point * w_fr;
+    }
+    // Extract β contribution: β·Σ witness[j]
+    let beta_sum = alpha_sum; // Same sum
+    let b_beta_part_g2 = G2::from(pk.beta_g2) * beta_sum;
+    let b_base_g2 = b_witness_g2_blinded - b_beta_part_g2;
+
+    // Step 3: Compute C_base = Σⱼ witness[j]·Cⱼ(τ) (already has β)
+    let mut c_base = G1::zero();
+    for (j, w) in witness.iter().enumerate() {
+        let w_fr = field_wrapper_to_fr(w);
+        let g1_point = G1::from(pk.c_query[j]);
+        c_base += g1_point * w_fr;
+    }
+
+    // Step 4: Generate random blinding factors
+    let r = Fr::rand(rng);
+    let s = Fr::rand(rng);
+
+    // Step 5: Compute proof component A
+    // A = α·G₁ + A_base + r·δ·G₁
+    let delta_g1 = G1::from(pk.delta_g1);
+    let a_g1 = G1::from(pk.alpha_g1) + a_base + delta_g1 * r;
+
+    // Step 6: Compute proof component B
+    // B = β·G₂ + B_base + s·δ·G₂
+    let delta_g2 = G2::from(pk.delta_g2);
+    let b_g2 = G2::from(pk.beta_g2) + b_base_g2 + delta_g2 * s;
+
+    // Step 7: Compute proof component C
+    // First compute the H polynomial
+    let a_w_poly = compute_witness_polynomial(a_polys, witness);
+    let b_w_poly = compute_witness_polynomial(b_polys, witness);
+    let c_w_poly = compute_witness_polynomial(c_polys, witness);
+
+    // Compute p(x) = A_w(x)·B_w(x) - C_w(x)
+    let product_poly = a_w_poly.clone() * b_w_poly.clone();
+    let diff_poly = product_poly - c_w_poly;
+
+    // Get target polynomial t(x)
+    let target_poly = groth16_qap::target_polynomial::&lt;Fq&gt;(num_constraints);
+
+    // Divide to get H(x)
+    let (h_poly, _remainder) = divide_polynomials(&amp;diff_poly, &amp;target_poly)?;
+
+    // Compute H(τ)·G₁
+    let h_at_tau = h_poly.evaluate(&amp;tau_field);
+    let h_fr = fq_to_fr(&amp;h_at_tau.value);
+
+    // Lookup in h_query
+    let mut h_encrypted = G1::zero();
+    for (j, coeff) in h_poly.coeffs.iter().enumerate() {
+        if j &lt; pk.h_query.len() {
+            let h_point = G1::from(pk.h_query[j]);
+            h_encrypted += h_point * fq_to_fr(&amp;coeff.value);
+        }
+    }
+
+    // C = β·A_base·s + α·B_base·r + C_base + H(τ) + r·s·δ
+    let c_g1 = c_base
+        + a_base.clone() * s
+        + b_base_g1.clone() * r
+        + h_encrypted
+        + delta_g1 * (r * s)
+        - G1::from(pk.beta_g1) * s
+        - G1::from(pk.alpha_g1) * r;
+
+    Ok(Proof {
+        a: a_g1.into_affine(),
+        b: b_g2.into_affine(),
+        c: c_g1.into_affine(),
+    })
+}</code></pre>
+<h3 id="computing-the-witness-polynomial"><a class="header" href="#computing-the-witness-polynomial">Computing the Witness Polynomial</a></h3>
+<pre><code class="language-rust ignore">/// Computes the witness polynomial: W(x) = Σⱼ witness[j]·Pⱼ(x)
+fn compute_witness_polynomial&lt;F&gt;(
+    polynomials: &amp;[Polynomial&lt;F&gt;],
+    witness: &amp;[FieldWrapper&lt;F&gt;],
+) -&gt; Polynomial&lt;F&gt;
+where
+    F: PrimeField,
+{
+    let mut result = Polynomial::&lt;F&gt;::new(vec![FieldWrapper::zero()]);
+
+    for (j, poly) in polynomials.iter().enumerate() {
+        let scaled = scale_polynomial(poly, &amp;witness[j]);
+        result = result + scaled;
+    }
+
+    result
+}</code></pre>
+<h2 id="running-the-code-4"><a class="header" href="#running-the-code-4">Running the Code</a></h2>
+<h3 id="example-generating-a-proof"><a class="header" href="#example-generating-a-proof">Example: Generating a Proof</a></h3>
+<pre><code class="language-rust ignore">use groth16_groth16::{trusted_setup, generate_proof};
+use groth16_circuits::multiplier::MultiplierCircuit;
+use groth16_qap::r1cs_to_qap;
+
+// Create circuit
+let circuit = MultiplierCircuit::new(3, 4, 12);
+let witness = circuit.witness();  // [1, 12, 3, 4]
+
+// Convert to R1CS and QAP
+let constraints = circuit.to_r1cs();
+let (a_polys, b_polys, c_polys) = r1cs_to_qap(&amp;constraints, 4)?;
+
+// Trusted setup
+let (pk, vk) = trusted_setup(&amp;a_polys, &amp;b_polys, &amp;c_polys, 1, &amp;mut rng)?;
+
+// Generate proof
+let proof = generate_proof(&amp;pk, &amp;witness, &amp;a_polys, &amp;b_polys, &amp;c_polys, 1, &amp;mut rng)?;
+
+println!("Proof generated:");
+println!("  A: {:?}", proof.a);
+println!("  B: {:?}", proof.b);
+println!("  C: {:?}", proof.c);</code></pre>
+<h3 id="what-the-proof-contains"><a class="header" href="#what-the-proof-contains">What the Proof Contains</a></h3>
+<p>For the multiplier circuit (a=3, b=4, c=12):</p>
+<pre><code class="language-text">A = α·G₁ + 3·A₂(τ)·G₁ + r·δ·G₁
+  = α·G₁ + 3·G₁ + r·δ·G₁  (since A₂(x) = 1)
+
+B = β·G₂ + 4·B₃(τ)·G₂ + s·δ·G₂
+  = β·G₂ + 4·G₂ + s·δ·G₂  (since B₃(x) = 1)
+
+C = ... (complex formula involving H(τ))
+</code></pre>
+<p>The verifier only sees the elliptic curve points, not the witness values!</p>
+<h2 id="security-properties-1"><a class="header" href="#security-properties-1">Security Properties</a></h2>
+<h3 id="zero-knowledge"><a class="header" href="#zero-knowledge">Zero-Knowledge</a></h3>
+<p>The random values r and s ensure that:</p>
+<ul>
+<li>Different proofs for the same witness look different</li>
+<li>The verifier cannot deduce the witness from the proof</li>
+<li>No information about a and b is leaked</li>
+</ul>
+<h3 id="soundness"><a class="header" href="#soundness">Soundness</a></h3>
+<p>A malicious prover cannot create a valid proof for an invalid witness because:</p>
+<ul>
+<li>The pairing equation (Chapter 7) would fail</li>
+<li>They would need to know α, β, γ, δ (toxic waste)</li>
+<li>The division polynomial H(x) wouldn't exist for invalid witnesses</li>
+</ul>
+<h3 id="proof-size"><a class="header" href="#proof-size">Proof Size</a></h3>
+<p>A Groth16 proof is only <strong>128 bytes</strong>:</p>
+<ul>
+<li>A ∈ G₁: 32 bytes (compressed)</li>
+<li>B ∈ G₂: 64 bytes (compressed)</li>
+<li>C ∈ G₁: 32 bytes (compressed)</li>
+</ul>
+<p>This is constant regardless of circuit complexity!</p>
+<h2 id="connection-to-groth16-4"><a class="header" href="#connection-to-groth16-4">Connection to Groth16</a></h2>
+<p>Proof generation is the <strong>proving phase</strong> of Groth16:</p>
+<pre><code class="language-text">Computation
+    ↓
+R1CS (matrix constraints)
+    ↓
+QAP (polynomial divisibility)
+    ↓
+Elliptic Curve Pairings
+    ↓
+Trusted Setup
+    ↓
+Proof Generation ← You are here
+    ↓
+Proof Verification (Chapter 7)
+</code></pre>
+<h2 id="exercises-6"><a class="header" href="#exercises-6">Exercises</a></h2>
+<ol>
+<li>
+<p><strong>Blinding factors</strong>:</p>
+<pre><code class="language-text">What happens if r = 0 and s = 0?
+Is the proof still zero-knowledge?
+</code></pre>
+</li>
+<li>
+<p><strong>Division polynomial</strong>:</p>
+<pre><code class="language-text">For the multiplier circuit, what is H(x)?
+Hint: P(x) = 3·4 - 12 = 0, so H(x) = 0 / T(x) = 0
+</code></pre>
+</li>
+<li>
+<p><strong>Proof size</strong>:</p>
+<pre><code class="language-text">Why is the proof size constant?
+Why doesn't it grow with circuit complexity?
+</code></pre>
+</li>
+<li>
+<p><strong>Challenge question</strong>:</p>
+<pre><code class="language-text">Can a prover generate a proof without knowing the witness?
+What would prevent this?
+</code></pre>
+</li>
+</ol>
+<h2 id="further-reading-6"><a class="header" href="#further-reading-6">Further Reading</a></h2>
+<ul>
+<li><strong>Groth16 Paper</strong>: <a href="https://eprint.iacr.org/2016/260">On the Size of Pairing-based Non-Interactive Arguments</a></li>
+<li><strong>Zero-Knowledge Proofs</strong>: <a href="https://zkp.science/">ZK-SNARKs Explained</a></li>
+<li><strong>Proof Systems</strong>: <a href="https://eprint.iacr.org/2019/953">Proof Systems Survey</a></li>
+</ul>
+<hr />
+<p><strong>Ready to verify proofs? Continue to <a href="./07-proof-verification.html">Chapter 7: Proof Verification</a></strong></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="proof-verification"><a class="header" href="#proof-verification">Proof Verification</a></h1>
+<p>We've generated our proof. Now the verifier needs to check that it's valid without learning anything about the witness. This is where the pairing equation comes in!</p>
+<h2 id="learning-objectives-7"><a class="header" href="#learning-objectives-7">Learning Objectives</a></h2>
+<p>After this chapter, you will understand:</p>
+<ul>
+<li>The Groth16 verification equation</li>
+<li>How pairings enable efficient verification</li>
+<li>Constant-time verification regardless of circuit size</li>
+<li>Batch verification for efficiency</li>
+<li>Security properties of verification</li>
+</ul>
+<h2 id="motivating-example-the-verification-check"><a class="header" href="#motivating-example-the-verification-check">Motivating Example: The Verification Check</a></h2>
+<p>The prover sends:</p>
+<ul>
+<li>Proof π = (A, B, C)</li>
+<li>Public inputs (e.g., c = 12 for the multiplier)</li>
+</ul>
+<p>The verifier needs to check:</p>
+<ol>
+<li>The proof was generated correctly</li>
+<li>The public inputs match the witness</li>
+<li>The witness satisfies all constraints</li>
+<li>No information about the witness is leaked</li>
+</ol>
+<p><strong>All in constant time!</strong></p>
+<h2 id="theory-deep-dive-the-verification-equation"><a class="header" href="#theory-deep-dive-the-verification-equation">Theory Deep Dive: The Verification Equation</a></h2>
+<h3 id="the-pairing-equation-1"><a class="header" href="#the-pairing-equation-1">The Pairing Equation</a></h3>
+<p>A Groth16 proof is valid if and only if:</p>
+<pre><code class="language-text">e(A, B) = e(α, β) · e(Σ publicᵢ·ICᵢ, γ) · e(C, δ)
+</code></pre>
+<p>Where:</p>
+<ul>
+<li><strong>e(·, ·)</strong> is the bilinear pairing</li>
+<li><strong>A, B, C</strong> are the proof components</li>
+<li><strong>α, β, γ, δ</strong> are from the verification key</li>
+<li><strong>ICᵢ</strong> are the input consistency elements</li>
+<li><strong>publicᵢ</strong> are the public inputs</li>
+</ul>
+<h3 id="expanding-the-equation"><a class="header" href="#expanding-the-equation">Expanding the Equation</a></h3>
+<p>Let's expand what each component means:</p>
+<p><strong>Left side</strong>:</p>
+<pre><code class="language-text">e(A, B) = e(α·G₁ + A_witness + r·δ·G₁, β·G₂ + B_witness + s·δ·G₂)
+</code></pre>
+<p><strong>Right side</strong>:</p>
+<pre><code class="language-text">e(α, β) · e(Σ public·IC, γ) · e(C, δ)
+</code></pre>
+<p>When the proof is correctly generated, these two sides are equal!</p>
+<h3 id="why-this-works"><a class="header" href="#why-this-works">Why This Works</a></h3>
+<p>The verification equation checks three things:</p>
+<ol>
+<li><strong>Proof structure</strong>: A and B use the correct secrets (α, β, δ)</li>
+<li><strong>Public input consistency</strong>: The witness matches the claimed public inputs</li>
+<li><strong>QAP satisfaction</strong>: The division polynomial H(x) exists</li>
+</ol>
+<p>If any of these fail, the pairing equation won't hold!</p>
+<h3 id="the-public-input-term"><a class="header" href="#the-public-input-term">The Public Input Term</a></h3>
+<p>The term <strong>e(Σ publicᵢ·ICᵢ, γ)</strong> ensures public input consistency:</p>
+<pre><code class="language-text">IC[0] = β·G₁ (for the constant 1)
+IC[i] = β·Aᵢ(τ)·G₁ for i = 1..num_inputs
+
+Σ publicᵢ·ICᵢ = public₀·IC[0] + public₁·IC[1] + ...
+              = 1·β·G₁ + c·β·A₁(τ)·G₁
+              = β·(1 + c·A₁(τ))·G₁
+</code></pre>
+<p>This ensures the witness used the correct public inputs!</p>
+<h2 id="implementation-verification-in-rust"><a class="header" href="#implementation-verification-in-rust">Implementation: Verification in Rust</a></h2>
+<p>Now let's see how verification is implemented.</p>
+<h3 id="the-main-verification-function"><a class="header" href="#the-main-verification-function">The Main Verification Function</a></h3>
+<p>From <code>crates/groth16/src/verify.rs:66-167</code>:</p>
+<pre><code class="language-rust ignore">/// Verifies a Groth16 zero-knowledge proof.
+pub fn verify_proof(
+    vk: &amp;VerificationKey,
+    proof: &amp;Proof,
+    public_inputs: &amp;[FieldWrapper&lt;Fq&gt;],
+) -&gt; Result&lt;bool, Groth16Error&gt; {
+    // Helper function to convert FieldWrapper&lt;Fq&gt; to Fr
+    fn fq_to_fr(fq: &amp;Fq) -&gt; &lt;Bn254 as Pairing&gt;::ScalarField {
+        let bytes = fq.into_bigint().to_bytes_be();
+        let mut padded = [0u8; 32];
+        let start = 32usize.saturating_sub(bytes.len());
+        padded[start..].copy_from_slice(&amp;bytes);
+        &lt;Bn254 as Pairing&gt;::ScalarField::from_be_bytes_mod_order(&amp;padded)
+    }
+
+    // Step 1: Compute left side of verification equation
+    // Left side: e(A, B)
+    let left = Bn254::pairing(proof.a, proof.b);
+
+    // Step 2: Compute right side components
+    // Component 1: e(α, β)
+    let alpha_beta = Bn254::pairing(vk.alpha_g1, vk.beta_g2);
+
+    // Component 2: e(Σpublic_i·IC_i, γ)
+    // Check if IC includes the constant (IC length = public_inputs + 1)
+    let has_constant = vk.ic.len() == public_inputs.len() + 1;
+
+    let mut public_acc = G1::zero();
+
+    if has_constant {
+        // IC[0] is for constant 1, IC[1..] are for public inputs
+        if !vk.ic.is_empty() {
+            public_acc += G1::from(vk.ic[0]);
+        }
+        for (i, input) in public_inputs.iter().enumerate() {
+            if i + 1 &lt; vk.ic.len() {
+                let input_scalar = fq_to_fr(&amp;input.value);
+                let ic_point = G1::from(vk.ic[i + 1]);
+                public_acc += ic_point * input_scalar;
+            }
+        }
+    }
+
+    let public_gamma = Bn254::pairing(public_acc, vk.gamma_g2);
+
+    // Component 3: e(C, δ)
+    let c_delta = Bn254::pairing(proof.c, vk.delta_g2);
+
+    // Right side: e(α, β) · e(Σpublic·IC, γ) · e(C, δ)
+    let right_field = alpha_beta.0 * public_gamma.0 * c_delta.0;
+
+    // Step 3: Check if verification equation holds
+    let is_valid = left.0 == right_field;
+
+    Ok(is_valid)
+}</code></pre>
+<h3 id="the-verification-algorithm"><a class="header" href="#the-verification-algorithm">The Verification Algorithm</a></h3>
+<ol>
+<li><strong>Compute left side</strong>: <code>e(A, B)</code> using the pairing</li>
+<li><strong>Compute right side</strong>:
+<ul>
+<li><code>e(α, β)</code> from the verification key</li>
+<li><code>e(Σpublic·IC, γ)</code> by combining public inputs with IC elements</li>
+<li><code>e(C, δ)</code> from the proof and verification key</li>
+</ul>
+</li>
+<li><strong>Multiply the right side components</strong>: <code>e(α, β) · e(Σpublic·IC, γ) · e(C, δ)</code></li>
+<li><strong>Compare</strong>: Check if left equals right</li>
+</ol>
+<h2 id="running-the-code-5"><a class="header" href="#running-the-code-5">Running the Code</a></h2>
+<h3 id="example-verifying-a-proof"><a class="header" href="#example-verifying-a-proof">Example: Verifying a Proof</a></h3>
+<pre><code class="language-rust ignore">use groth16_groth16::{trusted_setup, generate_proof, verify_proof};
+use groth16_circuits::multiplier::MultiplierCircuit;
+use groth16_qap::r1cs_to_qap;
+
+// Setup and proof generation
+let circuit = MultiplierCircuit::new(3, 4, 12);
+let witness = circuit.witness();
+let constraints = circuit.to_r1cs();
+let (a_polys, b_polys, c_polys) = r1cs_to_qap(&amp;constraints, 4)?;
+let (pk, vk) = trusted_setup(&amp;a_polys, &amp;b_polys, &amp;c_polys, 1, &amp;mut rng)?;
+let proof = generate_proof(&amp;pk, &amp;witness, &amp;a_polys, &amp;b_polys, &amp;c_polys, 1, &amp;mut rng)?;
+
+// Verify with public input c=12
+let public_inputs = vec![FieldWrapper::&lt;Fq&gt;::from(12u64)];
+let is_valid = verify_proof(&amp;vk, &amp;proof, &amp;public_inputs)?;
+
+assert!(is_valid);  // Proof should be valid
+println!("Proof verification: {}", is_valid);</code></pre>
+<h3 id="example-invalid-proof"><a class="header" href="#example-invalid-proof">Example: Invalid Proof</a></h3>
+<pre><code class="language-rust ignore">// Try to verify with wrong public input
+let wrong_public_inputs = vec![FieldWrapper::&lt;Fq&gt;::from(13u64)];  // Should be 12
+let is_valid = verify_proof(&amp;vk, &amp;proof, &amp;wrong_public_inputs)?;
+
+assert!(!is_valid);  // Proof should be invalid</code></pre>
+<h2 id="efficiency"><a class="header" href="#efficiency">Efficiency</a></h2>
+<h3 id="constant-time-verification"><a class="header" href="#constant-time-verification">Constant-Time Verification</a></h3>
+<p>Verification is <strong>O(1)</strong> regardless of circuit size:</p>
+<ul>
+<li>3 pairing operations (constant time)</li>
+<li>O(n) field multiplications for public inputs (usually small n)</li>
+<li>No computation over constraints!</li>
+</ul>
+<p>For a circuit with 1 million constraints:</p>
+<ul>
+<li>Proving time: O(n) ~ several seconds</li>
+<li>Verification time: O(1) ~ a few milliseconds</li>
+</ul>
+<h3 id="batch-verification"><a class="header" href="#batch-verification">Batch Verification</a></h3>
+<p>We can verify multiple proofs efficiently using random linear combination:</p>
+<p>From <code>crates/groth16/src/verify.rs:169-240</code>:</p>
+<pre><code class="language-rust ignore">/// Batch verifies multiple Groth16 proofs efficiently using random linear combination.
+///
+/// Instead of O(n) pairing operations for n proofs, we use O(1) pairings total.
+pub fn batch_verify&lt;R: Rng&gt;(
+    vk: &amp;VerificationKey,
+    proofs: &amp;[Proof],
+    public_inputs_list: &amp;[Vec&lt;FieldWrapper&lt;Fq&gt;&gt;],
+    rng: &amp;mut R,
+) -&gt; Result&lt;bool, Groth16Error&gt;
+{
+    // Generate random coefficients for each proof
+    let mut coeffs = Vec::with_capacity(proofs.len());
+    for _ in 0..proofs.len() {
+        let r = Fr::rand(rng);
+        coeffs.push(r);
+    }
+
+    // Compute combined left side: e(Σ rᵢ·Aᵢ, Bᵢ)
+    let mut combined_a = G1::zero();
+    for (i, proof) in proofs.iter().enumerate() {
+        combined_a += G1::from(proof.a) * coeffs[i];
+    }
+    let left = Bn254::pairing(combined_a, proofs[0].b);
+
+    // Compute combined right side
+    // ... (similar combination for right side)
+
+    // Single pairing check for all proofs
+    Ok(left.0 == right.0)
+}</code></pre>
+<p><strong>Speedup</strong>: For n proofs:</p>
+<ul>
+<li>Individual: ~3n pairings</li>
+<li>Batch: ~3 pairings (constant!)</li>
+<li>Speedup: Approximately n× faster</li>
+</ul>
+<h2 id="security-properties-2"><a class="header" href="#security-properties-2">Security Properties</a></h2>
+<h3 id="soundness-1"><a class="header" href="#soundness-1">Soundness</a></h3>
+<p>A false proof will be rejected with overwhelming probability:</p>
+<ul>
+<li>The pairing equation would fail</li>
+<li>Cannot forge without knowing toxic waste</li>
+<li>Cryptographic assumptions: ECDLP, SDH</li>
+</ul>
+<h3 id="zero-knowledge-1"><a class="header" href="#zero-knowledge-1">Zero-Knowledge</a></h3>
+<p>Verification reveals nothing about the witness:</p>
+<ul>
+<li>Only public inputs and the proof are visible</li>
+<li>Pairings don't leak information about discrete logs</li>
+<li>Blinding factors (r, s) ensure proof diversity</li>
+</ul>
+<h3 id="succinctness"><a class="header" href="#succinctness">Succinctness</a></h3>
+<p>Verification is incredibly efficient:</p>
+<ul>
+<li>Constant-time regardless of circuit complexity</li>
+<li>Small proof size (128 bytes)</li>
+<li>Fast verification (~milliseconds)</li>
+</ul>
+<h2 id="connection-to-groth16-5"><a class="header" href="#connection-to-groth16-5">Connection to Groth16</a></h2>
+<p>Verification is the <strong>final step</strong> of Groth16:</p>
+<pre><code class="language-text">Computation
+    ↓
+R1CS (matrix constraints)
+    ↓
+QAP (polynomial divisibility)
+    ↓
+Elliptic Curve Pairings
+    ↓
+Trusted Setup
+    ↓
+Proof Generation
+    ↓
+Proof Verification ← You are here
+</code></pre>
+<h2 id="exercises-7"><a class="header" href="#exercises-7">Exercises</a></h2>
+<ol>
+<li>
+<p><strong>Verification equation</strong>:</p>
+<pre><code class="language-text">Why do we need e(α, β) on the right side?
+What would happen if we removed it?
+</code></pre>
+</li>
+<li>
+<p><strong>Public input consistency</strong>:</p>
+<pre><code class="language-text">How does the IC vector ensure public inputs are correct?
+What happens if the prover lies about public inputs?
+</code></pre>
+</li>
+<li>
+<p><strong>Batch verification</strong>:</p>
+<pre><code class="language-text">Why does batch verification work?
+What's the security requirement for the random coefficients?
+</code></pre>
+</li>
+<li>
+<p><strong>Challenge question</strong>:</p>
+<pre><code class="language-text">Can we verify a proof without the verification key?
+What parts of the VK are essential?
+</code></pre>
+</li>
+</ol>
+<h2 id="further-reading-7"><a class="header" href="#further-reading-7">Further Reading</a></h2>
+<ul>
+<li><strong>Pairing Verification</strong>: <a href="https://www.cryptologie.net/article/328/pairing-based-cryptography/">Pairing-Based Cryptography</a></li>
+<li><strong>Batch Verification</strong>: <a href="https://eprint.iacr.org/2020/1628">Batch Verification Techniques</a></li>
+<li><strong>Groth16 Security</strong>: <a href="https://eprint.iacr.org/2016/260">Groth16 Security Proof</a></li>
+</ul>
+<hr />
+<p><strong>Ready to build circuits? Continue to <a href="./08-building-circuits.html">Chapter 8: Building Your Own Circuits</a></strong></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="building-your-own-circuits"><a class="header" href="#building-your-own-circuits">Building Your Own Circuits</a></h1>
+<p>Congratulations! You've made it through the theory. Now let's put it all together and learn how to build your own zero-knowledge circuits!</p>
+<h2 id="learning-objectives-8"><a class="header" href="#learning-objectives-8">Learning Objectives</a></h2>
+<p>After this chapter, you will understand:</p>
+<ul>
+<li>How to design a circuit from a computation</li>
+<li>Best practices for circuit construction</li>
+<li>Common circuit patterns and idioms</li>
+<li>How to test and debug circuits</li>
+<li>Performance considerations</li>
+</ul>
+<h2 id="motivating-example-from-idea-to-circuit"><a class="header" href="#motivating-example-from-idea-to-circuit">Motivating Example: From Idea to Circuit</a></h2>
+<p>Let's say you want to prove you know a secret password hash without revealing the password.</p>
+<p><strong>Computation</strong>: Hash(password) = claimed_hash</p>
+<p><strong>Circuit design</strong>:</p>
+<ol>
+<li>Identify inputs: password (private), claimed_hash (public)</li>
+<li>Define the computation: Hash function</li>
+<li>Encode as R1CS constraints</li>
+<li>Generate witness, proof, and verify!</li>
+</ol>
+<h2 id="circuit-design-process"><a class="header" href="#circuit-design-process">Circuit Design Process</a></h2>
+<h3 id="step-1-identify-inputs-and-outputs"><a class="header" href="#step-1-identify-inputs-and-outputs">Step 1: Identify Inputs and Outputs</a></h3>
+<p>First, clearly define what's private and what's public:</p>
+<p><strong>Example</strong>: Age verification</p>
+<ul>
+<li><strong>Private</strong>: Your age</li>
+<li><strong>Public</strong>: Threshold (e.g., 18)</li>
+<li><strong>Output</strong>: Are you over 18? (yes/no)</li>
+</ul>
+<h3 id="step-2-break-down-the-computation"><a class="header" href="#step-2-break-down-the-computation">Step 2: Break Down the Computation</a></h3>
+<p>Complex computations need to be broken into simple operations:</p>
+<p><strong>Supported operations</strong>:</p>
+<ul>
+<li>Addition: <code>a + b = c</code></li>
+<li>Multiplication: <code>a × b = c</code></li>
+<li>Subtraction: <code>a - b = c</code> (addition with negative)</li>
+<li>Division: <code>a / b = c</code> (multiplication with inverse)</li>
+</ul>
+<p><strong>Not directly supported</strong>:</p>
+<ul>
+<li>Bitwise operations (need to decompose into bits)</li>
+<li>Comparison (need to decompose into bits)</li>
+<li>Range checks (need specialized circuits)</li>
+</ul>
+<h3 id="step-3-add-intermediate-variables"><a class="header" href="#step-3-add-intermediate-variables">Step 3: Add Intermediate Variables</a></h3>
+<p>For complex computations, introduce intermediate variables:</p>
+<p><strong>Example</strong>: <code>(a + b) × (a - b) = c</code></p>
+<p>Variables: <code>z = [1, c, a, b, t₁, t₂]</code></p>
+<p>Constraints:</p>
+<pre><code class="language-text">t₁ = a + b
+t₂ = a - b
+c = t₁ × t₂
+</code></pre>
+<h3 id="step-4-encode-as-r1cs"><a class="header" href="#step-4-encode-as-r1cs">Step 4: Encode as R1CS</a></h3>
+<p>Convert each operation into an R1CS constraint:</p>
+<p><strong>Addition constraint</strong>: <code>t₁ = a + b</code></p>
+<pre><code class="language-text">A = [0, 0, 1, 1, 0, 0]  ← a + b
+B = [1, 0, 0, 0, 0, 0]  ← 1
+C = [0, 0, 0, 0, 1, 0]  ← t₁
+</code></pre>
+<p><strong>Multiplication constraint</strong>: <code>c = t₁ × t₂</code></p>
+<pre><code class="language-text">A = [0, 0, 0, 0, 1, 0]  ← t₁
+B = [0, 0, 0, 0, 0, 1]  ← t₂
+C = [0, 1, 0, 0, 0, 0]  ← c
+</code></pre>
+<h2 id="circuit-patterns"><a class="header" href="#circuit-patterns">Circuit Patterns</a></h2>
+<h3 id="pattern-1-boolean-circuits"><a class="header" href="#pattern-1-boolean-circuits">Pattern 1: Boolean Circuits</a></h3>
+<p>For operations on bits (0 or 1):</p>
+<p><strong>Bit constraint</strong>: <code>b ∈ {0, 1}</code></p>
+<pre><code class="language-text">b × (1 - b) = 0
+</code></pre>
+<p>R1CS:</p>
+<pre><code class="language-text">A = [0, 0, 1, 0]  ← b
+B = [1, 0, -1, 0] ← 1 - b
+C = [0, 1, 0, 0]  ← 0
+</code></pre>
+<p><strong>Bitwise AND</strong>: <code>c = a AND b</code></p>
+<pre><code class="language-text">c = a × b
+</code></pre>
+<p><strong>Bitwise OR</strong>: <code>c = a OR b</code></p>
+<pre><code class="language-text">c = a + b - (a × b)
+</code></pre>
+<p><strong>Bitwise XOR</strong>: <code>c = a XOR b</code></p>
+<pre><code class="language-text">c = a + b - 2(a × b)
+</code></pre>
+<h3 id="pattern-2-comparison-circuits"><a class="header" href="#pattern-2-comparison-circuits">Pattern 2: Comparison Circuits</a></h3>
+<p>To check if <code>a &gt; b</code>:</p>
+<ol>
+<li>Compute <code>d = a - b</code></li>
+<li>Decompose <code>d</code> into bits</li>
+<li>Use the most significant bit (sign bit) to determine comparison</li>
+</ol>
+<h3 id="pattern-3-range-check-circuits"><a class="header" href="#pattern-3-range-check-circuits">Pattern 3: Range Check Circuits</a></h3>
+<p>To check if <code>x</code> is in range <code>[0, 2ⁿ)</code>:</p>
+<ol>
+<li>Decompose <code>x</code> into <code>n</code> bits</li>
+<li>Each bit must satisfy the bit constraint</li>
+<li>This ensures <code>0 ≤ x &lt; 2ⁿ</code></li>
+</ol>
+<h3 id="pattern-4-equality-check"><a class="header" href="#pattern-4-equality-check">Pattern 4: Equality Check</a></h3>
+<p>To check if <code>a = b</code>:</p>
+<ol>
+<li>Compute <code>d = a - b</code></li>
+<li>Check if <code>d = 0</code> using <code>d × d = 0</code> (or more sophisticated methods)</li>
+</ol>
+<h2 id="implementation-building-a-circuit"><a class="header" href="#implementation-building-a-circuit">Implementation: Building a Circuit</a></h2>
+<p>Let's implement a simple circuit from scratch.</p>
+<h3 id="example-cubic-circuit"><a class="header" href="#example-cubic-circuit">Example: Cubic Circuit</a></h3>
+<p>Circuit: <code>y = x³</code></p>
+<pre><code class="language-rust ignore">use ark_bn254::Fq;
+use groth16_math::fields::FieldWrapper;
+use groth16_r1cs::constraint::R1CSConstraint;
+
+pub struct CubicCircuit {
+    pub x: u64,
+    pub y: u64,
+}
+
+impl CubicCircuit {
+    pub fn new(x: u64, y: u64) -&gt; Self {
+        Self { x, y }
+    }
+
+    pub fn to_r1cs(&amp;self) -&gt; Vec&lt;R1CSConstraint&lt;Fq&gt;&gt; {
+        let mut constraints = Vec::new();
+
+        // Constraint 1: t = x × x (square)
+        let mut c1 = R1CSConstraint::&lt;Fq&gt;::new();
+        c1.add_a_variable(1, FieldWrapper::&lt;Fq&gt;::from(1u64));  // x
+        c1.add_b_variable(1, FieldWrapper::&lt;Fq&gt;::from(1u64));  // x
+        c1.add_c_variable(2, FieldWrapper::&lt;Fq&gt;::from(1u64));  // t
+        constraints.push(c1);
+
+        // Constraint 2: y = t × x (cube)
+        let mut c2 = R1CSConstraint::&lt;Fq&gt;::new();
+        c2.add_a_variable(2, FieldWrapper::&lt;Fq&gt;::from(1u64));  // t
+        c2.add_b_variable(1, FieldWrapper::&lt;Fq&gt;::from(1u64));  // x
+        c2.add_c_variable(3, FieldWrapper::&lt;Fq&gt;::from(1u64));  // y
+        constraints.push(c2);
+
+        constraints
+    }
+
+    pub fn witness(&amp;self) -&gt; Vec&lt;FieldWrapper&lt;Fq&gt;&gt; {
+        vec![
+            FieldWrapper::&lt;Fq&gt;::from(1u64),   // constant 1
+            FieldWrapper::&lt;Fq&gt;::from(self.x),  // x
+            FieldWrapper::&lt;Fq&gt;::from(self.x * self.x),  // t = x²
+            FieldWrapper::&lt;Fq&gt;::from(self.y),  // y
+        ]
+    }
+}</code></pre>
+<h3 id="example-multiplier-circuit-recap"><a class="header" href="#example-multiplier-circuit-recap">Example: Multiplier Circuit (Recap)</a></h3>
+<p>From <code>crates/circuits/src/multiplier.rs:45-131</code>:</p>
+<pre><code class="language-rust ignore">pub struct MultiplierCircuit {
+    pub a: u64,
+    pub b: u64,
+    pub c: u64,
+}
+
+impl MultiplierCircuit {
+    pub fn new(a: u64, b: u64, c: u64) -&gt; Self {
+        Self { a, b, c }
+    }
+
+    pub fn to_r1cs(&amp;self) -&gt; Vec&lt;R1CSConstraint&lt;Fq&gt;&gt; {
+        let mut constraint = R1CSConstraint::&lt;Fq&gt;::new();
+
+        // A vector: selects variable a (index 2)
+        constraint.add_a_variable(2, FieldWrapper::&lt;Fq&gt;::from(1u64));
+
+        // B vector: selects variable b (index 3)
+        constraint.add_b_variable(3, FieldWrapper::&lt;Fq&gt;::from(1u64));
+
+        // C vector: selects variable c (index 1)
+        constraint.add_c_variable(1, FieldWrapper::&lt;Fq&gt;::from(1u64));
+
+        vec![constraint]
+    }
+
+    pub fn witness(&amp;self) -&gt; Vec&lt;FieldWrapper&lt;Fq&gt;&gt; {
+        vec![
+            FieldWrapper::&lt;Fq&gt;::from(1u64),   // constant 1
+            FieldWrapper::&lt;Fq&gt;::from(self.c), // public output c
+            FieldWrapper::&lt;Fq&gt;::from(self.a), // private input a
+            FieldWrapper::&lt;Fq&gt;::from(self.b), // private input b
+        ]
+    }
+}</code></pre>
+<h2 id="testing-your-circuit"><a class="header" href="#testing-your-circuit">Testing Your Circuit</a></h2>
+<p>Always test your circuit thoroughly!</p>
+<h3 id="unit-tests"><a class="header" href="#unit-tests">Unit Tests</a></h3>
+<pre><code class="language-rust ignore">#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_circuit_valid() {
+        let circuit = CubicCircuit::new(3, 27);  // 3³ = 27
+        let constraints = circuit.to_r1cs();
+        let witness = circuit.witness();
+
+        // Verify each constraint
+        for constraint in &amp;constraints {
+            assert!(constraint.is_satisfied(&amp;witness));
+        }
+    }
+
+    #[test]
+    fn test_circuit_invalid() {
+        let circuit = CubicCircuit::new(3, 26);  // 3³ ≠ 26
+        let constraints = circuit.to_r1cs();
+        let witness = circuit.witness();
+
+        // Should fail at least one constraint
+        let all_satisfied = constraints.iter()
+            .all(|c| c.is_satisfied(&amp;witness));
+        assert!(!all_satisfied);
+    }
+}</code></pre>
+<h3 id="integration-tests"><a class="header" href="#integration-tests">Integration Tests</a></h3>
+<pre><code class="language-rust ignore">#[test]
+fn test_full_groth16_flow() {
+    use groth16_groth16::{trusted_setup, generate_proof, verify_proof};
+    use groth16_qap::r1cs_to_qap;
+
+    // Create circuit
+    let circuit = CubicCircuit::new(3, 27);
+    let witness = circuit.witness();
+    let constraints = circuit.to_r1cs();
+
+    // Convert to QAP
+    let (a_polys, b_polys, c_polys) = r1cs_to_qap(&amp;constraints, witness.len()).unwrap();
+
+    // Trusted setup
+    let (pk, vk) = trusted_setup(&amp;a_polys, &amp;b_polys, &amp;c_polys, 1, &amp;mut rng).unwrap();
+
+    // Generate proof
+    let proof = generate_proof(&amp;pk, &amp;witness, &amp;a_polys, &amp;b_polys, &amp;c_polys, 1, &amp;mut rng).unwrap();
+
+    // Verify with public input y=27
+    let public_inputs = vec![FieldWrapper::&lt;Fq&gt;::from(27u64)];
+    let is_valid = verify_proof(&amp;vk, &amp;proof, &amp;public_inputs).unwrap();
+
+    assert!(is_valid);
+}</code></pre>
+<h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
+<h3 id="1-minimize-constraints"><a class="header" href="#1-minimize-constraints">1. Minimize Constraints</a></h3>
+<p>Fewer constraints = faster proving and smaller keys.</p>
+<p><strong>Bad</strong>:</p>
+<pre><code class="language-text">a + a + a + a + a = b  (5 additions)
+</code></pre>
+<p><strong>Good</strong>:</p>
+<pre><code class="language-text">t = a × 5  (1 multiplication)
+t = b
+</code></pre>
+<h3 id="2-reuse-intermediate-values"><a class="header" href="#2-reuse-intermediate-values">2. Reuse Intermediate Values</a></h3>
+<p>Compute once, use multiple times.</p>
+<p><strong>Bad</strong>:</p>
+<pre><code class="language-text">t₁ = x × x
+t₂ = x × x
+</code></pre>
+<p><strong>Good</strong>:</p>
+<pre><code class="language-text">t = x × x
+</code></pre>
+<h3 id="3-use-field-arithmetic"><a class="header" href="#3-use-field-arithmetic">3. Use Field Arithmetic</a></h3>
+<p>Take advantage of field properties:</p>
+<ul>
+<li>Modular arithmetic is automatic</li>
+<li>No overflow concerns</li>
+<li>Use field inverses for division</li>
+</ul>
+<h3 id="4-document-your-circuits"><a class="header" href="#4-document-your-circuits">4. Document Your Circuits</a></h3>
+<p>Other developers need to understand your circuit:</p>
+<pre><code class="language-rust ignore">/// Range proof circuit: proves that x is in range [0, 2ⁿ)
+///
+/// Private inputs:
+/// - x: the value to prove is in range
+///
+/// Public inputs:
+/// - n: the bit length
+///
+/// Constraints:
+/// - Decompose x into n bits
+/// - Each bit must satisfy b × (1 - b) = 0</code></pre>
+<h2 id="performance-considerations"><a class="header" href="#performance-considerations">Performance Considerations</a></h2>
+<h3 id="proving-time"><a class="header" href="#proving-time">Proving Time</a></h3>
+<p>Proving time is <strong>O(n)</strong> where n is the number of constraints:</p>
+<ul>
+<li>Small circuits (&lt; 1000 constraints): &lt; 1 second</li>
+<li>Medium circuits (1000-100000): 1-10 seconds</li>
+<li>Large circuits (&gt; 100000): 10+ seconds</li>
+</ul>
+<p><strong>Optimization</strong>: Use parallelization for large circuits.</p>
+<h3 id="proof-size-1"><a class="header" href="#proof-size-1">Proof Size</a></h3>
+<p>Proof size is <strong>constant</strong>: 128 bytes</p>
+<ul>
+<li>Doesn't grow with circuit complexity</li>
+<li>Efficient for transmission and storage</li>
+</ul>
+<h3 id="verification-time"><a class="header" href="#verification-time">Verification Time</a></h3>
+<p>Verification time is <strong>O(1)</strong>: constant regardless of circuit size</p>
+<ul>
+<li>Usually &lt; 10 milliseconds</li>
+<li>Efficient for on-chain verification</li>
+</ul>
+<h2 id="common-pitfalls"><a class="header" href="#common-pitfalls">Common Pitfalls</a></h2>
+<h3 id="1-incorrect-witness-order"><a class="header" href="#1-incorrect-witness-order">1. Incorrect Witness Order</a></h3>
+<p>The witness order matters: <code>[1, public..., private...]</code></p>
+<p><strong>Bad</strong>:</p>
+<pre><code class="language-rust ignore">vec![
+    FieldWrapper::&lt;Fq&gt;::from(self.a),  // Wrong order!
+    FieldWrapper::&lt;Fq&gt;::from(self.b),
+    FieldWrapper::&lt;Fq&gt;::from(self.c),
+]</code></pre>
+<p><strong>Good</strong>:</p>
+<pre><code class="language-rust ignore">vec![
+    FieldWrapper::&lt;Fq&gt;::from(1u64),   // Constant first
+    FieldWrapper::&lt;Fq&gt;::from(self.c), // Public output
+    FieldWrapper::&lt;Fq&gt;::from(self.a), // Private inputs
+    FieldWrapper::&lt;Fq&gt;::from(self.b),
+]</code></pre>
+<h3 id="2-forgetting-intermediate-variables"><a class="header" href="#2-forgetting-intermediate-variables">2. Forgetting Intermediate Variables</a></h3>
+<p>Complex computations need intermediate variables:</p>
+<p><strong>Bad</strong>:</p>
+<pre><code class="language-text">y = (a + b) × (c + d)  // Can't encode directly!
+</code></pre>
+<p><strong>Good</strong>:</p>
+<pre><code class="language-text">t₁ = a + b
+t₂ = c + d
+y = t₁ × t₂
+</code></pre>
+<h3 id="3-not-testing-edge-cases"><a class="header" href="#3-not-testing-edge-cases">3. Not Testing Edge Cases</a></h3>
+<p>Test with:</p>
+<ul>
+<li>Zero values</li>
+<li>Maximum values</li>
+<li>Boundary conditions</li>
+<li>Invalid inputs</li>
+</ul>
+<h2 id="next-steps"><a class="header" href="#next-steps">Next Steps</a></h2>
+<p>Now that you know how to build circuits:</p>
+<ol>
+<li><strong>Practice</strong>: Implement your own circuits</li>
+<li><strong>Optimize</strong>: Learn circuit optimization techniques</li>
+<li><strong>Explore</strong>: Study advanced circuit patterns</li>
+<li><strong>Build</strong>: Create real-world applications!</li>
+</ol>
+<h2 id="exercises-8"><a class="header" href="#exercises-8">Exercises</a></h2>
+<ol>
+<li>
+<p><strong>Square circuit</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>Implement a circuit that computes y = x²
+Test it with various inputs
+<span class="boring">}</span></code></pre></pre>
+</li>
+<li>
+<p><strong>Comparison circuit</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>Implement a circuit that checks if a &gt; b
+Hint: Decompose into bits and compare
+<span class="boring">}</span></code></pre></pre>
+</li>
+<li>
+<p><strong>Range proof</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>Implement a circuit that proves x is in [0, 256)
+Hint: Use 8 bits and bit constraints
+<span class="boring">}</span></code></pre></pre>
+</li>
+<li>
+<p><strong>Challenge question</strong>:</p>
+<pre><code class="language-text">How would you implement a hash function circuit?
+What operations do you need?
+</code></pre>
+</li>
+</ol>
+<h2 id="further-reading-8"><a class="header" href="#further-reading-8">Further Reading</a></h2>
+<ul>
+<li><strong>Circuit Optimization</strong>: <a href="https://github.com/zkcrypto/bellman">Bellman Documentation</a></li>
+<li><strong>Circuit Patterns</strong>: <a href="https://media.githubusercontent.com/media/zcash/zcash/master/doc/protocol/sapling.pdf">ZK-SNARKs Circuit Design</a></li>
+<li><strong>Advanced Circuits</strong>: <a href="https://zips.z.cash/protocol/protocol.pdf#orchard">Zcash Orchard Specification</a></li>
+</ul>
+<hr />
+<p><strong>Congratulations! You've completed the Groth16 tutorial!</strong></p>
+<p>Now you're ready to:</p>
+<ul>
+<li>Build your own zero-knowledge proofs</li>
+<li>Contribute to zk-SNARK projects</li>
+<li>Explore advanced protocols (PLONK, Halo 2, etc.)</li>
+</ul>
+<p><strong>Happy proving!</strong> 🎉</p>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

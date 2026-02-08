@@ -158,7 +158,315 @@
 
                 <div id="content" class="content">
                     <main>
-                        
+                        <h1 id="proof-generation"><a class="header" href="#proof-generation">Proof Generation</a></h1>
+<p>We have our proving key from the trusted setup. Now we can finally generate a zero-knowledge proof! This is where all the pieces come together.</p>
+<h2 id="learning-objectives"><a class="header" href="#learning-objectives">Learning Objectives</a></h2>
+<p>After this chapter, you will understand:</p>
+<ul>
+<li>How to generate a Groth16 proof from a witness</li>
+<li>The proof structure (A, B, C components)</li>
+<li>Random blinding and zero-knowledge</li>
+<li>The division polynomial H(x)</li>
+<li>How the proof demonstrates constraint satisfaction</li>
+</ul>
+<h2 id="motivating-example-proving-knowledge"><a class="header" href="#motivating-example-proving-knowledge">Motivating Example: Proving Knowledge</a></h2>
+<p>Recall our multiplier circuit: a × b = c</p>
+<p><strong>Scenario</strong>: You want to prove you know factors of 12 without revealing them.</p>
+<p><strong>Goal</strong>: Generate a proof π = (A, B, C) such that:</p>
+<ul>
+<li>The verifier can check π against public input c = 12</li>
+<li>The verifier learns nothing about a = 3 and b = 4</li>
+<li>The proof is only 128 bytes (three elliptic curve points)</li>
+</ul>
+<h2 id="theory-deep-dive-the-proof-structure"><a class="header" href="#theory-deep-dive-the-proof-structure">Theory Deep Dive: The Proof Structure</a></h2>
+<h3 id="the-proof-components"><a class="header" href="#the-proof-components">The Proof Components</a></h3>
+<p>A Groth16 proof consists of three elliptic curve points:</p>
+<pre><code class="language-text">π = (A, B, C)
+</code></pre>
+<ul>
+<li><strong>A</strong> ∈ G₁: Proof component from A-polynomials</li>
+<li><strong>B</strong> ∈ G₂: Proof component from B-polynomials</li>
+<li><strong>C</strong> ∈ G₁: Proof component from C-polynomials and division polynomial</li>
+</ul>
+<h3 id="the-proof-equations"><a class="header" href="#the-proof-equations">The Proof Equations</a></h3>
+<p>The prover generates A, B, C to satisfy:</p>
+<pre><code class="language-text">A = [α]₁ + Σⱼ zⱼ·[Aⱼ(τ)]₁ + r·[δ]₁
+B = [β]₂ + Σⱼ zⱼ·[Bⱼ(τ)]₂ + s·[δ]₂
+C = Σⱼ zⱼ·[β·Aⱼ(τ) + α·Bⱼ(τ) + Cⱼ(τ)]₁ + [H(τ)]₁ + r·s·[δ]₁ - s·[β]₁ - r·[α]₁
+</code></pre>
+<p>Where:</p>
+<ul>
+<li>zⱼ are witness values</li>
+<li>r, s are random blinding factors</li>
+<li>[·]₁ means "encrypted in G₁" (··G₁)</li>
+<li>[·]₂ means "encrypted in G₂" (··G₂)</li>
+</ul>
+<h3 id="zero-knowledge-via-blinding"><a class="header" href="#zero-knowledge-via-blinding">Zero-Knowledge via Blinding</a></h3>
+<p>The random values <strong>r</strong> and <strong>s</strong> ensure zero-knowledge:</p>
+<pre><code class="language-text">A = ... + r·δ
+B = ... + s·δ
+C = ... + r·s·δ - s·β - r·α
+</code></pre>
+<p><strong>Key insight</strong>: Different (r, s) values produce different-looking proofs for the same witness, preventing the verifier from learning anything about the witness.</p>
+<h3 id="the-division-polynomial-hx"><a class="header" href="#the-division-polynomial-hx">The Division Polynomial H(x)</a></h3>
+<p>Recall from QAP that we check:</p>
+<pre><code class="language-text">P(x) = A(x) · B(x) - C(x) = H(x) · T(x)
+</code></pre>
+<p>The prover computes H(x) = P(x) / T(x) and includes H(τ) in the C component.</p>
+<p><strong>Why this works</strong>:</p>
+<ul>
+<li>If the witness is valid, P(x) is divisible by T(x)</li>
+<li>The prover can compute H(x) = P(x) / T(x)</li>
+<li>H(τ)·G₁ is included in the proof</li>
+<li>The verifier checks that H(x) exists (using the pairing equation)</li>
+</ul>
+<h2 id="implementation-proof-generation-in-rust"><a class="header" href="#implementation-proof-generation-in-rust">Implementation: Proof Generation in Rust</a></h2>
+<p>Now let's see how proof generation is implemented.</p>
+<h3 id="the-proof-structure"><a class="header" href="#the-proof-structure">The Proof Structure</a></h3>
+<p>From <code>crates/groth16/src/prove.rs:24-36</code>:</p>
+<pre><code class="language-rust ignore">/// Groth16 proof
+///
+/// A Groth16 proof consists of three group elements that demonstrate
+/// knowledge of a valid witness without revealing it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Proof {
+    /// Proof component A in G₁
+    pub a: G1Affine,
+    /// Proof component B in G₂
+    pub b: G2Affine,
+    /// Proof component C in G₁
+    pub c: G1Affine,
+}</code></pre>
+<h3 id="the-main-proof-function"><a class="header" href="#the-main-proof-function">The Main Proof Function</a></h3>
+<p>From <code>crates/groth16/src/prove.rs:89-200</code>:</p>
+<pre><code class="language-rust ignore">/// Generates a Groth16 zero-knowledge proof.
+pub fn generate_proof&lt;R: Rng + ?Sized&gt;(
+    pk: &amp;ProvingKey,
+    witness: &amp;[FieldWrapper&lt;Fq&gt;],
+    a_polys: &amp;[Polynomial&lt;Fq&gt;],
+    b_polys: &amp;[Polynomial&lt;Fq&gt;],
+    c_polys: &amp;[Polynomial&lt;Fq&gt;],
+    _public_inputs: usize,
+    rng: &amp;mut R,
+) -&gt; Result&lt;Proof, Groth16Error&gt; {
+    // Step 1: Compute A_base = Σⱼ witness[j]·Aⱼ(τ) (unblinded, without α)
+    let mut a_witness_blinded = G1::zero();
+    for (j, w) in witness.iter().enumerate() {
+        let w_fr = field_wrapper_to_fr(w);
+        let g1_point = G1::from(pk.a_query[j]);
+        a_witness_blinded += g1_point * w_fr;
+    }
+    // Extract α contribution: α·Σ witness[j] where j=0 is the constant 1
+    let alpha_sum = field_wrapper_to_fr(&amp;witness[0]);
+    let a_alpha_part = G1::from(pk.alpha_g1) * alpha_sum;
+    let a_base = a_witness_blinded - a_alpha_part;
+
+    // Step 2: Compute B_base = Σⱼ witness[j]·Bⱼ(τ) (unblinded, without β)
+    let mut b_witness_g2_blinded = G2::zero();
+    for (j, w) in witness.iter().enumerate() {
+        let w_fr = field_wrapper_to_fr(w);
+        let bg2_point = G2::from(pk.b_g2_query[j]);
+        b_witness_g2_blinded += bg2_point * w_fr;
+    }
+    // Extract β contribution: β·Σ witness[j]
+    let beta_sum = alpha_sum; // Same sum
+    let b_beta_part_g2 = G2::from(pk.beta_g2) * beta_sum;
+    let b_base_g2 = b_witness_g2_blinded - b_beta_part_g2;
+
+    // Step 3: Compute C_base = Σⱼ witness[j]·Cⱼ(τ) (already has β)
+    let mut c_base = G1::zero();
+    for (j, w) in witness.iter().enumerate() {
+        let w_fr = field_wrapper_to_fr(w);
+        let g1_point = G1::from(pk.c_query[j]);
+        c_base += g1_point * w_fr;
+    }
+
+    // Step 4: Generate random blinding factors
+    let r = Fr::rand(rng);
+    let s = Fr::rand(rng);
+
+    // Step 5: Compute proof component A
+    // A = α·G₁ + A_base + r·δ·G₁
+    let delta_g1 = G1::from(pk.delta_g1);
+    let a_g1 = G1::from(pk.alpha_g1) + a_base + delta_g1 * r;
+
+    // Step 6: Compute proof component B
+    // B = β·G₂ + B_base + s·δ·G₂
+    let delta_g2 = G2::from(pk.delta_g2);
+    let b_g2 = G2::from(pk.beta_g2) + b_base_g2 + delta_g2 * s;
+
+    // Step 7: Compute proof component C
+    // First compute the H polynomial
+    let a_w_poly = compute_witness_polynomial(a_polys, witness);
+    let b_w_poly = compute_witness_polynomial(b_polys, witness);
+    let c_w_poly = compute_witness_polynomial(c_polys, witness);
+
+    // Compute p(x) = A_w(x)·B_w(x) - C_w(x)
+    let product_poly = a_w_poly.clone() * b_w_poly.clone();
+    let diff_poly = product_poly - c_w_poly;
+
+    // Get target polynomial t(x)
+    let target_poly = groth16_qap::target_polynomial::&lt;Fq&gt;(num_constraints);
+
+    // Divide to get H(x)
+    let (h_poly, _remainder) = divide_polynomials(&amp;diff_poly, &amp;target_poly)?;
+
+    // Compute H(τ)·G₁
+    let h_at_tau = h_poly.evaluate(&amp;tau_field);
+    let h_fr = fq_to_fr(&amp;h_at_tau.value);
+
+    // Lookup in h_query
+    let mut h_encrypted = G1::zero();
+    for (j, coeff) in h_poly.coeffs.iter().enumerate() {
+        if j &lt; pk.h_query.len() {
+            let h_point = G1::from(pk.h_query[j]);
+            h_encrypted += h_point * fq_to_fr(&amp;coeff.value);
+        }
+    }
+
+    // C = β·A_base·s + α·B_base·r + C_base + H(τ) + r·s·δ
+    let c_g1 = c_base
+        + a_base.clone() * s
+        + b_base_g1.clone() * r
+        + h_encrypted
+        + delta_g1 * (r * s)
+        - G1::from(pk.beta_g1) * s
+        - G1::from(pk.alpha_g1) * r;
+
+    Ok(Proof {
+        a: a_g1.into_affine(),
+        b: b_g2.into_affine(),
+        c: c_g1.into_affine(),
+    })
+}</code></pre>
+<h3 id="computing-the-witness-polynomial"><a class="header" href="#computing-the-witness-polynomial">Computing the Witness Polynomial</a></h3>
+<pre><code class="language-rust ignore">/// Computes the witness polynomial: W(x) = Σⱼ witness[j]·Pⱼ(x)
+fn compute_witness_polynomial&lt;F&gt;(
+    polynomials: &amp;[Polynomial&lt;F&gt;],
+    witness: &amp;[FieldWrapper&lt;F&gt;],
+) -&gt; Polynomial&lt;F&gt;
+where
+    F: PrimeField,
+{
+    let mut result = Polynomial::&lt;F&gt;::new(vec![FieldWrapper::zero()]);
+
+    for (j, poly) in polynomials.iter().enumerate() {
+        let scaled = scale_polynomial(poly, &amp;witness[j]);
+        result = result + scaled;
+    }
+
+    result
+}</code></pre>
+<h2 id="running-the-code"><a class="header" href="#running-the-code">Running the Code</a></h2>
+<h3 id="example-generating-a-proof"><a class="header" href="#example-generating-a-proof">Example: Generating a Proof</a></h3>
+<pre><code class="language-rust ignore">use groth16_groth16::{trusted_setup, generate_proof};
+use groth16_circuits::multiplier::MultiplierCircuit;
+use groth16_qap::r1cs_to_qap;
+
+// Create circuit
+let circuit = MultiplierCircuit::new(3, 4, 12);
+let witness = circuit.witness();  // [1, 12, 3, 4]
+
+// Convert to R1CS and QAP
+let constraints = circuit.to_r1cs();
+let (a_polys, b_polys, c_polys) = r1cs_to_qap(&amp;constraints, 4)?;
+
+// Trusted setup
+let (pk, vk) = trusted_setup(&amp;a_polys, &amp;b_polys, &amp;c_polys, 1, &amp;mut rng)?;
+
+// Generate proof
+let proof = generate_proof(&amp;pk, &amp;witness, &amp;a_polys, &amp;b_polys, &amp;c_polys, 1, &amp;mut rng)?;
+
+println!("Proof generated:");
+println!("  A: {:?}", proof.a);
+println!("  B: {:?}", proof.b);
+println!("  C: {:?}", proof.c);</code></pre>
+<h3 id="what-the-proof-contains"><a class="header" href="#what-the-proof-contains">What the Proof Contains</a></h3>
+<p>For the multiplier circuit (a=3, b=4, c=12):</p>
+<pre><code class="language-text">A = α·G₁ + 3·A₂(τ)·G₁ + r·δ·G₁
+  = α·G₁ + 3·G₁ + r·δ·G₁  (since A₂(x) = 1)
+
+B = β·G₂ + 4·B₃(τ)·G₂ + s·δ·G₂
+  = β·G₂ + 4·G₂ + s·δ·G₂  (since B₃(x) = 1)
+
+C = ... (complex formula involving H(τ))
+</code></pre>
+<p>The verifier only sees the elliptic curve points, not the witness values!</p>
+<h2 id="security-properties"><a class="header" href="#security-properties">Security Properties</a></h2>
+<h3 id="zero-knowledge"><a class="header" href="#zero-knowledge">Zero-Knowledge</a></h3>
+<p>The random values r and s ensure that:</p>
+<ul>
+<li>Different proofs for the same witness look different</li>
+<li>The verifier cannot deduce the witness from the proof</li>
+<li>No information about a and b is leaked</li>
+</ul>
+<h3 id="soundness"><a class="header" href="#soundness">Soundness</a></h3>
+<p>A malicious prover cannot create a valid proof for an invalid witness because:</p>
+<ul>
+<li>The pairing equation (Chapter 7) would fail</li>
+<li>They would need to know α, β, γ, δ (toxic waste)</li>
+<li>The division polynomial H(x) wouldn't exist for invalid witnesses</li>
+</ul>
+<h3 id="proof-size"><a class="header" href="#proof-size">Proof Size</a></h3>
+<p>A Groth16 proof is only <strong>128 bytes</strong>:</p>
+<ul>
+<li>A ∈ G₁: 32 bytes (compressed)</li>
+<li>B ∈ G₂: 64 bytes (compressed)</li>
+<li>C ∈ G₁: 32 bytes (compressed)</li>
+</ul>
+<p>This is constant regardless of circuit complexity!</p>
+<h2 id="connection-to-groth16"><a class="header" href="#connection-to-groth16">Connection to Groth16</a></h2>
+<p>Proof generation is the <strong>proving phase</strong> of Groth16:</p>
+<pre><code class="language-text">Computation
+    ↓
+R1CS (matrix constraints)
+    ↓
+QAP (polynomial divisibility)
+    ↓
+Elliptic Curve Pairings
+    ↓
+Trusted Setup
+    ↓
+Proof Generation ← You are here
+    ↓
+Proof Verification (Chapter 7)
+</code></pre>
+<h2 id="exercises"><a class="header" href="#exercises">Exercises</a></h2>
+<ol>
+<li>
+<p><strong>Blinding factors</strong>:</p>
+<pre><code class="language-text">What happens if r = 0 and s = 0?
+Is the proof still zero-knowledge?
+</code></pre>
+</li>
+<li>
+<p><strong>Division polynomial</strong>:</p>
+<pre><code class="language-text">For the multiplier circuit, what is H(x)?
+Hint: P(x) = 3·4 - 12 = 0, so H(x) = 0 / T(x) = 0
+</code></pre>
+</li>
+<li>
+<p><strong>Proof size</strong>:</p>
+<pre><code class="language-text">Why is the proof size constant?
+Why doesn't it grow with circuit complexity?
+</code></pre>
+</li>
+<li>
+<p><strong>Challenge question</strong>:</p>
+<pre><code class="language-text">Can a prover generate a proof without knowing the witness?
+What would prevent this?
+</code></pre>
+</li>
+</ol>
+<h2 id="further-reading"><a class="header" href="#further-reading">Further Reading</a></h2>
+<ul>
+<li><strong>Groth16 Paper</strong>: <a href="https://eprint.iacr.org/2016/260">On the Size of Pairing-based Non-Interactive Arguments</a></li>
+<li><strong>Zero-Knowledge Proofs</strong>: <a href="https://zkp.science/">ZK-SNARKs Explained</a></li>
+<li><strong>Proof Systems</strong>: <a href="https://eprint.iacr.org/2019/953">Proof Systems Survey</a></li>
+</ul>
+<hr />
+<p><strong>Ready to verify proofs? Continue to <a href="./07-proof-verification.html">Chapter 7: Proof Verification</a></strong></p>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

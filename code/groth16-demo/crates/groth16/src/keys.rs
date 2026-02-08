@@ -1,4 +1,4 @@
-use ark_bn254::{G1Affine, G2Affine};
+use ark_bn254::{Fr, G1Affine, G2Affine};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -54,6 +54,12 @@ where
 /// It must be kept secret by the prover (though in Groth16, it's public knowledge).
 #[derive(Clone, Debug)]
 pub struct ProvingKey {
+    /// α (scalar, needed for C component computation with blinded queries)
+    pub alpha: Fr,
+
+    /// β (scalar, needed for C component computation with blinded queries)
+    pub beta: Fr,
+
     /// α·G₁ (used in proof A component)
     pub alpha_g1: G1Affine,
 
@@ -89,6 +95,10 @@ pub struct ProvingKey {
 #[derive(Serialize, Deserialize)]
 struct ProvingKeyRepr {
     #[serde(with = "serde_bytes")]
+    alpha: Vec<u8>,
+    #[serde(with = "serde_bytes")]
+    beta: Vec<u8>,
+    #[serde(with = "serde_bytes")]
     alpha_g1: Vec<u8>,
     #[serde(with = "serde_bytes")]
     beta_g1: Vec<u8>,
@@ -113,6 +123,8 @@ struct ProvingKeyRepr {
 impl From<&ProvingKey> for ProvingKeyRepr {
     fn from(pk: &ProvingKey) -> Self {
         ProvingKeyRepr {
+            alpha: serialize_to_bytes(&pk.alpha),
+            beta: serialize_to_bytes(&pk.beta),
             alpha_g1: serialize_to_bytes(&pk.alpha_g1),
             beta_g1: serialize_to_bytes(&pk.beta_g1),
             beta_g2: serialize_to_bytes(&pk.beta_g2),
@@ -130,6 +142,8 @@ impl From<&ProvingKey> for ProvingKeyRepr {
 impl From<&ProvingKeyRepr> for ProvingKey {
     fn from(repr: &ProvingKeyRepr) -> Self {
         ProvingKey {
+            alpha: deserialize_from_bytes(&repr.alpha),
+            beta: deserialize_from_bytes(&repr.beta),
             alpha_g1: deserialize_from_bytes(&repr.alpha_g1),
             beta_g1: deserialize_from_bytes(&repr.beta_g1),
             beta_g2: deserialize_from_bytes(&repr.beta_g2),

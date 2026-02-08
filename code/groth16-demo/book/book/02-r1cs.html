@@ -158,7 +158,307 @@
 
                 <div id="content" class="content">
                     <main>
-                        
+                        <h1 id="rank-1-constraint-systems-r1cs"><a class="header" href="#rank-1-constraint-systems-r1cs">Rank-1 Constraint Systems (R1CS)</a></h1>
+<p>Now that we understand finite fields and polynomials, let's learn how to encode computations as constraints. This is where the magic begins!</p>
+<h2 id="learning-objectives"><a class="header" href="#learning-objectives">Learning Objectives</a></h2>
+<p>After this chapter, you will understand:</p>
+<ul>
+<li>What R1CS is and why it's used in zero-knowledge proofs</li>
+<li>How to represent arithmetic expressions as matrix constraints</li>
+<li>The form Az ∘ Bz = Cz and what each component means</li>
+<li>How to convert a simple computation like <code>a × b = c</code> into R1CS</li>
+<li>How to verify a witness satisfies R1CS constraints</li>
+</ul>
+<h2 id="motivating-example-a-simple-multiplier"><a class="header" href="#motivating-example-a-simple-multiplier">Motivating Example: A Simple Multiplier</a></h2>
+<p>Let's start with a concrete problem. Suppose you want to prove you know two secret numbers <code>a</code> and <code>b</code> such that <code>a × b = 12</code>, without revealing <code>a</code> and <code>b</code> themselves.</p>
+<p><strong>Example</strong>: If <code>c = 12</code>, the prover could know:</p>
+<ul>
+<li><code>a = 3, b = 4</code> (since 3 × 4 = 12)</li>
+<li><code>a = 2, b = 6</code> (since 2 × 6 = 12)</li>
+<li><code>a = 1, b = 12</code> (since 1 × 12 = 12)</li>
+</ul>
+<p>But the verifier should only learn that <strong>some valid pair exists</strong>, not which one!</p>
+<p><strong>The challenge</strong>: How do we encode "a × b = c" as a mathematical constraint that we can verify?</p>
+<h2 id="theory-deep-dive-what-is-r1cs"><a class="header" href="#theory-deep-dive-what-is-r1cs">Theory Deep Dive: What is R1CS?</a></h2>
+<h3 id="the-big-picture"><a class="header" href="#the-big-picture">The Big Picture</a></h3>
+<p><strong>R1CS (Rank-1 Constraint System)</strong> is a way to represent computations as quadratic constraints. It's the standard input format for modern zk-SNARK systems like Groth16.</p>
+<p><strong>Key idea</strong>: Any computation can be broken down into a sequence of multiplications and additions, where each multiplication is a constraint.</p>
+<h3 id="the-r1cs-form"><a class="header" href="#the-r1cs-form">The R1CS Form</a></h3>
+<p>An R1CS constraint has the form:</p>
+<pre><code class="language-text">Az ∘ Bz = Cz
+</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>A, B, C</code> are matrices (vectors for a single constraint)</li>
+<li><code>z</code> is the <strong>witness vector</strong> (assignment to all variables)</li>
+<li><code>∘</code> denotes <strong>element-wise multiplication</strong></li>
+<li>The equation must hold for each row (constraint)</li>
+</ul>
+<p><strong>For a single constraint</strong>:</p>
+<ul>
+<li><code>A, B, C</code> are vectors (not matrices)</li>
+<li><code>z</code> is the witness vector</li>
+<li>We check: <code>&lt;A, z&gt; · &lt;B, z&gt; = &lt;C, z&gt;</code> (dot products)</li>
+</ul>
+<h3 id="the-witness-vector"><a class="header" href="#the-witness-vector">The Witness Vector</a></h3>
+<p>The <strong>witness</strong> <code>z</code> contains all values in the computation:</p>
+<pre><code class="language-text">z = [1, public_outputs..., private_inputs...]
+</code></pre>
+<p>The <code>1</code> at the beginning is a constant (for convenience in encoding constant terms).</p>
+<p><strong>Example for <code>a × b = c</code></strong>:</p>
+<pre><code class="language-text">z = [1, c, a, b]
+   = [1, 12, 3, 4]
+</code></pre>
+<h3 id="from-arithmetic-to-constraints"><a class="header" href="#from-arithmetic-to-constraints">From Arithmetic to Constraints</a></h3>
+<p>Let's convert <code>a × b = c</code> to R1CS step by step:</p>
+<p><strong>Step 1: Identify variables</strong></p>
+<pre><code class="language-text">z = [1, c, a, b]
+    [0, 1, 2, 3]  ← indices
+</code></pre>
+<p><strong>Step 2: Create constraint vectors</strong></p>
+<p>We want: <code>a × b = c</code></p>
+<p>We need three vectors <code>A, B, C</code> such that:</p>
+<pre><code class="language-text">&lt;A, z&gt; · &lt;B, z&gt; = &lt;C, z&gt;
+</code></pre>
+<p>The solution:</p>
+<pre><code class="language-text">A = [0, 0, 1, 0]  ← selects 'a' (index 2)
+B = [0, 0, 0, 1]  ← selects 'b' (index 3)
+C = [0, 1, 0, 0]  ← selects 'c' (index 1)
+</code></pre>
+<p><strong>Step 3: Verify the constraint</strong></p>
+<p>Compute each dot product:</p>
+<pre><code class="language-text">&lt;A, z&gt; = 0·1 + 0·c + 1·a + 0·b = a
+&lt;B, z&gt; = 0·1 + 0·c + 0·a + 1·b = b
+&lt;C, z&gt; = 0·1 + 1·c + 0·a + 0·b = c
+</code></pre>
+<p>Check the constraint:</p>
+<pre><code class="language-text">&lt;A, z&gt; · &lt;B, z&gt; = a · b
+&lt;C, z&gt;         = c
+
+Verify: a · b = c ✓
+</code></pre>
+<p><strong>With concrete numbers</strong> (a=3, b=4, c=12):</p>
+<pre><code class="language-text">&lt;A, z&gt; = 0·1 + 0·12 + 1·3 + 0·4 = 3
+&lt;B, z&gt; = 0·1 + 0·12 + 0·3 + 1·4 = 4
+&lt;C, z&gt; = 0·1 + 1·12 + 0·3 + 0·4 = 12
+
+Check: 3 · 4 = 12 ✓
+</code></pre>
+<h3 id="why-rank-1"><a class="header" href="#why-rank-1">Why "Rank-1"?</a></h3>
+<p>The "Rank-1" refers to the structure of the constraint matrices. In a single constraint:</p>
+<ul>
+<li><code>A</code> is a rank-1 matrix (can be written as outer product of vectors)</li>
+<li><code>B</code> is a rank-1 matrix</li>
+<li><code>C</code> is a rank-1 matrix</li>
+</ul>
+<p>This structure enables the transformation to Quadratic Arithmetic Programs (QAP) in Chapter 3!</p>
+<h2 id="implementation-r1cs-in-rust"><a class="header" href="#implementation-r1cs-in-rust">Implementation: R1CS in Rust</a></h2>
+<p>Now let's see how R1CS is implemented in our codebase.</p>
+<h3 id="the-constraint-structure"><a class="header" href="#the-constraint-structure">The Constraint Structure</a></h3>
+<p>From <code>crates/r1cs/src/constraint.rs:5-43</code>:</p>
+<pre><code class="language-rust ignore">/// Represents a single Rank-1 Constraint System (R1CS) constraint.
+///
+/// An R1CS constraint has the form: &lt;a, x&gt; · &lt;b, x&gt; = &lt;c, x&gt;
+///
+/// where:
+/// - a, b, c are vectors of coefficients (sparse, represented as HashMaps)
+/// - x is the assignment vector (witness)
+/// - &lt;·, ·&gt; denotes the dot product
+pub struct R1CSConstraint&lt;F: PrimeField&gt; {
+    /// Coefficients for the A vector (left input of multiplication)
+    pub a: HashMap&lt;usize, FieldWrapper&lt;F&gt;&gt;,
+    /// Coefficients for the B vector (right input of multiplication)
+    pub b: HashMap&lt;usize, FieldWrapper&lt;F&gt;&gt;,
+    /// Coefficients for the C vector (output of multiplication)
+    pub c: HashMap&lt;usize, FieldWrapper&lt;F&gt;&gt;,
+}</code></pre>
+<p><strong>Key design choice</strong>: We use <strong>sparse representation</strong> (HashMap) instead of dense vectors. This is efficient because most variables don't appear in most constraints!</p>
+<h3 id="creating-a-multiplier-circuit"><a class="header" href="#creating-a-multiplier-circuit">Creating a Multiplier Circuit</a></h3>
+<p>From <code>crates/circuits/src/multiplier.rs:76-88</code>:</p>
+<pre><code class="language-rust ignore">pub fn to_r1cs(&amp;self) -&gt; Vec&lt;R1CSConstraint&lt;Fq&gt;&gt; {
+    let mut constraint = R1CSConstraint::&lt;Fq&gt;::new();
+
+    // A vector: selects variable a (index 2, after 1 and c)
+    constraint.add_a_variable(2, FieldWrapper::&lt;Fq&gt;::from(1u64));
+
+    // B vector: selects variable b (index 3)
+    constraint.add_b_variable(3, FieldWrapper::&lt;Fq&gt;::from(1u64));
+
+    // C vector: selects variable c (index 1, the public output)
+    constraint.add_c_variable(1, FieldWrapper::&lt;Fq&gt;::from(1u64));
+
+    vec![constraint]
+}</code></pre>
+<p><strong>Note on indexing</strong>: The witness is <code>[1, c, a, b]</code>, so:</p>
+<ul>
+<li>Index 0: constant <code>1</code></li>
+<li>Index 1: public output <code>c</code></li>
+<li>Index 2: private input <code>a</code></li>
+<li>Index 3: private input <code>b</code></li>
+</ul>
+<h3 id="verifying-a-witness"><a class="header" href="#verifying-a-witness">Verifying a Witness</a></h3>
+<p>The constraint satisfaction check from <code>crates/r1cs/src/constraint.rs:126-134</code>:</p>
+<pre><code class="language-rust ignore">pub fn is_satisfied(&amp;self, witness: &amp;[FieldWrapper&lt;F&gt;]) -&gt; bool {
+    let a_value = self.evaluate_linear_combination(&amp;self.a, witness);
+    let b_value = self.evaluate_linear_combination(&amp;self.b, witness);
+    let c_value = self.evaluate_linear_combination(&amp;self.c, witness);
+
+    // Check: a · b = c
+    let product = a_value.clone() * b_value;
+    product.value == c_value.value
+}</code></pre>
+<p>This computes:</p>
+<pre><code class="language-text">a_value = Σ A[i] · witness[i]
+b_value = Σ B[i] · witness[i]
+c_value = Σ C[i] · witness[i]
+
+Check: a_value · b_value = c_value
+</code></pre>
+<h3 id="generating-a-witness"><a class="header" href="#generating-a-witness">Generating a Witness</a></h3>
+<p>From <code>crates/circuits/src/multiplier.rs:109-116</code>:</p>
+<pre><code class="language-rust ignore">pub fn witness(&amp;self) -&gt; Vec&lt;FieldWrapper&lt;Fq&gt;&gt; {
+    vec![
+        FieldWrapper::&lt;Fq&gt;::from(1u64),   // constant 1
+        FieldWrapper::&lt;Fq&gt;::from(self.c), // public output c
+        FieldWrapper::&lt;Fq&gt;::from(self.a), // private input a
+        FieldWrapper::&lt;Fq&gt;::from(self.b), // private input b
+    ]
+}</code></pre>
+<p>The witness ordering is crucial! Groth16 expects:</p>
+<pre><code class="language-text">[1, public_outputs..., private_inputs...]
+</code></pre>
+<h2 id="running-the-code"><a class="header" href="#running-the-code">Running the Code</a></h2>
+<p>Let's see the R1CS in action with the multiplier demo.</p>
+<h3 id="run-the-demo"><a class="header" href="#run-the-demo">Run the Demo</a></h3>
+<pre><code class="language-bash">cd /path/to/groth16-demo
+cargo run --example multiplier_demo
+</code></pre>
+<h3 id="expected-output"><a class="header" href="#expected-output">Expected Output</a></h3>
+<pre><code>Groth16 Multiplier Circuit Demo
+===============================
+
+Step 1: Creating circuit
+----------------------
+Private inputs: a = 3, b = 4
+Public output:  c = 12
+
+✓ Computation verified: 3 × 4 = 12
+
+Step 2: Converting to R1CS
+-------------------------
+Number of R1CS constraints: 1
+Number of variables per constraint: 3
+
+R1CS Constraint Structure:
+A = [0, 0, 1, 0]  (selects variable 'a')
+B = [0, 0, 0, 1]  (selects variable 'b')
+C = [0, 1, 0, 0]  (selects variable 'c')
+Verification: a · b = c
+
+Step 3: Generating witness
+--------------------------
+Witness assignment: [1, c, a, b] = [1, 12, 3, 4]
+
+Step 4: Verifying R1CS satisfaction
+-----------------------------------
+R1CS constraint satisfied: true
+✓ R1CS verification passed
+
+Step 5: Converting R1CS to QAP
+----------------------------
+...
+</code></pre>
+<h3 id="key-observations"><a class="header" href="#key-observations">Key Observations</a></h3>
+<ol>
+<li><strong>Single constraint</strong> for the multiplier circuit (it's very simple!)</li>
+<li><strong>3 variables</strong> used in the constraint (a, b, c)</li>
+<li><strong>Witness order</strong>: <code>[1, c, a, b]</code> (constant first, then public output, then private inputs)</li>
+<li><strong>Satisfaction check</strong>: Verifies <code>3 × 4 = 12</code></li>
+</ol>
+<h2 id="more-complex-example-multiple-constraints"><a class="header" href="#more-complex-example-multiple-constraints">More Complex Example: Multiple Constraints</a></h2>
+<p>Real circuits have multiple constraints. Let's sketch how this works:</p>
+<p><strong>Example</strong>: <code>(x + y) × (x - y) = z</code></p>
+<p>Let's break this down:</p>
+<ol>
+<li><code>t₁ = x + y</code> (addition)</li>
+<li><code>t₂ = x - y</code> (addition with negative)</li>
+<li><code>z = t₁ × t₂</code> (multiplication)</li>
+</ol>
+<p><strong>Witness</strong>: <code>z = [1, z, x, y, t₁, t₂]</code></p>
+<p><strong>Constraints</strong>:</p>
+<pre><code class="language-text">Constraint 1: t₁ = x + y
+  A = [0, 0, 1, 1, 0, 0]  ← x + y
+  B = [1, 0, 0, 0, 0, 0]  ← 1 (for no multiplication)
+  C = [0, 0, 0, 0, 1, 0]  ← t₁
+
+Constraint 2: t₂ = x - y
+  A = [0, 0, 1, -1, 0, 0] ← x - y
+  B = [1, 0, 0, 0, 0, 0]  ← 1
+  C = [0, 0, 0, 0, 0, 1]  ← t₂
+
+Constraint 3: z = t₁ × t₂
+  A = [0, 0, 0, 0, 1, 0]  ← t₁
+  B = [0, 0, 0, 0, 0, 1]  ← t₂
+  C = [0, 1, 0, 0, 0, 0]  ← z
+</code></pre>
+<p>Each row of A, B, C matrices is one constraint!</p>
+<h2 id="connection-to-groth16"><a class="header" href="#connection-to-groth16">Connection to Groth16</a></h2>
+<p>R1CS is the <strong>first step</strong> in the Groth16 pipeline:</p>
+<pre><code class="language-text">Computation (e.g., a × b = c)
+    ↓
+R1CS (matrix constraints) ← You are here
+    ↓
+QAP (polynomial divisibility) ← Chapter 3
+    ↓
+Elliptic Curve Pairings ← Chapter 4
+    ↓
+Zero-Knowledge Proof!
+</code></pre>
+<p><strong>Key insight</strong>: R1CS transforms computation into a form that can be efficiently verified using polynomial arithmetic (Chapter 3) and pairings (Chapter 4).</p>
+<h2 id="exercises"><a class="header" href="#exercises">Exercises</a></h2>
+<ol>
+<li>
+<p><strong>Basic R1CS construction</strong>:</p>
+<pre><code class="language-text">Convert "x² = y" to R1CS form.
+Hint: You need x × x = y.
+</code></pre>
+</li>
+<li>
+<p><strong>Witness verification</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Given the constraint: a × b = c
+// With A = [0, 0, 1, 0], B = [0, 0, 0, 1], C = [0, 1, 0, 0]
+// And witness z = [1, 20, 4, 5]
+//
+// Does this witness satisfy the constraint?
+// Verify using the is_satisfied() method.
+<span class="boring">}</span></code></pre></pre>
+</li>
+<li>
+<p><strong>Multi-constraint circuit</strong>:</p>
+<pre><code class="language-text">Create R1CS constraints for: (x + 1) × (y + 1) = z
+Variables: x, y (private), z (public)
+You'll need intermediate variables!
+</code></pre>
+</li>
+<li>
+<p><strong>Challenge question</strong>:</p>
+<pre><code class="language-text">Why is the witness ordered as [1, public_outputs..., private_inputs...]
+instead of [1, private_inputs..., public_outputs...]?
+Think about what needs to be revealed to the verifier.
+</code></pre>
+</li>
+</ol>
+<h2 id="further-reading"><a class="header" href="#further-reading">Further Reading</a></h2>
+<ul>
+<li><strong>R1CS Primer</strong>: <a href="https://www.youtube.com/watch?v=m7WjUDLEws4">ZK-SNARKs in a Nutshell by Micali</a></li>
+<li><strong>Constraint Systems</strong>: <a href="https://github.com/zkcrypto/bellman">Bellman documentation</a></li>
+<li><strong>Sparse Representations</strong>: <a href="https://en.wikipedia.org/wiki/Sparse_matrix">Wikipedia: Sparse Matrix</a></li>
+</ul>
+<hr />
+<p><strong>Ready to transform R1CS to polynomials? Continue to <a href="./03-qap.html">Chapter 3: Quadratic Arithmetic Programs</a></strong></p>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
