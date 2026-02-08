@@ -1,3 +1,8 @@
+/* CSS Reset - Critical for consistent sizing */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 /* Gallery Styles for HTML5 UP Multiverse Template Implementation */
 /* Override main.css to enable scrolling */
 html, body {
@@ -6,6 +11,7 @@ html, body {
 }
 
 body {
+    font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif;
     background: #1a1a1a;
     margin: 0;
     padding: 0;
@@ -28,7 +34,7 @@ header {
     left: 0;
     width: 100%;
     height: 60px;
-    background: linear-gradient(135deg, rgba(43, 43, 43, 0.98), rgba(30, 30, 30, 0.98));
+    background: rgba(43, 43, 43, 0.98); /* fallback */
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 1000;
@@ -37,6 +43,14 @@ header {
     justify-content: space-between;
     padding: 0 40px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Modern browsers get the enhanced version */
+@supports (backdrop-filter: blur(10px)) {
+    header {
+        background: linear-gradient(135deg, rgba(43, 43, 43, 0.98), rgba(30, 30, 30, 0.98));
+        backdrop-filter: blur(10px);
+    }
 }
 
 header h1 {
