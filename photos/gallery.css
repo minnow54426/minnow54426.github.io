@@ -91,3 +91,82 @@ header .back-link:hover {
         font-size: 1.2em;
     }
 }
+
+/* Multiverse Template - Thumbnail Styles */
+
+#main .thumb {
+    position: relative;
+    overflow: hidden;
+    width: 25%;
+    height: calc(40vh - 2em);
+    min-height: 18em;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+#main .thumb:after {
+    background-image: linear-gradient(to top, rgba(10, 17, 25, 0.35) 5%, rgba(10, 17, 25, 0) 35%);
+    pointer-events: none;
+    background-size: cover;
+    content: '';
+    display: block;
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+#main .thumb .image {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border: 0;
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    display: block;
+}
+
+#main .thumb .image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+#main .thumb:hover {
+    opacity: 0.8;
+    z-index: 2;
+}
+
+/* Responsive Breakpoints */
+@media screen and (max-width: 1680px) {
+    #main .thumb {
+        width: 33.33333%;
+    }
+}
+
+@media screen and (max-width: 1280px) {
+    #main .thumb {
+        width: 50%;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    #main .thumb {
+        width: 50%;
+        height: calc(30vh - 2em);
+        min-height: 15em;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    #main .thumb {
+        width: 100%;
+        height: calc(40vh - 2em);
+    }
+}
