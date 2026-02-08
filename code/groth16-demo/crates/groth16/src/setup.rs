@@ -8,15 +8,6 @@ use groth16_math::polynomial::Polynomial;
 use groth16_qap::target_polynomial;
 use rand::Rng;
 
-/// Helper function to convert Fq field element to Fr (simplified)
-fn fq_to_fr(fq: &ark_bn254::Fq) -> Fr {
-    let bytes = fq.into_bigint().to_bytes_be();
-    let mut padded = [0u8; 32];
-    let start = 32usize.saturating_sub(bytes.len());
-    padded[start..].copy_from_slice(&bytes);
-    Fr::from_be_bytes_mod_order(&padded)
-}
-
 /// Performs the trusted setup ceremony to generate proving and verification keys.
 ///
 /// # Trusted Setup
@@ -67,9 +58,9 @@ fn fq_to_fr(fq: &ark_bn254::Fq) -> Fr {
 /// # Ok::<(), Groth16Error>(())
 /// ```
 pub fn trusted_setup<R>(
-    a_polys: &[Polynomial<ark_bn254::Fq>],
-    b_polys: &[Polynomial<ark_bn254::Fq>],
-    c_polys: &[Polynomial<ark_bn254::Fq>],
+    a_polys: &[Polynomial<Fr>],
+    b_polys: &[Polynomial<Fr>],
+    c_polys: &[Polynomial<Fr>],
     num_inputs: usize,
     rng: &mut R,
 ) -> Result<(ProvingKey, VerificationKey), Groth16Error>
@@ -118,14 +109,12 @@ where
     let delta_g2 = (G2Affine::generator() * delta).into_affine();
 
     // Step 4: Compute encrypted A-polynomials
-    let tau_bytes = tau.into_bigint().to_bytes_be();
-    let tau_u64 = u64::from_be_bytes(tau_bytes[24..32].try_into().unwrap_or([0u8; 8]));
-    let tau_field = FieldWrapper::<ark_bn254::Fq>::from(tau_u64);
+    // Use tau directly as Fr field element (no conversion needed)
+    let tau_field = FieldWrapper::<Fr>::from(tau);
     let mut a_query = Vec::with_capacity(num_vars);
     for poly in a_polys {
         let eval = poly.evaluate(&tau_field);
-        let fr_eval = fq_to_fr(&eval.value);
-        let encrypted = (G1Affine::generator() * alpha * fr_eval).into_affine();
+        let encrypted = (G1Affine::generator() * alpha * eval.value).into_affine();
         a_query.push(encrypted);
     }
 
@@ -134,12 +123,11 @@ where
     let mut b_g2_query = Vec::with_capacity(num_vars);
     for poly in b_polys {
         let eval = poly.evaluate(&tau_field);
-        let fr_eval = fq_to_fr(&eval.value);
 
-        let encrypted_g1 = (G1Affine::generator() * beta * fr_eval).into_affine();
+        let encrypted_g1 = (G1Affine::generator() * beta * eval.value).into_affine();
         b_g1_query.push(encrypted_g1);
 
-        let encrypted_g2 = (G2Affine::generator() * beta * fr_eval).into_affine();
+        let encrypted_g2 = (G2Affine::generator() * beta * eval.value).into_affine();
         b_g2_query.push(encrypted_g2);
     }
 
@@ -147,13 +135,12 @@ where
     let mut c_query = Vec::with_capacity(num_vars);
     for poly in c_polys {
         let eval = poly.evaluate(&tau_field);
-        let fr_eval = fq_to_fr(&eval.value);
-        let encrypted = (G1Affine::generator() * beta * fr_eval).into_affine();
+        let encrypted = (G1Affine::generator() * beta * eval.value).into_affine();
         c_query.push(encrypted);
     }
 
     // Step 6: Compute division polynomials
-    let target = target_polynomial::<ark_bn254::Fq>(num_constraints);
+    let target = target_polynomial::<Fr>(num_constraints);
     let h_query =
         compute_division_polynomials_encrypted(&target, num_constraints, tau_field.clone())?;
 
@@ -180,10 +167,9 @@ where
     for a_poly in a_polys.iter().take(num_inputs + 1).skip(1) {
         // Public input at witness index i corresponds to a_polys[i]
         let a_eval = a_poly.evaluate(&tau_field).value;
-        let fr_a_eval = fq_to_fr(&a_eval);
 
         // IC[i] = β·Aᵢ(τ)·G₁
-        let ic_point = (G1Affine::generator() * beta * fr_a_eval).into_affine();
+        let ic_point = (G1Affine::generator() * beta * a_eval).into_affine();
         ic.push(ic_point);
     }
 
@@ -214,9 +200,9 @@ where
 
 /// Performs a deterministic trusted setup for testing purposes.
 pub fn trusted_setup_test(
-    a_polys: &[Polynomial<ark_bn254::Fq>],
-    b_polys: &[Polynomial<ark_bn254::Fq>],
-    c_polys: &[Polynomial<ark_bn254::Fq>],
+    a_polys: &[Polynomial<Fr>],
+    b_polys: &[Polynomial<Fr>],
+    c_polys: &[Polynomial<Fr>],
     num_inputs: usize,
     seed: &[u8; 32],
 ) -> Result<(ProvingKey, VerificationKey), Groth16Error> {
@@ -255,24 +241,23 @@ fn compute_powers_of_tau_g2(tau: Fr, degree: usize) -> Vec<G2Affine> {
 
 /// Computes division polynomials and encrypts them
 fn compute_division_polynomials_encrypted(
-    target: &Polynomial<ark_bn254::Fq>,
+    target: &Polynomial<Fr>,
     num_constraints: usize,
-    tau: FieldWrapper<ark_bn254::Fq>,
+    tau: FieldWrapper<Fr>,
 ) -> Result<Vec<G1Affine>, Groth16Error> {
     let mut result = Vec::new();
 
     for j in 0..num_constraints.saturating_sub(2) {
-        let j_field = FieldWrapper::<ark_bn254::Fq>::from(j as u64);
-        let divisor = Polynomial::<ark_bn254::Fq>::new(vec![
-            FieldWrapper::<ark_bn254::Fq>::zero() - j_field.clone(),
-            FieldWrapper::<ark_bn254::Fq>::one(),
+        let j_field = FieldWrapper::<Fr>::from(j as u64);
+        let divisor = Polynomial::<Fr>::new(vec![
+            FieldWrapper::<Fr>::zero() - j_field.clone(),
+            FieldWrapper::<Fr>::one(),
         ]);
 
         match divide_polynomials(target, &divisor) {
             Ok((quotient, _remainder)) => {
                 let h_j_at_tau = quotient.evaluate(&tau);
-                let fr_scalar = fq_to_fr(&h_j_at_tau.value);
-                let encrypted = (G1Affine::generator() * fr_scalar).into_affine();
+                let encrypted = (G1Affine::generator() * h_j_at_tau.value).into_affine();
                 result.push(encrypted);
             }
             Err(e) => {
@@ -289,25 +274,25 @@ fn compute_division_polynomials_encrypted(
 
 /// Performs polynomial division
 fn divide_polynomials(
-    dividend: &Polynomial<ark_bn254::Fq>,
-    divisor: &Polynomial<ark_bn254::Fq>,
-) -> Result<(Polynomial<ark_bn254::Fq>, Polynomial<ark_bn254::Fq>), String> {
+    dividend: &Polynomial<Fr>,
+    divisor: &Polynomial<Fr>,
+) -> Result<(Polynomial<Fr>, Polynomial<Fr>), String> {
     if divisor.is_zero() {
         return Err("Division by zero".to_string());
     }
 
     if dividend.is_zero() {
         return Ok((
-            Polynomial::<ark_bn254::Fq>::new(vec![FieldWrapper::<ark_bn254::Fq>::zero()]),
-            Polynomial::<ark_bn254::Fq>::new(vec![FieldWrapper::<ark_bn254::Fq>::zero()]),
+            Polynomial::<Fr>::new(vec![FieldWrapper::<Fr>::zero()]),
+            Polynomial::<Fr>::new(vec![FieldWrapper::<Fr>::zero()]),
         ));
     }
 
     let mut remainder = dividend.clone();
-    let mut quotient_coeffs = vec![FieldWrapper::<ark_bn254::Fq>::zero(); dividend.degree() + 1];
+    let mut quotient_coeffs = vec![FieldWrapper::<Fr>::zero(); dividend.degree() + 1];
 
     let divisor_degree = divisor.degree();
-    let zero = FieldWrapper::<ark_bn254::Fq>::zero();
+    let zero = FieldWrapper::<Fr>::zero();
     let divisor_leading = divisor
         .coeffs
         .iter()
@@ -325,7 +310,7 @@ fn divide_polynomials(
             .unwrap_or(&zero);
 
         let coeff = remainder_leading.clone()
-            * FieldWrapper::<ark_bn254::Fq>::from(
+            * FieldWrapper::<Fr>::from(
                 divisor_leading
                     .value
                     .inverse()
@@ -335,9 +320,9 @@ fn divide_polynomials(
         let degree_diff = remainder_degree - divisor_degree;
         quotient_coeffs[degree_diff] = quotient_coeffs[degree_diff].clone() + coeff.clone();
 
-        let mut term_coeffs = vec![FieldWrapper::<ark_bn254::Fq>::zero(); degree_diff + 1];
+        let mut term_coeffs = vec![FieldWrapper::<Fr>::zero(); degree_diff + 1];
         term_coeffs[degree_diff] = coeff;
-        let term = Polynomial::<ark_bn254::Fq>::new(term_coeffs);
+        let term = Polynomial::<Fr>::new(term_coeffs);
 
         let product = term * divisor.clone();
         remainder = remainder - product;
@@ -347,7 +332,7 @@ fn divide_polynomials(
         quotient_coeffs.pop();
     }
 
-    Ok((Polynomial::<ark_bn254::Fq>::new(quotient_coeffs), remainder))
+    Ok((Polynomial::<Fr>::new(quotient_coeffs), remainder))
 }
 
 #[cfg(test)]
@@ -361,10 +346,10 @@ mod tests {
     #[test]
     fn test_trusted_setup_structure() {
         // Create simple QAP with 4 constraints to get division polynomials
-        let mut c1 = R1CSConstraint::<ark_bn254::Fq>::new();
-        c1.add_a_variable(1, FieldWrapper::<ark_bn254::Fq>::from(1u64));
-        c1.add_b_variable(2, FieldWrapper::<ark_bn254::Fq>::from(1u64));
-        c1.add_c_variable(3, FieldWrapper::<ark_bn254::Fq>::from(1u64));
+        let mut c1 = R1CSConstraint::<ark_bn254::Fr>::new();
+        c1.add_a_variable(1, FieldWrapper::<ark_bn254::Fr>::from(1u64));
+        c1.add_b_variable(2, FieldWrapper::<ark_bn254::Fr>::from(1u64));
+        c1.add_c_variable(3, FieldWrapper::<ark_bn254::Fr>::from(1u64));
 
         let c2 = c1.clone();
         let c3 = c1.clone();
@@ -392,10 +377,10 @@ mod tests {
 
     #[test]
     fn test_trusted_setup_deterministic() {
-        let mut c1 = R1CSConstraint::<ark_bn254::Fq>::new();
-        c1.add_a_variable(1, FieldWrapper::<ark_bn254::Fq>::from(1u64));
-        c1.add_b_variable(2, FieldWrapper::<ark_bn254::Fq>::from(1u64));
-        c1.add_c_variable(3, FieldWrapper::<ark_bn254::Fq>::from(1u64));
+        let mut c1 = R1CSConstraint::<ark_bn254::Fr>::new();
+        c1.add_a_variable(1, FieldWrapper::<ark_bn254::Fr>::from(1u64));
+        c1.add_b_variable(2, FieldWrapper::<ark_bn254::Fr>::from(1u64));
+        c1.add_c_variable(3, FieldWrapper::<ark_bn254::Fr>::from(1u64));
 
         let constraints = vec![c1.clone(), c1.clone()];
         let (a_polys, b_polys, c_polys) = r1cs_to_qap(&constraints, 4).unwrap();
@@ -414,9 +399,9 @@ mod tests {
 
     #[test]
     fn test_empty_polynomials_error() {
-        let a_polys: Vec<Polynomial<ark_bn254::Fq>> = vec![];
-        let b_polys: Vec<Polynomial<ark_bn254::Fq>> = vec![];
-        let c_polys: Vec<Polynomial<ark_bn254::Fq>> = vec![];
+        let a_polys: Vec<Polynomial<ark_bn254::Fr>> = vec![];
+        let b_polys: Vec<Polynomial<ark_bn254::Fr>> = vec![];
+        let c_polys: Vec<Polynomial<ark_bn254::Fr>> = vec![];
 
         let seed = [42u8; 32];
         let mut rng = ChaCha8Rng::from_seed(seed);
@@ -431,15 +416,15 @@ mod tests {
 
     #[test]
     fn test_mismatched_polynomials_error() {
-        let a_polys = vec![Polynomial::<ark_bn254::Fq>::new(vec![FieldWrapper::<
-            ark_bn254::Fq,
+        let a_polys = vec![Polynomial::<ark_bn254::Fr>::new(vec![FieldWrapper::<
+            ark_bn254::Fr,
         >::one()])];
         let b_polys = vec![
-            Polynomial::<ark_bn254::Fq>::new(vec![FieldWrapper::<ark_bn254::Fq>::one()]),
-            Polynomial::<ark_bn254::Fq>::new(vec![FieldWrapper::<ark_bn254::Fq>::one()]),
+            Polynomial::<ark_bn254::Fr>::new(vec![FieldWrapper::<ark_bn254::Fr>::one()]),
+            Polynomial::<ark_bn254::Fr>::new(vec![FieldWrapper::<ark_bn254::Fr>::one()]),
         ];
-        let c_polys = vec![Polynomial::<ark_bn254::Fq>::new(vec![FieldWrapper::<
-            ark_bn254::Fq,
+        let c_polys = vec![Polynomial::<ark_bn254::Fr>::new(vec![FieldWrapper::<
+            ark_bn254::Fr,
         >::one()])];
 
         let seed = [42u8; 32];
@@ -455,14 +440,14 @@ mod tests {
 
     #[test]
     fn test_invalid_inputs_error() {
-        let a_polys = vec![Polynomial::<ark_bn254::Fq>::new(vec![FieldWrapper::<
-            ark_bn254::Fq,
+        let a_polys = vec![Polynomial::<ark_bn254::Fr>::new(vec![FieldWrapper::<
+            ark_bn254::Fr,
         >::one()])];
-        let b_polys = vec![Polynomial::<ark_bn254::Fq>::new(vec![FieldWrapper::<
-            ark_bn254::Fq,
+        let b_polys = vec![Polynomial::<ark_bn254::Fr>::new(vec![FieldWrapper::<
+            ark_bn254::Fr,
         >::one()])];
-        let c_polys = vec![Polynomial::<ark_bn254::Fq>::new(vec![FieldWrapper::<
-            ark_bn254::Fq,
+        let c_polys = vec![Polynomial::<ark_bn254::Fr>::new(vec![FieldWrapper::<
+            ark_bn254::Fr,
         >::one()])];
 
         let seed = [42u8; 32];
@@ -485,15 +470,15 @@ mod tests {
 
     #[test]
     fn test_division_polynomials() {
-        let dividend = Polynomial::<ark_bn254::Fq>::new(vec![
-            FieldWrapper::<ark_bn254::Fq>::zero() - FieldWrapper::<ark_bn254::Fq>::one(),
-            FieldWrapper::<ark_bn254::Fq>::zero(),
-            FieldWrapper::<ark_bn254::Fq>::one(),
+        let dividend = Polynomial::<ark_bn254::Fr>::new(vec![
+            FieldWrapper::<ark_bn254::Fr>::zero() - FieldWrapper::<ark_bn254::Fr>::one(),
+            FieldWrapper::<ark_bn254::Fr>::zero(),
+            FieldWrapper::<ark_bn254::Fr>::one(),
         ]);
 
-        let divisor = Polynomial::<ark_bn254::Fq>::new(vec![
-            FieldWrapper::<ark_bn254::Fq>::zero() - FieldWrapper::<ark_bn254::Fq>::one(),
-            FieldWrapper::<ark_bn254::Fq>::one(),
+        let divisor = Polynomial::<ark_bn254::Fr>::new(vec![
+            FieldWrapper::<ark_bn254::Fr>::zero() - FieldWrapper::<ark_bn254::Fr>::one(),
+            FieldWrapper::<ark_bn254::Fr>::one(),
         ]);
 
         let (quotient, remainder) = divide_polynomials(&dividend, &divisor).unwrap();

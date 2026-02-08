@@ -1,9 +1,9 @@
 use crate::error::Groth16Error;
 use crate::keys::VerificationKey;
 use crate::prove::Proof;
-use ark_bn254::{Bn254, Fq, G1Projective as G1};
+use ark_bn254::{Bn254, Fr, G1Projective as G1};
 use ark_ec::pairing::Pairing;
-use ark_ff::{BigInteger, PrimeField, Zero};
+use ark_ff::{PrimeField, Zero};
 use groth16_math::fields::FieldWrapper;
 
 /// Verifies a Groth16 zero-knowledge proof.
@@ -57,7 +57,7 @@ use groth16_math::fields::FieldWrapper;
 /// let proof = generate_proof_test(&pk, &witness, &a_polys, &b_polys, &c_polys, 1, &seed)?;
 ///
 /// // Verify with public input c=12
-/// let public_inputs = vec![FieldWrapper::<Fq>::from(12u64)];
+/// let public_inputs = vec![FieldWrapper::<Fr>::from(12u64)];
 /// let is_valid = verify_proof(&vk, &proof, &public_inputs)?;
 ///
 /// assert!(is_valid);  // Proof should be valid
@@ -66,7 +66,7 @@ use groth16_math::fields::FieldWrapper;
 pub fn verify_proof(
     vk: &VerificationKey,
     proof: &Proof,
-    public_inputs: &[FieldWrapper<Fq>],
+    public_inputs: &[FieldWrapper<Fr>],
 ) -> Result<bool, Groth16Error> {
     // Validate inputs
     // The IC vector contains the input consistency elements
@@ -76,15 +76,6 @@ pub fn verify_proof(
     // We support both cases by checking the length
     if vk.ic.is_empty() && !public_inputs.is_empty() {
         return Err(Groth16Error::InvalidInputs(public_inputs.len()));
-    }
-
-    // Helper function to convert FieldWrapper<Fq> to scalar field Fr
-    fn fq_to_fr(fq: &Fq) -> <Bn254 as Pairing>::ScalarField {
-        let bytes = fq.into_bigint().to_bytes_be();
-        let mut padded = [0u8; 32];
-        let start = 32usize.saturating_sub(bytes.len());
-        padded[start..].copy_from_slice(&bytes);
-        <<Bn254 as Pairing>::ScalarField as PrimeField>::from_be_bytes_mod_order(&padded)
     }
 
     // Step 1: Compute left side of verification equation
@@ -110,7 +101,7 @@ pub fn verify_proof(
         }
         for (i, input) in public_inputs.iter().enumerate() {
             if i + 1 < vk.ic.len() {
-                let input_scalar = fq_to_fr(&input.value);
+                let input_scalar = input.value;
                 let ic_point = G1::from(vk.ic[i + 1]);
                 public_acc += ic_point * input_scalar;
             }
@@ -119,7 +110,7 @@ pub fn verify_proof(
         // IC only contains public inputs, constant is implicit
         for (i, input) in public_inputs.iter().enumerate() {
             if i < vk.ic.len() {
-                let input_scalar = fq_to_fr(&input.value);
+                let input_scalar = input.value;
                 let ic_point = G1::from(vk.ic[i]);
                 public_acc += ic_point * input_scalar;
             }
@@ -297,7 +288,7 @@ pub fn verify_proof(
 /// - You need to identify which specific proof failed
 pub fn batch_verify<R>(
     vk: &VerificationKey,
-    proofs_and_inputs: &[(Proof, Vec<FieldWrapper<Fq>>)],
+    proofs_and_inputs: &[(Proof, Vec<FieldWrapper<Fr>>)],
     _rng: &mut R,
 ) -> Result<bool, Groth16Error>
 where
@@ -333,10 +324,10 @@ mod tests {
     fn test_verify_valid_proof() {
         // Create multiplier circuit: 3 × 4 = 12
         // Using standard Groth16 witness ordering: [1, c, a, b]
-        let mut c1 = R1CSConstraint::<Fq>::new();
-        c1.add_a_variable(2, FieldWrapper::<Fq>::from(1u64)); // a at index 2
-        c1.add_b_variable(3, FieldWrapper::<Fq>::from(1u64)); // b at index 3
-        c1.add_c_variable(1, FieldWrapper::<Fq>::from(1u64)); // c at index 1
+        let mut c1 = R1CSConstraint::<Fr>::new();
+        c1.add_a_variable(2, FieldWrapper::<Fr>::from(1u64)); // a at index 2
+        c1.add_b_variable(3, FieldWrapper::<Fr>::from(1u64)); // b at index 3
+        c1.add_c_variable(1, FieldWrapper::<Fr>::from(1u64)); // c at index 1
 
         let constraints = vec![c1.clone(), c1.clone()];
         let (a_polys, b_polys, c_polys) = r1cs_to_qap(&constraints, 4).unwrap();
@@ -348,10 +339,10 @@ mod tests {
         // Generate witness for a=3, b=4, c=12
         // Witness ordering: [1, c, a, b]
         let witness = vec![
-            FieldWrapper::<Fq>::from(1u64),  // constant 1
-            FieldWrapper::<Fq>::from(12u64), // public output c
-            FieldWrapper::<Fq>::from(3u64),  // private input a
-            FieldWrapper::<Fq>::from(4u64),  // private input b
+            FieldWrapper::<Fr>::from(1u64),  // constant 1
+            FieldWrapper::<Fr>::from(12u64), // public output c
+            FieldWrapper::<Fr>::from(3u64),  // private input a
+            FieldWrapper::<Fr>::from(4u64),  // private input b
         ];
 
         // Generate proof
@@ -359,7 +350,7 @@ mod tests {
             generate_proof_test(&pk, &witness, &a_polys, &b_polys, &c_polys, 1, &seed).unwrap();
 
         // Verify with public input c=12
-        let public_inputs = vec![FieldWrapper::<Fq>::from(12u64)];
+        let public_inputs = vec![FieldWrapper::<Fr>::from(12u64)];
         let is_valid = verify_proof(&vk, &proof, &public_inputs).unwrap();
 
         assert!(is_valid, "Valid proof should verify");
@@ -368,10 +359,10 @@ mod tests {
     #[test]
     fn test_verify_invalid_public_input() {
         // Same setup as above, using standard Groth16 witness ordering
-        let mut c1 = R1CSConstraint::<Fq>::new();
-        c1.add_a_variable(2, FieldWrapper::<Fq>::from(1u64)); // a at index 2
-        c1.add_b_variable(3, FieldWrapper::<Fq>::from(1u64)); // b at index 3
-        c1.add_c_variable(1, FieldWrapper::<Fq>::from(1u64)); // c at index 1
+        let mut c1 = R1CSConstraint::<Fr>::new();
+        c1.add_a_variable(2, FieldWrapper::<Fr>::from(1u64)); // a at index 2
+        c1.add_b_variable(3, FieldWrapper::<Fr>::from(1u64)); // b at index 3
+        c1.add_c_variable(1, FieldWrapper::<Fr>::from(1u64)); // c at index 1
 
         let constraints = vec![c1.clone(), c1.clone()];
         let (a_polys, b_polys, c_polys) = r1cs_to_qap(&constraints, 4).unwrap();
@@ -381,17 +372,17 @@ mod tests {
 
         // Proof for a=3, b=4, c=12
         let witness = vec![
-            FieldWrapper::<Fq>::from(1u64),  // constant 1
-            FieldWrapper::<Fq>::from(12u64), // public output c
-            FieldWrapper::<Fq>::from(3u64),  // private input a
-            FieldWrapper::<Fq>::from(4u64),  // private input b
+            FieldWrapper::<Fr>::from(1u64),  // constant 1
+            FieldWrapper::<Fr>::from(12u64), // public output c
+            FieldWrapper::<Fr>::from(3u64),  // private input a
+            FieldWrapper::<Fr>::from(4u64),  // private input b
         ];
 
         let proof =
             generate_proof_test(&pk, &witness, &a_polys, &b_polys, &c_polys, 1, &seed).unwrap();
 
         // Try to verify with WRONG public input c=99
-        let public_inputs = vec![FieldWrapper::<Fq>::from(99u64)];
+        let public_inputs = vec![FieldWrapper::<Fr>::from(99u64)];
         let is_valid = verify_proof(&vk, &proof, &public_inputs).unwrap();
 
         assert!(!is_valid, "Proof should NOT verify with wrong public input");
@@ -401,10 +392,10 @@ mod tests {
     fn test_verify_with_empty_public_inputs() {
         // Create a circuit with no public inputs (except constant 1)
         // This is unusual but should be handled gracefully
-        let mut c1 = R1CSConstraint::<Fq>::new();
-        c1.add_a_variable(1, FieldWrapper::<Fq>::from(1u64)); // a at index 1
-        c1.add_b_variable(2, FieldWrapper::<Fq>::from(1u64)); // b at index 2
-        c1.add_c_variable(3, FieldWrapper::<Fq>::from(1u64)); // c at index 3
+        let mut c1 = R1CSConstraint::<Fr>::new();
+        c1.add_a_variable(1, FieldWrapper::<Fr>::from(1u64)); // a at index 1
+        c1.add_b_variable(2, FieldWrapper::<Fr>::from(1u64)); // b at index 2
+        c1.add_c_variable(3, FieldWrapper::<Fr>::from(1u64)); // c at index 3
 
         let constraints = vec![c1.clone(), c1.clone()];
         let (a_polys, b_polys, c_polys) = r1cs_to_qap(&constraints, 4).unwrap();
@@ -415,10 +406,10 @@ mod tests {
 
         // Generate witness (all values are private in this case)
         let witness = vec![
-            FieldWrapper::<Fq>::from(1u64),  // constant 1
-            FieldWrapper::<Fq>::from(3u64),  // a
-            FieldWrapper::<Fq>::from(4u64),  // b
-            FieldWrapper::<Fq>::from(12u64), // c
+            FieldWrapper::<Fr>::from(1u64),  // constant 1
+            FieldWrapper::<Fr>::from(3u64),  // a
+            FieldWrapper::<Fr>::from(4u64),  // b
+            FieldWrapper::<Fr>::from(12u64), // c
         ];
 
         let proof =
@@ -437,10 +428,10 @@ mod tests {
     #[test]
     fn test_batch_verify_valid_proofs() {
         // Using standard Groth16 witness ordering: [1, c, a, b]
-        let mut c1 = R1CSConstraint::<Fq>::new();
-        c1.add_a_variable(2, FieldWrapper::<Fq>::from(1u64)); // a at index 2
-        c1.add_b_variable(3, FieldWrapper::<Fq>::from(1u64)); // b at index 3
-        c1.add_c_variable(1, FieldWrapper::<Fq>::from(1u64)); // c at index 1
+        let mut c1 = R1CSConstraint::<Fr>::new();
+        c1.add_a_variable(2, FieldWrapper::<Fr>::from(1u64)); // a at index 2
+        c1.add_b_variable(3, FieldWrapper::<Fr>::from(1u64)); // b at index 3
+        c1.add_c_variable(1, FieldWrapper::<Fr>::from(1u64)); // c at index 1
 
         let constraints = vec![c1.clone(), c1.clone()];
         let (a_polys, b_polys, c_polys) = r1cs_to_qap(&constraints, 4).unwrap();
@@ -453,10 +444,10 @@ mod tests {
         let proof1 = generate_proof_test(
             &pk,
             &[
-                FieldWrapper::<Fq>::from(1u64),  // constant 1
-                FieldWrapper::<Fq>::from(12u64), // c
-                FieldWrapper::<Fq>::from(3u64),  // a
-                FieldWrapper::<Fq>::from(4u64),  // b
+                FieldWrapper::<Fr>::from(1u64),  // constant 1
+                FieldWrapper::<Fr>::from(12u64), // c
+                FieldWrapper::<Fr>::from(3u64),  // a
+                FieldWrapper::<Fr>::from(4u64),  // b
             ],
             &a_polys,
             &b_polys,
@@ -470,10 +461,10 @@ mod tests {
         let proof2 = generate_proof_test(
             &pk,
             &[
-                FieldWrapper::<Fq>::from(1u64),  // constant 1
-                FieldWrapper::<Fq>::from(30u64), // c
-                FieldWrapper::<Fq>::from(5u64),  // a
-                FieldWrapper::<Fq>::from(6u64),  // b
+                FieldWrapper::<Fr>::from(1u64),  // constant 1
+                FieldWrapper::<Fr>::from(30u64), // c
+                FieldWrapper::<Fr>::from(5u64),  // a
+                FieldWrapper::<Fr>::from(6u64),  // b
             ],
             &a_polys,
             &b_polys,
@@ -484,8 +475,8 @@ mod tests {
         .unwrap();
 
         let proofs_and_inputs = vec![
-            (proof1, vec![FieldWrapper::<Fq>::from(12u64)]),
-            (proof2, vec![FieldWrapper::<Fq>::from(30u64)]),
+            (proof1, vec![FieldWrapper::<Fr>::from(12u64)]),
+            (proof2, vec![FieldWrapper::<Fr>::from(30u64)]),
         ];
 
         let mut rng = ChaCha8Rng::from_seed([42u8; 32]);
@@ -496,10 +487,10 @@ mod tests {
     #[test]
     fn test_batch_verify_with_invalid_proof() {
         // Using standard Groth16 witness ordering: [1, c, a, b]
-        let mut c1 = R1CSConstraint::<Fq>::new();
-        c1.add_a_variable(2, FieldWrapper::<Fq>::from(1u64)); // a at index 2
-        c1.add_b_variable(3, FieldWrapper::<Fq>::from(1u64)); // b at index 3
-        c1.add_c_variable(1, FieldWrapper::<Fq>::from(1u64)); // c at index 1
+        let mut c1 = R1CSConstraint::<Fr>::new();
+        c1.add_a_variable(2, FieldWrapper::<Fr>::from(1u64)); // a at index 2
+        c1.add_b_variable(3, FieldWrapper::<Fr>::from(1u64)); // b at index 3
+        c1.add_c_variable(1, FieldWrapper::<Fr>::from(1u64)); // c at index 1
 
         let constraints = vec![c1.clone(), c1.clone()];
         let (a_polys, b_polys, c_polys) = r1cs_to_qap(&constraints, 4).unwrap();
@@ -511,10 +502,10 @@ mod tests {
         let proof1 = generate_proof_test(
             &pk,
             &[
-                FieldWrapper::<Fq>::from(1u64),  // constant 1
-                FieldWrapper::<Fq>::from(12u64), // c
-                FieldWrapper::<Fq>::from(3u64),  // a
-                FieldWrapper::<Fq>::from(4u64),  // b
+                FieldWrapper::<Fr>::from(1u64),  // constant 1
+                FieldWrapper::<Fr>::from(12u64), // c
+                FieldWrapper::<Fr>::from(3u64),  // a
+                FieldWrapper::<Fr>::from(4u64),  // b
             ],
             &a_polys,
             &b_polys,
@@ -528,10 +519,10 @@ mod tests {
         let proof2 = generate_proof_test(
             &pk,
             &[
-                FieldWrapper::<Fq>::from(1u64),  // constant 1
-                FieldWrapper::<Fq>::from(30u64), // c
-                FieldWrapper::<Fq>::from(5u64),  // a
-                FieldWrapper::<Fq>::from(6u64),  // b
+                FieldWrapper::<Fr>::from(1u64),  // constant 1
+                FieldWrapper::<Fr>::from(30u64), // c
+                FieldWrapper::<Fr>::from(5u64),  // a
+                FieldWrapper::<Fr>::from(6u64),  // b
             ],
             &a_polys,
             &b_polys,
@@ -542,8 +533,8 @@ mod tests {
         .unwrap();
 
         let proofs_and_inputs = vec![
-            (proof1, vec![FieldWrapper::<Fq>::from(12u64)]),
-            (proof2, vec![FieldWrapper::<Fq>::from(99u64)]), // Wrong public input!
+            (proof1, vec![FieldWrapper::<Fr>::from(12u64)]),
+            (proof2, vec![FieldWrapper::<Fr>::from(99u64)]), // Wrong public input!
         ];
 
         let mut rng = ChaCha8Rng::from_seed([42u8; 32]);
@@ -555,14 +546,14 @@ mod tests {
     fn setup_test_circuit() -> (
         crate::keys::ProvingKey,
         VerificationKey,
-        Vec<R1CSConstraint<Fq>>,
+        Vec<R1CSConstraint<Fr>>,
     ) {
         // Create multiplier circuit: a × b = c
         // Using standard Groth16 witness ordering: [1, c, a, b]
-        let mut c1 = R1CSConstraint::<Fq>::new();
-        c1.add_a_variable(2, FieldWrapper::<Fq>::from(1u64)); // a at index 2
-        c1.add_b_variable(3, FieldWrapper::<Fq>::from(1u64)); // b at index 3
-        c1.add_c_variable(1, FieldWrapper::<Fq>::from(1u64)); // c at index 1
+        let mut c1 = R1CSConstraint::<Fr>::new();
+        c1.add_a_variable(2, FieldWrapper::<Fr>::from(1u64)); // a at index 2
+        c1.add_b_variable(3, FieldWrapper::<Fr>::from(1u64)); // b at index 3
+        c1.add_c_variable(1, FieldWrapper::<Fr>::from(1u64)); // c at index 1
 
         let constraints = vec![c1.clone(), c1.clone()];
         let (a_polys, b_polys, c_polys) = r1cs_to_qap(&constraints, 4).unwrap();
@@ -577,8 +568,8 @@ mod tests {
     /// Test helper: Generate a proof with the given witness
     fn generate_proof_for_witness(
         pk: &crate::keys::ProvingKey,
-        witness: &[FieldWrapper<Fq>],
-        constraints: &[R1CSConstraint<Fq>],
+        witness: &[FieldWrapper<Fr>],
+        constraints: &[R1CSConstraint<Fr>],
     ) -> Proof {
         let (a_polys, b_polys, c_polys) = r1cs_to_qap(constraints, 4).unwrap();
         let seed = [42u8; 32];
@@ -595,57 +586,57 @@ mod tests {
             {
                 // 3 × 4 = 12
                 let witness = vec![
-                    FieldWrapper::<Fq>::from(1u64),  // constant 1
-                    FieldWrapper::<Fq>::from(12u64), // c
-                    FieldWrapper::<Fq>::from(3u64),  // a
-                    FieldWrapper::<Fq>::from(4u64),  // b
+                    FieldWrapper::<Fr>::from(1u64),  // constant 1
+                    FieldWrapper::<Fr>::from(12u64), // c
+                    FieldWrapper::<Fr>::from(3u64),  // a
+                    FieldWrapper::<Fr>::from(4u64),  // b
                 ];
                 let proof = generate_proof_for_witness(&pk, &witness, &constraints);
-                (proof, vec![FieldWrapper::<Fq>::from(12u64)])
+                (proof, vec![FieldWrapper::<Fr>::from(12u64)])
             },
             {
                 // 5 × 6 = 30
                 let witness = vec![
-                    FieldWrapper::<Fq>::from(1u64),  // constant 1
-                    FieldWrapper::<Fq>::from(30u64), // c
-                    FieldWrapper::<Fq>::from(5u64),  // a
-                    FieldWrapper::<Fq>::from(6u64),  // b
+                    FieldWrapper::<Fr>::from(1u64),  // constant 1
+                    FieldWrapper::<Fr>::from(30u64), // c
+                    FieldWrapper::<Fr>::from(5u64),  // a
+                    FieldWrapper::<Fr>::from(6u64),  // b
                 ];
                 let proof = generate_proof_for_witness(&pk, &witness, &constraints);
-                (proof, vec![FieldWrapper::<Fq>::from(30u64)])
+                (proof, vec![FieldWrapper::<Fr>::from(30u64)])
             },
             {
                 // 2 × 3 = 6
                 let witness = vec![
-                    FieldWrapper::<Fq>::from(1u64), // constant 1
-                    FieldWrapper::<Fq>::from(6u64), // c
-                    FieldWrapper::<Fq>::from(2u64), // a
-                    FieldWrapper::<Fq>::from(3u64), // b
+                    FieldWrapper::<Fr>::from(1u64), // constant 1
+                    FieldWrapper::<Fr>::from(6u64), // c
+                    FieldWrapper::<Fr>::from(2u64), // a
+                    FieldWrapper::<Fr>::from(3u64), // b
                 ];
                 let proof = generate_proof_for_witness(&pk, &witness, &constraints);
-                (proof, vec![FieldWrapper::<Fq>::from(6u64)])
+                (proof, vec![FieldWrapper::<Fr>::from(6u64)])
             },
             {
                 // 7 × 8 = 56
                 let witness = vec![
-                    FieldWrapper::<Fq>::from(1u64),  // constant 1
-                    FieldWrapper::<Fq>::from(56u64), // c
-                    FieldWrapper::<Fq>::from(7u64),  // a
-                    FieldWrapper::<Fq>::from(8u64),  // b
+                    FieldWrapper::<Fr>::from(1u64),  // constant 1
+                    FieldWrapper::<Fr>::from(56u64), // c
+                    FieldWrapper::<Fr>::from(7u64),  // a
+                    FieldWrapper::<Fr>::from(8u64),  // b
                 ];
                 let proof = generate_proof_for_witness(&pk, &witness, &constraints);
-                (proof, vec![FieldWrapper::<Fq>::from(56u64)])
+                (proof, vec![FieldWrapper::<Fr>::from(56u64)])
             },
             {
                 // 10 × 11 = 110
                 let witness = vec![
-                    FieldWrapper::<Fq>::from(1u64),   // constant 1
-                    FieldWrapper::<Fq>::from(110u64), // c
-                    FieldWrapper::<Fq>::from(10u64),  // a
-                    FieldWrapper::<Fq>::from(11u64),  // b
+                    FieldWrapper::<Fr>::from(1u64),   // constant 1
+                    FieldWrapper::<Fr>::from(110u64), // c
+                    FieldWrapper::<Fr>::from(10u64),  // a
+                    FieldWrapper::<Fr>::from(11u64),  // b
                 ];
                 let proof = generate_proof_for_witness(&pk, &witness, &constraints);
-                (proof, vec![FieldWrapper::<Fq>::from(110u64)])
+                (proof, vec![FieldWrapper::<Fr>::from(110u64)])
             },
         ];
 
@@ -661,39 +652,39 @@ mod tests {
         // Generate valid proofs
         let proof1 = {
             let witness = vec![
-                FieldWrapper::<Fq>::from(1u64),  // constant 1
-                FieldWrapper::<Fq>::from(12u64), // c
-                FieldWrapper::<Fq>::from(3u64),  // a
-                FieldWrapper::<Fq>::from(4u64),  // b
+                FieldWrapper::<Fr>::from(1u64),  // constant 1
+                FieldWrapper::<Fr>::from(12u64), // c
+                FieldWrapper::<Fr>::from(3u64),  // a
+                FieldWrapper::<Fr>::from(4u64),  // b
             ];
             generate_proof_for_witness(&pk, &witness, &constraints)
         };
 
         let proof2 = {
             let witness = vec![
-                FieldWrapper::<Fq>::from(1u64),  // constant 1
-                FieldWrapper::<Fq>::from(30u64), // c
-                FieldWrapper::<Fq>::from(5u64),  // a
-                FieldWrapper::<Fq>::from(6u64),  // b
+                FieldWrapper::<Fr>::from(1u64),  // constant 1
+                FieldWrapper::<Fr>::from(30u64), // c
+                FieldWrapper::<Fr>::from(5u64),  // a
+                FieldWrapper::<Fr>::from(6u64),  // b
             ];
             generate_proof_for_witness(&pk, &witness, &constraints)
         };
 
         let proof3 = {
             let witness = vec![
-                FieldWrapper::<Fq>::from(1u64), // constant 1
-                FieldWrapper::<Fq>::from(6u64), // c
-                FieldWrapper::<Fq>::from(2u64), // a
-                FieldWrapper::<Fq>::from(3u64), // b
+                FieldWrapper::<Fr>::from(1u64), // constant 1
+                FieldWrapper::<Fr>::from(6u64), // c
+                FieldWrapper::<Fr>::from(2u64), // a
+                FieldWrapper::<Fr>::from(3u64), // b
             ];
             generate_proof_for_witness(&pk, &witness, &constraints)
         };
 
         // Create batch with one invalid proof (wrong public input)
         let proofs_and_inputs = vec![
-            (proof1, vec![FieldWrapper::<Fq>::from(12u64)]), // Valid
-            (proof2, vec![FieldWrapper::<Fq>::from(99u64)]), // Invalid: wrong public input
-            (proof3, vec![FieldWrapper::<Fq>::from(6u64)]),  // Valid
+            (proof1, vec![FieldWrapper::<Fr>::from(12u64)]), // Valid
+            (proof2, vec![FieldWrapper::<Fr>::from(99u64)]), // Invalid: wrong public input
+            (proof3, vec![FieldWrapper::<Fr>::from(6u64)]),  // Valid
         ];
 
         let result = batch_verify(&vk, &proofs_and_inputs, &mut rng).unwrap();
@@ -708,15 +699,15 @@ mod tests {
         // Generate a single valid proof
         let proof = {
             let witness = vec![
-                FieldWrapper::<Fq>::from(1u64),  // constant 1
-                FieldWrapper::<Fq>::from(12u64), // c
-                FieldWrapper::<Fq>::from(3u64),  // a
-                FieldWrapper::<Fq>::from(4u64),  // b
+                FieldWrapper::<Fr>::from(1u64),  // constant 1
+                FieldWrapper::<Fr>::from(12u64), // c
+                FieldWrapper::<Fr>::from(3u64),  // a
+                FieldWrapper::<Fr>::from(4u64),  // b
             ];
             generate_proof_for_witness(&pk, &witness, &constraints)
         };
 
-        let proofs_and_inputs = vec![(proof, vec![FieldWrapper::<Fq>::from(12u64)])];
+        let proofs_and_inputs = vec![(proof, vec![FieldWrapper::<Fr>::from(12u64)])];
 
         let result = batch_verify(&vk, &proofs_and_inputs, &mut rng).unwrap();
         assert!(result, "Single valid proof should verify in batch");
@@ -728,7 +719,7 @@ mod tests {
         let mut rng = ChaCha8Rng::from_seed([42u8; 32]);
 
         // Empty batch should return true (trivially valid)
-        let proofs_and_inputs: Vec<(Proof, Vec<FieldWrapper<Fq>>)> = vec![];
+        let proofs_and_inputs: Vec<(Proof, Vec<FieldWrapper<Fr>>)> = vec![];
 
         let result = batch_verify(&vk, &proofs_and_inputs, &mut rng).unwrap();
         assert!(result, "Empty batch should be valid");

@@ -1,25 +1,11 @@
 use crate::error::Groth16Error;
 use crate::keys::ProvingKey;
-use ark_bn254::{Fq, Fr, G1Affine, G1Projective as G1, G2Affine, G2Projective as G2};
+use ark_bn254::{Fr, G1Affine, G1Projective as G1, G2Affine, G2Projective as G2};
 use ark_ec::CurveGroup;
-use ark_ff::{BigInteger, Field, PrimeField, UniformRand, Zero};
+use ark_ff::{Field, PrimeField, UniformRand, Zero};
 use groth16_math::fields::FieldWrapper;
 use groth16_math::polynomial::Polynomial;
 use rand::Rng;
-
-/// Helper function to convert Fq field element to Fr (simplified)
-fn fq_to_fr(fq: &Fq) -> Fr {
-    let bytes = fq.into_bigint().to_bytes_be();
-    let mut padded = [0u8; 32];
-    let start = 32usize.saturating_sub(bytes.len());
-    padded[start..].copy_from_slice(&bytes);
-    Fr::from_be_bytes_mod_order(&padded)
-}
-
-/// Helper function to convert FieldWrapper<Fq> to Fr
-fn field_wrapper_to_fr(fw: &FieldWrapper<Fq>) -> Fr {
-    fq_to_fr(&fw.value)
-}
 
 /// Groth16 proof
 ///
@@ -88,10 +74,10 @@ pub struct Proof {
 /// ```
 pub fn generate_proof<R: Rng + ?Sized>(
     pk: &ProvingKey,
-    witness: &[FieldWrapper<Fq>],
-    a_polys: &[Polynomial<Fq>],
-    b_polys: &[Polynomial<Fq>],
-    c_polys: &[Polynomial<Fq>],
+    witness: &[FieldWrapper<Fr>],
+    a_polys: &[Polynomial<Fr>],
+    b_polys: &[Polynomial<Fr>],
+    c_polys: &[Polynomial<Fr>],
     _public_inputs: usize,
     rng: &mut R,
 ) -> Result<Proof, Groth16Error> {
@@ -114,12 +100,12 @@ pub fn generate_proof<R: Rng + ?Sized>(
     // pk.a_query contains [α·Aⱼ(τ)] so we need to subtract α
     let mut a_witness_blinded = G1::zero();
     for (j, w) in witness.iter().enumerate() {
-        let w_fr = field_wrapper_to_fr(w);
+        let w_fr = w.value;
         let g1_point = G1::from(pk.a_query[j]);
         a_witness_blinded += g1_point * w_fr;
     }
     // Extract α contribution: α·Σ witness[j] where j=0 is the constant 1
-    let alpha_sum = field_wrapper_to_fr(&witness[0]);
+    let alpha_sum = witness[0].value;
     let a_alpha_part = G1::from(pk.alpha_g1) * alpha_sum;
     let a_base = a_witness_blinded - a_alpha_part;
 
@@ -128,7 +114,7 @@ pub fn generate_proof<R: Rng + ?Sized>(
     let mut b_witness_g2_blinded = G2::zero();
 
     for (j, w) in witness.iter().enumerate() {
-        let w_fr = field_wrapper_to_fr(w);
+        let w_fr = w.value;
         let bg1_point = G1::from(pk.b_g1_query[j]);
         let bg2_point = G2::from(pk.b_g2_query[j]);
         b_witness_g1_blinded += bg1_point * w_fr;
@@ -144,7 +130,7 @@ pub fn generate_proof<R: Rng + ?Sized>(
     // Step 3: Compute C_base = Σⱼ witness[j]·Cⱼ(τ) (already has β)
     let mut c_base = G1::zero();
     for (j, w) in witness.iter().enumerate() {
-        let w_fr = field_wrapper_to_fr(w);
+        let w_fr = w.value;
         let g1_point = G1::from(pk.c_query[j]);
         c_base += g1_point * w_fr;
     }
@@ -193,7 +179,7 @@ pub fn generate_proof<R: Rng + ?Sized>(
 
     // Get target polynomial t(x)
     let num_constraints = a_polys.len() - 2;
-    let target_poly = groth16_qap::target_polynomial::<Fq>(num_constraints);
+    let target_poly = groth16_qap::target_polynomial::<Fr>(num_constraints);
 
     // Divide to get H(x)
     let (h_poly, _remainder) =
@@ -203,9 +189,8 @@ pub fn generate_proof<R: Rng + ?Sized>(
     let mut h_tau = G1::zero();
     for (j, coeff) in h_poly.coeffs.iter().enumerate() {
         if j < pk.h_query.len() {
-            let coeff_fr = field_wrapper_to_fr(coeff);
             let g1_point = G1::from(pk.h_query[j]);
-            h_tau += g1_point * coeff_fr;
+            h_tau += g1_point * coeff.value;
         }
     }
 
@@ -232,10 +217,10 @@ pub fn generate_proof<R: Rng + ?Sized>(
 /// in production.
 pub fn generate_proof_test(
     pk: &ProvingKey,
-    witness: &[FieldWrapper<Fq>],
-    a_polys: &[Polynomial<Fq>],
-    b_polys: &[Polynomial<Fq>],
-    c_polys: &[Polynomial<Fq>],
+    witness: &[FieldWrapper<Fr>],
+    a_polys: &[Polynomial<Fr>],
+    b_polys: &[Polynomial<Fr>],
+    c_polys: &[Polynomial<Fr>],
     public_inputs: usize,
     seed: &[u8; 32],
 ) -> Result<Proof, Groth16Error> {
@@ -256,10 +241,10 @@ pub fn generate_proof_test(
 
 /// Computes the witness polynomial by linearly combining QAP polynomials with witness values
 fn compute_witness_polynomial(
-    polys: &[Polynomial<Fq>],
-    witness: &[FieldWrapper<Fq>],
-) -> Polynomial<Fq> {
-    let mut result_coeffs = vec![FieldWrapper::<Fq>::zero(); polys.len()];
+    polys: &[Polynomial<Fr>],
+    witness: &[FieldWrapper<Fr>],
+) -> Polynomial<Fr> {
+    let mut result_coeffs = vec![FieldWrapper::<Fr>::zero(); polys.len()];
 
     for (i, poly) in polys.iter().enumerate() {
         if i < witness.len() {
@@ -277,25 +262,25 @@ fn compute_witness_polynomial(
 
 /// Performs polynomial division
 fn divide_polynomials(
-    dividend: &Polynomial<Fq>,
-    divisor: &Polynomial<Fq>,
-) -> Result<(Polynomial<Fq>, Polynomial<Fq>), String> {
+    dividend: &Polynomial<Fr>,
+    divisor: &Polynomial<Fr>,
+) -> Result<(Polynomial<Fr>, Polynomial<Fr>), String> {
     if divisor.is_zero() {
         return Err("Division by zero".to_string());
     }
 
     if dividend.is_zero() {
         return Ok((
-            Polynomial::<Fq>::new(vec![FieldWrapper::<Fq>::zero()]),
-            Polynomial::<Fq>::new(vec![FieldWrapper::<Fq>::zero()]),
+            Polynomial::<Fr>::new(vec![FieldWrapper::<Fr>::zero()]),
+            Polynomial::<Fr>::new(vec![FieldWrapper::<Fr>::zero()]),
         ));
     }
 
     let mut remainder = dividend.clone();
-    let mut quotient_coeffs = vec![FieldWrapper::<Fq>::zero(); dividend.degree() + 1];
+    let mut quotient_coeffs = vec![FieldWrapper::<Fr>::zero(); dividend.degree() + 1];
 
     let divisor_degree = divisor.degree();
-    let zero = FieldWrapper::<Fq>::zero();
+    let zero = FieldWrapper::<Fr>::zero();
     let divisor_leading = divisor
         .coeffs
         .iter()
@@ -313,7 +298,7 @@ fn divide_polynomials(
             .unwrap_or(&zero);
 
         let coeff = remainder_leading.clone()
-            * FieldWrapper::<Fq>::from(
+            * FieldWrapper::<Fr>::from(
                 divisor_leading
                     .value
                     .inverse()
@@ -323,9 +308,9 @@ fn divide_polynomials(
         let degree_diff = remainder_degree - divisor_degree;
         quotient_coeffs[degree_diff] = quotient_coeffs[degree_diff].clone() + coeff.clone();
 
-        let mut term_coeffs = vec![FieldWrapper::<Fq>::zero(); degree_diff + 1];
+        let mut term_coeffs = vec![FieldWrapper::<Fr>::zero(); degree_diff + 1];
         term_coeffs[degree_diff] = coeff;
-        let term = Polynomial::<Fq>::new(term_coeffs);
+        let term = Polynomial::<Fr>::new(term_coeffs);
 
         let product = term * divisor.clone();
         remainder = remainder - product;
@@ -335,7 +320,7 @@ fn divide_polynomials(
         quotient_coeffs.pop();
     }
 
-    Ok((Polynomial::<Fq>::new(quotient_coeffs), remainder))
+    Ok((Polynomial::<Fr>::new(quotient_coeffs), remainder))
 }
 
 #[cfg(test)]
@@ -348,10 +333,10 @@ mod tests {
     #[test]
     fn test_proof_generation() {
         // Create simple QAP: a × b = c
-        let mut c1 = R1CSConstraint::<Fq>::new();
-        c1.add_a_variable(1, FieldWrapper::<Fq>::from(1u64));
-        c1.add_b_variable(2, FieldWrapper::<Fq>::from(1u64));
-        c1.add_c_variable(3, FieldWrapper::<Fq>::from(1u64));
+        let mut c1 = R1CSConstraint::<Fr>::new();
+        c1.add_a_variable(1, FieldWrapper::<Fr>::from(1u64));
+        c1.add_b_variable(2, FieldWrapper::<Fr>::from(1u64));
+        c1.add_c_variable(3, FieldWrapper::<Fr>::from(1u64));
 
         // Duplicate for QAP (need 2+ constraints)
         let constraints = vec![c1.clone(), c1.clone()];
@@ -363,10 +348,10 @@ mod tests {
 
         // Generate witness for a=3, b=4, c=12
         let witness = vec![
-            FieldWrapper::<Fq>::from(1u64),
-            FieldWrapper::<Fq>::from(3u64),
-            FieldWrapper::<Fq>::from(4u64),
-            FieldWrapper::<Fq>::from(12u64),
+            FieldWrapper::<Fr>::from(1u64),
+            FieldWrapper::<Fr>::from(3u64),
+            FieldWrapper::<Fr>::from(4u64),
+            FieldWrapper::<Fr>::from(12u64),
         ];
 
         // Generate proof
@@ -382,10 +367,10 @@ mod tests {
     #[test]
     fn test_proof_deterministic() {
         // Same as above but verify deterministic behavior
-        let mut c1 = R1CSConstraint::<Fq>::new();
-        c1.add_a_variable(1, FieldWrapper::<Fq>::from(1u64));
-        c1.add_b_variable(2, FieldWrapper::<Fq>::from(1u64));
-        c1.add_c_variable(3, FieldWrapper::<Fq>::from(1u64));
+        let mut c1 = R1CSConstraint::<Fr>::new();
+        c1.add_a_variable(1, FieldWrapper::<Fr>::from(1u64));
+        c1.add_b_variable(2, FieldWrapper::<Fr>::from(1u64));
+        c1.add_c_variable(3, FieldWrapper::<Fr>::from(1u64));
 
         let constraints = vec![c1.clone(), c1.clone()];
         let (a_polys, b_polys, c_polys) = r1cs_to_qap(&constraints, 4).unwrap();
@@ -394,10 +379,10 @@ mod tests {
         let (pk, _vk) = trusted_setup_test(&a_polys, &b_polys, &c_polys, 1, &seed).unwrap();
 
         let witness = vec![
-            FieldWrapper::<Fq>::from(1u64),
-            FieldWrapper::<Fq>::from(3u64),
-            FieldWrapper::<Fq>::from(4u64),
-            FieldWrapper::<Fq>::from(12u64),
+            FieldWrapper::<Fr>::from(1u64),
+            FieldWrapper::<Fr>::from(3u64),
+            FieldWrapper::<Fr>::from(4u64),
+            FieldWrapper::<Fr>::from(12u64),
         ];
 
         // Generate two proofs with same seed

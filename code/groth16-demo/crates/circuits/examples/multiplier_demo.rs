@@ -99,8 +99,8 @@ fn main() {
 
     // Show polynomial evaluation at constraint points
     println!("Evaluating A[1] (polynomial for variable 'a'):");
-    let x1 = FieldWrapper::<ark_bn254::Fq>::from(1u64);
-    let x2 = FieldWrapper::<ark_bn254::Fq>::from(2u64);
+    let x1 = FieldWrapper::<ark_bn254::Fr>::from(1u64);
+    let x2 = FieldWrapper::<ark_bn254::Fr>::from(2u64);
     println!(
         "  A[1]({}) = {} (should be 1, coefficient in constraint 1)",
         1,
@@ -117,7 +117,7 @@ fn main() {
     println!("Step 6: Computing target polynomial");
     println!("----------------------------------");
     let num_constraints = all_constraints.len();
-    let target = target_polynomial::<ark_bn254::Fq>(num_constraints);
+    let target = target_polynomial::<ark_bn254::Fr>(num_constraints);
     println!("Target polynomial t(x) = ∏ᵢ₌₁ⁿ (x - i)");
     println!("For n = {} constraints:", num_constraints);
     println!("  t(x) has degree {}", target.coeffs.len() - 1);

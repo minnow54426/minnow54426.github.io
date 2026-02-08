@@ -1,4 +1,4 @@
-use ark_bn254::Fq;
+use ark_bn254::Fr;
 use groth16_math::fields::FieldWrapper;
 use groth16_r1cs::constraint::R1CSConstraint;
 
@@ -73,17 +73,17 @@ impl MultiplierCircuit {
     ///
     /// # Returns
     /// A vector containing one R1CS constraint
-    pub fn to_r1cs(&self) -> Vec<R1CSConstraint<Fq>> {
-        let mut constraint = R1CSConstraint::<Fq>::new();
+    pub fn to_r1cs(&self) -> Vec<R1CSConstraint<Fr>> {
+        let mut constraint = R1CSConstraint::<Fr>::new();
 
         // A vector: selects variable a (index 2, after 1 and c)
-        constraint.add_a_variable(2, FieldWrapper::<Fq>::from(1u64));
+        constraint.add_a_variable(2, FieldWrapper::<Fr>::from(1u64));
 
         // B vector: selects variable b (index 3)
-        constraint.add_b_variable(3, FieldWrapper::<Fq>::from(1u64));
+        constraint.add_b_variable(3, FieldWrapper::<Fr>::from(1u64));
 
         // C vector: selects variable c (index 1, the public output)
-        constraint.add_c_variable(1, FieldWrapper::<Fq>::from(1u64));
+        constraint.add_c_variable(1, FieldWrapper::<Fr>::from(1u64));
 
         vec![constraint]
     }
@@ -106,12 +106,12 @@ impl MultiplierCircuit {
     ///
     /// # Returns
     /// Vector of field elements representing the witness
-    pub fn witness(&self) -> Vec<FieldWrapper<Fq>> {
+    pub fn witness(&self) -> Vec<FieldWrapper<Fr>> {
         vec![
-            FieldWrapper::<Fq>::from(1u64),   // constant 1
-            FieldWrapper::<Fq>::from(self.c), // public output c
-            FieldWrapper::<Fq>::from(self.a), // private input a
-            FieldWrapper::<Fq>::from(self.b), // private input b
+            FieldWrapper::<Fr>::from(1u64),   // constant 1
+            FieldWrapper::<Fr>::from(self.c), // public output c
+            FieldWrapper::<Fr>::from(self.a), // private input a
+            FieldWrapper::<Fr>::from(self.b), // private input b
         ]
     }
 
@@ -122,9 +122,9 @@ impl MultiplierCircuit {
     /// * `false` - If a × b ≠ c
     pub fn verify(&self) -> bool {
         // Use field arithmetic to avoid overflow
-        let a_field = Fq::from(self.a);
-        let b_field = Fq::from(self.b);
-        let c_field = Fq::from(self.c);
+        let a_field = Fr::from(self.a);
+        let b_field = Fr::from(self.b);
+        let c_field = Fr::from(self.c);
 
         a_field * b_field == c_field
     }
@@ -163,10 +163,10 @@ mod tests {
         let witness = circuit.witness();
 
         assert_eq!(witness.len(), 4); // [1, c, a, b]
-        assert_eq!(witness[0].value, Fq::from(1u64)); // constant 1
-        assert_eq!(witness[1].value, Fq::from(12u64)); // public output c
-        assert_eq!(witness[2].value, Fq::from(3u64)); // private input a
-        assert_eq!(witness[3].value, Fq::from(4u64)); // private input b
+        assert_eq!(witness[0].value, Fr::from(1u64)); // constant 1
+        assert_eq!(witness[1].value, Fr::from(12u64)); // public output c
+        assert_eq!(witness[2].value, Fr::from(3u64)); // private input a
+        assert_eq!(witness[3].value, Fr::from(4u64)); // private input b
     }
 
     #[test]
@@ -187,10 +187,10 @@ mod tests {
 
         // Witness with wrong c value (using standard ordering: [1, c, a, b])
         let witness = vec![
-            FieldWrapper::<Fq>::from(1u64),  // constant 1
-            FieldWrapper::<Fq>::from(13u64), // Wrong c!
-            FieldWrapper::<Fq>::from(3u64),  // a
-            FieldWrapper::<Fq>::from(4u64),  // b
+            FieldWrapper::<Fr>::from(1u64),  // constant 1
+            FieldWrapper::<Fr>::from(13u64), // Wrong c!
+            FieldWrapper::<Fr>::from(3u64),  // a
+            FieldWrapper::<Fr>::from(4u64),  // b
         ];
 
         // The constraint should NOT be satisfied
