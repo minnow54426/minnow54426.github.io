@@ -1,99 +1,86 @@
-# Personal Photography Website
+# Personal Portfolio Website
 
-A clean, elegant photography portfolio built with static HTML and hosted on GitHub Pages.
+A personal portfolio website hosted on GitHub Pages, featuring photography, code projects, and interactive cryptography visualizations.
 
-## 🌟 Features
+## Features
 
-- **Photo Gallery**: 18 categories with 200+ photographs
-- **Paint Gallery**: 12 watercolor videos with optimized compression
-- **Responsive Design**: Works perfectly on desktop, tablet, and mobile
-- **Fast Loading**: All media optimized for web delivery
-- **Clean UI**: Minimal design with focus on content
+- **Photography Gallery**: 12 curated photo categories with 200+ images from travels across China
+- **Code Projects**: Interactive visualizations and Zero Knowledge Proof implementations
+- **Cryptography Tools**: Interactive polynomial plotter for understanding ZK-SNARK mathematics
+- **Creative Works**: Music projects and watercolor video gallery
 
-## 📸 Photo Gallery
+## Live Site
 
-Explore photography from various locations:
-- Animals 🦁
-- Shanghai 🏙️
-- Jiu Zhai Gou 🏔️
-- Zhang Jia Jie ⛰️
-- Hu Pao Gong Yuan 🌸
-- And many more...
+[https://minnow54426.github.io/](https://minnow54426.github.io/)
 
-## 🎨 Paint Gallery
-
-Watercolor video collection featuring:
-- Christmas Snowman ❄️
-- Single Leaf 🍂
-- Mountain 🏔️
-- Leaf on Water 💧
-- Flower 🌸
-- Autumn Leave 🍁
-- Rose 🌹
-- Peach 🍑
-- Cherry Blossoms 🌸
-- Swan 🦢
-- Flower Bed 🌺
-- Whale 🐋
-
-## 🚀 Technical Stack
-
-- **HTML5/CSS3** - Modern web standards
-- **JavaScript** - Interactive galleries
-- **CSS Grid** - Responsive layouts
-- **GitHub Pages** - Static hosting
-- **FFmpeg** - Video optimization
-
-## 📊 Optimization
-
-- **Photos**: Optimized for web without quality loss
-- **Videos**: Compressed from 741MB to 64MB (91.3% reduction)
-- **All videos under 10MB** for fast loading
-- **Lazy loading** implemented for better performance
-
-## 🛠️ Local Development
+## Local Development
 
 ```bash
 # Clone the repository
 git clone https://github.com/minnow54426/minnow54426.github.io.git
-
-# Navigate to directory
 cd minnow54426.github.io
 
-# Start local server
+# Start local development server
 python -m http.server 8001
 
-# View locally
+# View in browser
 # Main page: http://localhost:8001/
 # Photo gallery: http://localhost:8001/photo-gallery.html
-# Paint gallery: http://localhost:8001/paint.html
+# Polynomial plotter: http://localhost:8001/cryptography/polynomial-plotter.html
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 /
 ├── index.html              # Main landing page
-├── photo-gallery.html      # Photo gallery viewer
-├── paint.html              # Paint gallery viewer
-├── code.html               # Code projects page
-├── music.html              # Music projects page
-├── photos/                 # Photo collections (18 categories)
+├── photo-gallery.html      # Photo category index
+├── paint.html              # Watercolor video gallery
+├── code.html               # Code projects navigation
+├── music.html              # Music projects
+├── assets/                 # CSS and JavaScript assets
+├── photos/                 # Photography collection (12 categories)
 ├── paint/                  # Art and video collection
-│   └── water_color/       # 12 watercolor videos
-├── _config.yml            # GitHub Pages config
-├── .nojekyll              # Disable Jekyll processing
-└── .gitignore             # Excluded files
+├── code/                   # Code projects
+│   └── groth16-demo/      # Groth16 ZK-SNARK implementation
+└── cryptography/           # Interactive visualization tools
 ```
 
-## 🌐 Live Site
+## Technology Stack
 
-Visit the website at: [https://minnow54426.github.io/](https://minnow54426.github.io/)
+### Frontend
+- HTML5/CSS3
+- HTML5 UP templates (Ethereal, Multiverse)
+- jQuery & jQuery Poptrox
+- Font Awesome
+- GitHub Pages
 
-## 📝 License
+### Rust Projects
+- Rust 2021 Edition
+- Cargo Workspaces
+- ARK Crypto Libraries (ark-ff, ark-ec, ark-bn254, ark-groth16)
+- mdbook for documentation
 
-This project is open source and available under the [MIT License](LICENSE).
+## Deployment
 
----
+The site is automatically deployed to GitHub Pages when changes are pushed to the `main` branch.
 
-*Built with ❤️ using static HTML and GitHub Pages*
+```bash
+# Make changes locally
+# Test with python -m http.server 8001
+
+# Commit and push
+git add .
+git commit -m "Description of changes"
+git push origin main
+
+# Site updates in 1-2 minutes at https://minnow54426.github.io/
+```
+
+## License
+
+This project uses open-source templates and libraries. See individual component directories for specific licenses.
+
+## Author
+
+Created and maintained by [wonderonpathlesspath](https://github.com/minnow54426/minnow54426.github.io)
