@@ -16,7 +16,7 @@ python -m http.server 8001
 # Photo gallery: http://localhost:8001/photo-gallery.html
 # Paint gallery: http://localhost:8001/paint.html
 # Code projects: http://localhost:8001/code.html
-# Cryptography: http://localhost:8001/cryptography.html
+# Polynomial plotter: http://localhost:8001/cryptography/polynomial-plotter.html
 # Music: http://localhost:8001/music.html
 ```
 
@@ -129,8 +129,6 @@ ls -lh paint/water_color/
 ├── paint.html              # Paint/watercolor video gallery
 ├── code.html               # Code projects file tree navigation
 ├── music.html              # Music projects page
-├── cryptography.html       # Cryptography learning and tools
-├── polynomial-plotter.html # Standalone polynomial visualization
 │
 ├── assets/                 # HTML5 UP Ethereal template assets
 │   ├── css/               # Stylesheets (main.css, custom.css)
@@ -189,7 +187,7 @@ ls -lh paint/water_color/
 The site uses **HTML5 UP templates**:
 
 1. **Ethereal Template** (`assets/css/main.css`)
-   - Used for: `index.html`, `photo-gallery.html`, `cryptography.html`, `code.html`
+   - Used for: `index.html`, `photo-gallery.html`, `code.html`
    - Features: Vertical scrolling, panel-based layout, gradient backgrounds
    - Custom overrides in: `assets/css/custom.css`
 
@@ -203,7 +201,7 @@ The site uses **HTML5 UP templates**:
 - **Hero Panel**: Full-screen gradient header with site title and navigation
 - **Photography Panel**: Photo gallery preview (8 photos from different categories)
 - **Code Projects Panel**: Cards for ZK learning, Christmas Tree, Interactiva Panel, Groth16 Demo
-- **Cryptography Panel**: Links to interactive polynomial plotter
+- **Cryptography Panel**: Direct link to polynomial plotter (interactive ZK-SNARK visualization)
 - **Creative Works Panel**: Music and paint gallery links
 
 ### Photo Gallery System
@@ -264,6 +262,32 @@ code/groth16-demo/
 3. **Modular Design**: Clear separation between math, R1CS, QAP, and Groth16 layers
 4. **Documentation**: mdbook for interactive learning materials
 5. **Testing**: Comprehensive unit tests and property-based tests
+
+### Polynomial Plotter (`cryptography/polynomial-plotter.html`)
+
+**Purpose**: Interactive visualization for understanding ZK-SNARK mathematics
+
+**Structure**:
+```
+cryptography/
+├── polynomial-plotter.html    # Main page with gradient header
+├── app.js                      # Plotly.js integration and polynomial logic
+└── styles.css                  # Custom plotter styles (grid layout)
+```
+
+**Key Features**:
+- Add/remove multiple polynomials with interactive sliders
+- Real-time plotting using Plotly.js
+- Adjustable X/Y axis ranges
+- Color-coded polynomials for easy identification
+- Responsive 2-column layout (65% plot, 35% controls)
+- "Back to Home" button in upper-left corner (fixed position)
+
+**Styling Notes**:
+- Uses purple gradient header matching main page theme
+- Independent styling (does not use main site CSS)
+- Scrollable page layout (no fixed viewport heights)
+- Mobile responsive: controls stack below plot on small screens
 
 ### Paint Gallery (`paint.html`)
 
