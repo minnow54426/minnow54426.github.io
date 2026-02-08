@@ -1,6 +1,6 @@
 /*
 Gallery Initialization for HTML5 UP Multiverse Template
-Implements background-image technique and Poptrox modal popup
+Uses direct <img> display instead of background-image technique
 */
 
 (function($) {
@@ -11,29 +11,6 @@ Implements background-image technique and Poptrox modal popup
 	$(function() {
 		var $main = $('#main');
 		var $body = $('body');
-
-		// Thumbs: Set background images (template technique)
-		$main.children('.thumb').each(function() {
-			var $this = $(this);
-			var $image = $this.find('.image');
-			var $image_img = $image.children('img');
-			var x;
-
-			// No image? Bail.
-			if ($image.length == 0)
-				return;
-
-			// Set background image from img src
-			$image.css('background-image', 'url(' + $image_img.attr('src') + ')');
-
-			// Set background position if data-position attribute exists
-			if (x = $image_img.data('position')) {
-				$image.css('background-position', x);
-			}
-
-			// Hide original img (image now shown as CSS background)
-			$image_img.hide();
-		});
 
 		// Poptrox: Modal popup configuration (images only)
 		$main.poptrox({
