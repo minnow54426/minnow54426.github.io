@@ -1,21 +1,21 @@
 :root {
     /* Colors - Modern gradient palette */
-    --primary-color: #667eea;
-    --primary-hover: #5a67d8;
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --danger-color: #f56565;
-    --danger-hover: #e53e3e;
-    --danger-gradient: linear-gradient(135deg, #f56565 0%, #ed64a6 100%);
+    --primary-color: #986743;
+    --primary-hover: #CBB79D;
+    --primary-gradient: linear-gradient(135deg, #986743 0%, #EA82A5 100%);
+    --danger-color: #EA82A5;
+    --danger-hover: #F9CDCF;
+    --danger-gradient: linear-gradient(135deg, #EA82A5 0%, #F9CDCF 100%);
     --text-primary: #1a202c;
     --text-secondary: #4a5568;
     --text-muted: #718096;
     --bg-primary: #ffffff;
-    --bg-secondary: #f7fafc;
-    --bg-tertiary: #edf2f7;
-    --border-color: #e2e8f0;
-    --border-light: #e2e8f0;
-    --focus-color: #667eea;
-    --focus-outline: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    --bg-secondary: #F5F3EB;
+    --bg-tertiary: #F9CDCF;
+    --border-color: #CBB79D;
+    --border-light: #CBB79D;
+    --focus-color: #986743;
+    --focus-outline: 0 0 0 3px rgba(152, 103, 67, 0.15);
 
     /* Spacing - More compact */
     --spacing-xs: 2px;
@@ -51,7 +51,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
     min-height: 75vh;
     color: var(--text-primary);
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: linear-gradient(135deg, #F5F3EB 0%, #F9CDCF 100%);
     margin: 20px auto;
     max-width: 1200px;
     border-radius: var(--radius-lg);

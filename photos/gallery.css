@@ -65,7 +65,7 @@ header h1 a {
 }
 
 header h1 a:hover {
-    color: #e37b7c;
+    color: #EA82A5;
 }
 
 header .back-link {
@@ -78,7 +78,7 @@ header .back-link {
 }
 
 header .back-link:hover {
-    color: #e37b7c;
+    color: #EA82A5;
 }
 
 /* Responsive header adjustments */

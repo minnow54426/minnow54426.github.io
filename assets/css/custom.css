@@ -24,7 +24,7 @@ html {
 
 /* Hero Panel - Beautiful gradient background */
 .hero-panel {
-    background-image: url("../images/overlay.png"), linear-gradient(45deg, #726193 20%, #e37b7c 60%, #ffe4b4);
+    background-image: url("../images/overlay.png"), linear-gradient(45deg, #986743 20%, #EA82A5 60%, #F5F3EB);
     background-size: 128px 128px, auto;
     min-height: 100vh;
     display: flex;
@@ -63,30 +63,30 @@ html {
 }
 
 .panel.color1 {
-    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(114, 97, 147, 0.25) 25%, rgba(227, 123, 124, 0.25) 50%, rgba(255, 228, 180, 0.25));
+    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(152, 103, 67, 0.25) 25%, rgba(203, 183, 157, 0.25) 50%, rgba(234, 130, 165, 0.25));
     background-size: 128px 128px, auto;
-    background-color: #726193;
+    background-color: #986743;
     color: white;
 }
 
 .panel.color2 {
-    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(114, 97, 147, 0.25) 25%, rgba(227, 123, 124, 0.25) 50%, rgba(255, 228, 180, 0.25));
+    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(152, 103, 67, 0.25) 25%, rgba(203, 183, 157, 0.25) 50%, rgba(234, 130, 165, 0.25));
     background-size: 128px 128px, auto;
-    background-color: #e37b7c;
-    color: white;
+    background-color: #CBB79D;
+    color: #333;
 }
 
 .panel.color3 {
-    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(114, 97, 147, 0.25) 25%, rgba(227, 123, 124, 0.25) 50%, rgba(255, 228, 180, 0.25));
+    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(152, 103, 67, 0.25) 25%, rgba(203, 183, 157, 0.25) 50%, rgba(234, 130, 165, 0.25));
     background-size: 128px 128px, auto;
-    background-color: #ffe4b4;
+    background-color: #F9CDCF;
     color: #333;
 }
 
 .panel.color4 {
-    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(114, 97, 147, 0.25) 25%, rgba(227, 123, 124, 0.25) 50%, rgba(255, 228, 180, 0.25));
+    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(152, 103, 67, 0.25) 25%, rgba(203, 183, 157, 0.25) 50%, rgba(234, 130, 165, 0.25));
     background-size: 128px 128px, auto;
-    background-color: #353865;
+    background-color: #EA82A5;
     color: white;
 }
 
@@ -233,7 +233,7 @@ html {
 
 .button.primary {
     background: rgba(255,255,255,0.95);
-    color: #726193;
+    color: #986743;
 }
 
 .button.primary:hover {
