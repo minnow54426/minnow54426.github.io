@@ -108,14 +108,23 @@ cp /path/to/photos/*.jpg "photos/new category/"
 ### Video Management
 
 ```bash
-# Standard compression (recommended)
+# Standard compression for new videos (recommended)
 ffmpeg -i original.mov -c:v libx264 -preset medium -crf 28 -movflags +faststart compressed.mp4
+
+# Aggressive compression for large videos to get under 10MB
+# Use higher CRF values (32-40) for larger files
+ffmpeg -i large_video.mp4 -c:v libx264 -preset medium -crf 35 -movflags +faststart output.mp4
 
 # Check video properties
 ffprobe -v quiet -print_format json -show_format -show_streams video.mp4
 
-# Check file sizes (must be under 100MB for GitHub)
+# Check file sizes (must be under 10MB for GitHub Pages)
 ls -lh paint/water_color/
+ls -lh paint/learning/
+ls -lh paint/creat/
+
+# Force add videos to git (ignored by .gitignore)
+git add -f paint/learning/*.mp4 paint/creat/*.mp4
 ```
 
 ## Directory Structure
@@ -156,7 +165,9 @@ ls -lh paint/water_color/
 │   └── *.html             # Individual category pages (12 files)
 │
 ├── paint/                  # Art and video collection
-│   └── water_color/       # Watercolor videos (12 videos, MP4 format)
+│   ├── water_color/       # Watercolor videos (12 videos, MP4 format, all under 3MB)
+│   ├── learning/          # Learning watercolor videos (9 videos, MP4 format, under 3MB each)
+│   └── creat/             # Creative watercolor videos (6 videos, MP4 format, under 9MB each)
 │
 ├── code/                   # Code projects directory
 │   ├── christmas_tree/    # Christmas tree visualization
@@ -289,10 +300,18 @@ cryptography/
 
 ### Paint Gallery (`paint.html`)
 
-- Folder-based navigation with 12 watercolor videos
-- Responsive video grid with hover effects
-- All videos optimized under 10MB for GitHub Pages
-- Video categories: Christmas Snowman, Single Leaf, Mountain, Leaf on Water, Flower, Autumn Leave, Rose, Peach, Cherry Blossoms, Swan, Flower Bed, Whale
+- **Three-folder structure** with expandable/collapsible sections
+- **Water Color** (12 videos): Christmas Snowman, Single Leaf, Mountain, Leaf on Water, Flower, Autumn Leave, Rose, Peach, Cherry Blossoms, Swan, Flower Bed, Whale
+- **Learning** (9 videos): Bee, Camping, Character Avatar, Chicken, Cloud Castle, Crane, Flamingo, Hummingbird, Oasis
+- **Creative** (6 videos): Cherry Blossoms, Cloud, Ghost, Mountain, Snow, Son of Light
+
+**Features**:
+- Custom video controls (play/pause, progress bar, speed control, loop toggle)
+- Hover preview with autoplay
+- Picture-in-Picture support
+- Fullscreen mode
+- Responsive grid layout with staggered animations
+- All videos compressed under 10MB for GitHub Pages (total ~50MB)
 
 ## Development Workflow
 
@@ -319,13 +338,33 @@ cryptography/
 
 ### Adding New Videos
 
-1. Compress with FFmpeg: `ffmpeg -i original.mov -c:v libx264 -preset medium -crf 28 -movflags +faststart output.mp4`
-2. Copy to `paint/water_color/`
-3. Add to `paint.html` video list
-4. Test playback locally
-5. Commit and push
+1. **Compress with FFmpeg** (CRF 28-32 for normal, 35-40 for large files):
+   ```bash
+   # For videos under 50MB
+   ffmpeg -i original.mov -c:v libx264 -preset medium -crf 28 -movflags +faststart output.mp4
 
-**Important**: Videos must be under 100MB (GitHub limit), aim for under 10MB
+   # For larger videos to get under 10MB
+   ffmpeg -i large_video.mp4 -c:v libx264 -preset medium -crf 35 -movflags +faststart output.mp4
+   ```
+
+2. **Copy to appropriate folder**:
+   - `paint/water_color/` for basic watercolor videos
+   - `paint/learning/` for tutorial/practice videos
+   - `paint/creat/` for creative/experimental videos
+
+3. **Add to `paint.html`**:
+   - Add folder HTML section (if new category)
+   - Add video data to `folderVideos` object in JavaScript
+   - Initialize gallery with `loadGallery('folder-id')`
+
+4. **Force add to git** (videos ignored by .gitignore):
+   ```bash
+   git add -f paint/folder_name/*.mp4
+   ```
+
+5. **Test playback locally** and commit
+
+**Important**: Videos must be under 10MB each for GitHub Pages. Use higher CRF values (35-40) for aggressive compression if needed.
 
 ### Working with Groth16 Code
 
@@ -364,7 +403,9 @@ Then paste the output into the appropriate category HTML file.
 - **Template Assets**: HTML5 UP templates in `assets/` (Ethereal) and `photos/` (Multiverse)
 - **Photo Gallery Dark Theme**: Individual category pages use dark background (`#1a1a1a`)
 - **Groth16 Workspace**: Multi-crate Rust project requiring careful dependency management
-- **Video File Sizes**: Must be under 100MB (GitHub hard limit), aim for under 10MB
+- **Video File Sizes**: All 27 paint videos compressed and under 10MB each (~50MB total)
+- **Git Ignore**: All `.mp4` files ignored by .gitignore; must use `git add -f` to add videos
+- **GitHub Actions**: Automatic deployment on push to main branch; workflow includes all paint folders
 - **Git Worktrees**: `.worktrees/` directory contains isolated development branches (ignore in normal work)
 
 ## Tech Stack
@@ -419,8 +460,34 @@ git push origin main
 2. **Large file push fails**: GitHub 100MB limit - compress or remove large files
 3. **Changes not visible**: Clear browser cache, wait longer for deployment
 4. **Wrong branch deployed**: Verify GitHub Pages repository settings
+5. **GitHub Actions fails**: Check that all videos are under 10MB and included in `.github/workflows/deploy.yml`
+
+### GitHub Actions Workflow
+
+The site uses GitHub Actions for automatic deployment to GitHub Pages:
+
+**Workflow file**: `.github/workflows/deploy.yml`
+
+**Triggers**:
+- Push to `main` branch
+- Manual workflow dispatch
+
+**Included paths** (uploaded to GitHub Pages):
+- All HTML pages (index.html, photo-gallery.html, paint.html, code.html, music.html)
+- Assets (CSS, JS, fonts, images)
+- Photo galleries (photos/ with 12 categories)
+- Code projects (code/ directory)
+- **Paint videos**: `paint/water_color/`, `paint/learning/`, `paint/creat/`
+
+**Requirements**:
+- All video files must be under 10MB
+- Videos are tracked in git despite .gitignore `*.mp4` rule (force added with `git add -f`)
+- Total deployment should complete in 2-3 minutes for 27 video files
 
 ### File Size Guidelines
 - **Images**: Under 5MB each
-- **Videos**: Under 10MB each (GitHub limit is 100MB)
-- **Total repository**: Under 1GB recommended
+- **Videos**: Under 10MB each (strict requirement for GitHub Pages deployment)
+  - Use CRF 28-32 for normal compression
+  - Use CRF 35-40 for aggressive compression of large files
+  - All current paint videos: 1-9MB each (27 videos total, ~50MB)
+- **Total repository**: Under 1GB recommended (currently ~500MB with all videos)
