@@ -118,7 +118,6 @@ where
     let delta_g2 = (G2Affine::generator() * delta).into_affine();
 
     // Step 4: Compute encrypted A-polynomials
-    // Standard Groth16: Store Aᵢ(τ)·G₁ (without α multiplier)
     let tau_bytes = tau.into_bigint().to_bytes_be();
     let tau_u64 = u64::from_be_bytes(tau_bytes[24..32].try_into().unwrap_or([0u8; 8]));
     let tau_field = FieldWrapper::<ark_bn254::Fq>::from(tau_u64);
@@ -126,32 +125,30 @@ where
     for poly in a_polys {
         let eval = poly.evaluate(&tau_field);
         let fr_eval = fq_to_fr(&eval.value);
-        let encrypted = (G1Affine::generator() * fr_eval).into_affine();
+        let encrypted = (G1Affine::generator() * alpha * fr_eval).into_affine();
         a_query.push(encrypted);
     }
 
     // Step 5: Compute encrypted B-polynomials in G1 and G2
-    // Standard Groth16: Store Bᵢ(τ)·G₁ and Bᵢ(τ)·G₂ (without β multiplier)
     let mut b_g1_query = Vec::with_capacity(num_vars);
     let mut b_g2_query = Vec::with_capacity(num_vars);
     for poly in b_polys {
         let eval = poly.evaluate(&tau_field);
         let fr_eval = fq_to_fr(&eval.value);
 
-        let encrypted_g1 = (G1Affine::generator() * fr_eval).into_affine();
+        let encrypted_g1 = (G1Affine::generator() * beta * fr_eval).into_affine();
         b_g1_query.push(encrypted_g1);
 
-        let encrypted_g2 = (G2Affine::generator() * fr_eval).into_affine();
+        let encrypted_g2 = (G2Affine::generator() * beta * fr_eval).into_affine();
         b_g2_query.push(encrypted_g2);
     }
 
-    // Step 6: Compute encrypted C-polynomials in G1
-    // Standard Groth16: Store Cᵢ(τ)·G₁ (without β multiplier)
+    // Step 5.5: Compute encrypted C-polynomials in G1
     let mut c_query = Vec::with_capacity(num_vars);
     for poly in c_polys {
         let eval = poly.evaluate(&tau_field);
         let fr_eval = fq_to_fr(&eval.value);
-        let encrypted = (G1Affine::generator() * fr_eval).into_affine();
+        let encrypted = (G1Affine::generator() * beta * fr_eval).into_affine();
         c_query.push(encrypted);
     }
 
@@ -163,8 +160,16 @@ where
     // Step 7: Compute IC for public inputs
     //
     // The IC (Input Consistency) vector encodes public inputs for verification.
-    // Standard Groth16: IC[i] = β·Aᵢ(τ)·G₁ (with β)
-    // We keep β in IC even though we removed it from other queries
+    // Following the standard Groth16 convention where witness is structured as:
+    // [1, public_inputs..., private_inputs...]
+    //
+    // For the IC computation:
+    // - IC[0] = β·G₁ (for the constant 1 at witness[0])
+    // - IC[i] = β·Aᵢ(τ)·G₁ for i = 1..num_inputs
+    //
+    // Note: The full Groth16 formula is IC[i] = {β·Aᵢ(τ) + α·Kᵢ(τ)}·G₁,
+    // but for this educational implementation we use the simplified version.
+
     let mut ic = Vec::with_capacity(num_inputs + 1);
 
     // IC[0] = β·G₁ for constant 1
@@ -184,8 +189,6 @@ where
 
     // Construct keys
     let pk = ProvingKey {
-        alpha,
-        beta,
         alpha_g1,
         beta_g1,
         beta_g2,
