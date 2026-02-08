@@ -83,13 +83,11 @@ Detailed explanation.
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
-# Push to all branches (GitHub Pages deployment)
+# Push to main branch (GitHub Pages deployment)
 git push origin main
-git push origin master
-git push origin gh-pages
 ```
 
-**IMPORTANT**: Always push to main, master, and gh-pages branches. GitHub Pages may use any of these as the default branch.
+**IMPORTANT**: Only push to the main branch. GitHub Pages uses main as the default branch.
 
 ### Photo Management
 
@@ -304,7 +302,7 @@ cryptography/
 2. Add appropriate CSS links (Ethereal or Multiverse template)
 3. Add navigation links in `index.html` if needed
 4. Test locally with `python -m http.server 8001`
-5. Commit and push to all branches
+5. Commit and push to main branch
 
 ### Adding New Photos
 
@@ -362,8 +360,7 @@ Then paste the output into the appropriate category HTML file.
 ## Important Notes
 
 - **Static Site**: No build process for web content; HTML files served directly
-- **GitHub Pages**: Uses `.nojekyll` to disable Jekyll processing
-- **Multi-Branch Deployment**: Always push to main, master, and gh-pages branches
+- **GitHub Pages**: Uses `.nojekyll` to disable Jekyll processing, deploys from main branch
 - **Template Assets**: HTML5 UP templates in `assets/` (Ethereal) and `photos/` (Multiverse)
 - **Photo Gallery Dark Theme**: Individual category pages use dark background (`#1a1a1a`)
 - **Groth16 Workspace**: Multi-crate Rust project requiring careful dependency management
@@ -409,10 +406,8 @@ Details.
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
-# 4. Push to all branches
+# 4. Push to main branch
 git push origin main
-git push origin master
-git push origin gh-pages
 
 # 5. Wait 1-2 minutes for GitHub Pages to rebuild
 # 6. Verify live site
