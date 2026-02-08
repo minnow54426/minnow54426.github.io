@@ -404,6 +404,22 @@
                 </div>
             </div>
 
+            <!-- Learning -->
+            <div class="gallery-container">
+                <div class="folder-header" onclick="toggleFolder('learning')">
+                    <h2 class="folder-title">
+                        <span class="folder-arrow" id="learning-arrow">▶</span>
+                        <i class="fas fa-graduation-cap"></i> Learning
+                    </h2>
+                    <span class="item-count" id="learning-count">9 videos</span>
+                </div>
+                <div class="gallery-content" id="learning-content">
+                    <div class="content-gallery" id="learning-gallery">
+                        <!-- Videos will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Additional categories can be added here following the same pattern -->
         </div>
     </section>
@@ -705,6 +721,17 @@
               { src: 'paint/water_color/swan.mp4', title: 'Swan' },
               { src: 'paint/water_color/flower_bed.mp4', title: 'Flower Bed' },
               { src: 'paint/water_color/whale.mp4', title: 'Whale' }
+            ],
+            'learning': [
+              { src: 'paint/learning/bee.mp4', title: 'Bee' },
+              { src: 'paint/learning/camping.mp4', title: 'Camping' },
+              { src: 'paint/learning/Character_avatar.mp4', title: 'Character Avatar' },
+              { src: 'paint/learning/chicken.mp4', title: 'Chicken' },
+              { src: 'paint/learning/cloud castle.mp4', title: 'Cloud Castle' },
+              { src: 'paint/learning/Crane.mp4', title: 'Crane' },
+              { src: 'paint/learning/flamingo.mp4', title: 'Flamingo' },
+              { src: 'paint/learning/hummingbird.mp4', title: 'Hummingbird' },
+              { src: 'paint/learning/oasis.mp4', title: 'Oasis' }
             ]
           };
 
@@ -716,6 +743,7 @@
 
         // Initialize galleries
         loadGallery('water-color');
+        loadGallery('learning');
       });
     </script>
 
