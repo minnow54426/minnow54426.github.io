@@ -119,16 +119,17 @@ header .back-link:hover {
 }
 
 #main .thumb .image {
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-size: cover !important;
     border: 0;
     height: 100%;
     left: 0;
     position: absolute;
     top: 0;
     width: 100%;
-    display: block;
+    display: block !important;
+    z-index: 0;
 }
 
 #main .thumb .image img {
@@ -136,6 +137,7 @@ header .back-link:hover {
     height: 100%;
     object-fit: cover;
     display: block;
+    visibility: hidden; /* Hide but keep space for fallback */
 }
 
 #main .thumb:hover {
