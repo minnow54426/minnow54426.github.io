@@ -420,6 +420,22 @@
                 </div>
             </div>
 
+            <!-- Creative -->
+            <div class="gallery-container">
+                <div class="folder-header" onclick="toggleFolder('creat')">
+                    <h2 class="folder-title">
+                        <span class="folder-arrow" id="creat-arrow">▶</span>
+                        <i class="fas fa-star"></i> Creative
+                    </h2>
+                    <span class="item-count" id="creat-count">6 videos</span>
+                </div>
+                <div class="gallery-content" id="creat-content">
+                    <div class="content-gallery" id="creat-gallery">
+                        <!-- Videos will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Additional categories can be added here following the same pattern -->
         </div>
     </section>
@@ -732,6 +748,14 @@
               { src: 'paint/learning/flamingo.mp4', title: 'Flamingo' },
               { src: 'paint/learning/hummingbird.mp4', title: 'Hummingbird' },
               { src: 'paint/learning/oasis.mp4', title: 'Oasis' }
+            ],
+            'creat': [
+              { src: 'paint/creat/Cherry_blossoms.mp4', title: 'Cherry Blossoms' },
+              { src: 'paint/creat/cloud.mp4', title: 'Cloud' },
+              { src: 'paint/creat/ghost.mp4', title: 'Ghost' },
+              { src: 'paint/creat/mountain.mp4', title: 'Mountain' },
+              { src: 'paint/creat/snow.mp4', title: 'Snow' },
+              { src: 'paint/creat/son_of_light.mp4', title: 'Son of Light' }
             ]
           };
 
@@ -744,6 +768,7 @@
         // Initialize galleries
         loadGallery('water-color');
         loadGallery('learning');
+        loadGallery('creat');
       });
     </script>
 
