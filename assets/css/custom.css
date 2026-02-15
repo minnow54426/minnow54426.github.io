@@ -24,7 +24,7 @@ html {
 
 /* Hero Panel - Beautiful gradient background */
 .hero-panel {
-    background-image: url("../images/overlay.png"), linear-gradient(45deg, #986743 20%, #EA82A5 60%, #F5F3EB);
+    background-image: url("../images/overlay.png"), linear-gradient(45deg, #4C061D 20%, #D17A22 50%, #B4C292 80%);
     background-size: 128px 128px, auto;
     min-height: 100vh;
     display: flex;
@@ -63,30 +63,30 @@ html {
 }
 
 .panel.color1 {
-    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(152, 103, 67, 0.25) 25%, rgba(203, 183, 157, 0.25) 50%, rgba(234, 130, 165, 0.25));
+    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(76, 6, 29, 0.3) 25%, rgba(209, 122, 34, 0.3) 50%, rgba(180, 194, 146, 0.3));
     background-size: 128px 128px, auto;
-    background-color: #986743;
+    background-color: #4C061D;
     color: white;
 }
 
 .panel.color2 {
-    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(152, 103, 67, 0.25) 25%, rgba(203, 183, 157, 0.25) 50%, rgba(234, 130, 165, 0.25));
+    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(76, 6, 29, 0.2) 25%, rgba(209, 122, 34, 0.3) 50%, rgba(180, 194, 146, 0.3));
     background-size: 128px 128px, auto;
-    background-color: #CBB79D;
-    color: #333;
+    background-color: #D17A22;
+    color: white;
 }
 
 .panel.color3 {
-    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(152, 103, 67, 0.25) 25%, rgba(203, 183, 157, 0.25) 50%, rgba(234, 130, 165, 0.25));
+    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(209, 122, 34, 0.25) 25%, rgba(180, 194, 146, 0.3) 50%, rgba(115, 111, 78, 0.25));
     background-size: 128px 128px, auto;
-    background-color: #F9CDCF;
-    color: #333;
+    background-color: #B4C292;
+    color: #3B3923;
 }
 
 .panel.color4 {
-    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(152, 103, 67, 0.25) 25%, rgba(203, 183, 157, 0.25) 50%, rgba(234, 130, 165, 0.25));
+    background-image: url("../images/overlay.png"), linear-gradient(45deg, rgba(115, 111, 78, 0.3) 25%, rgba(59, 57, 35, 0.4) 50%, rgba(76, 6, 29, 0.3));
     background-size: 128px 128px, auto;
-    background-color: #EA82A5;
+    background-color: #736F4E;
     color: white;
 }
 
@@ -198,7 +198,7 @@ html {
 }
 
 .progress {
-    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    background: linear-gradient(90deg, #736F4E, #B4C292);
     color: white;
     padding: 5px 15px;
     font-weight: 600;
@@ -233,7 +233,7 @@ html {
 
 .button.primary {
     background: rgba(255,255,255,0.95);
-    color: #986743;
+    color: #4C061D;
 }
 
 .button.primary:hover {
