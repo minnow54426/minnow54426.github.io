@@ -27,17 +27,8 @@ jobs:
       - name: Upload website files
         uses: actions/upload-pages-artifact@v3
         with:
-          path: |
-            index.html
-            photo-gallery.html
-            paint.html
-            music.html
-            assets/
-            js/
-            photos/
-            cryptography/
-            .nojekyll
-            code/
+          path: '.'
+          detailed_summary: true
 
       - name: Deploy to GitHub Pages
         id: deployment
