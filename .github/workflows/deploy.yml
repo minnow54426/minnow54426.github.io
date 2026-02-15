@@ -31,21 +31,13 @@ jobs:
             index.html
             photo-gallery.html
             paint.html
-            code.html
-            cryptography.html
             music.html
-            polynomial-plotter.html
             assets/
             js/
             photos/
-            images/
+            cryptography/
             .nojekyll
-            code/christmas_tree/
-            code/groth16-demo/
-            code/interactiva_panel/
-            paint/water_color/
-            paint/learning/
-            paint/creat/
+            code/
 
       - name: Deploy to GitHub Pages
         id: deployment
