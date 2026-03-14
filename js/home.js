@@ -14,6 +14,7 @@
 		{ src: 'photos/animals/2024-08-22-003.jpg', category: 'Animals' },
 		{ src: 'photos/shang%20hai/2025-11-09-047.jpg', category: 'Shanghai' },
 		{ src: 'photos/ao%20men/2025-10-09-003.jpg', category: 'AoMen' },
+		{ src: 'photos/hu%20pao%20gong%20yuan/2024-09-01-005.jpg', category: 'Hu Pao Park' },
 		{ src: 'photos/hu%20pao%20gong%20yuan/2024-09-01-005.jpg', category: 'Hu Pao Park' }
 	];
 
