@@ -1,143 +1,253 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>wonderonpathlesspath</title>
-    <link rel="stylesheet" href="assets/css/fontawesome-all.min.css">
-    <link rel="stylesheet" href="assets/css/custom.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,300i,400i">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wonder on pathless path</title>
+  <meta name="description" content="A journey through photography, code, and zero-knowledge proofs — captured, built, and explored along a pathless path." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="assets/css/fontawesome-all.min.css" />
+  <link rel="stylesheet" href="assets/css/theme.css" />
 </head>
 <body>
-    <!-- Hero Panel -->
-    <section class="hero-panel">
-        <div class="hero-content">
-            <h1>wonderonpathlesspath</h1>
-            <p class="subtitle">Capturing moments. Building systems. Exploring cryptography.</p>
-            <p class="tagline">A journey through photography, code, and zero-knowledge proofs</p>
-            <div class="hero-actions">
-                <a href="#photography" class="button primary">Explore</a>
-            </div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="#top" class="topbar__mark">wonderon<span>·</span>pathlesspath</a>
+    <nav class="topbar__nav">
+      <a href="#photography">Photography</a>
+      <a href="#code">Code</a>
+      <a href="#cryptography">Crypto</a>
+      <a href="#paint">Paint</a>
+      <a href="#music">Music</a>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" id="top">
+    <h1 class="mask wordmark"
+        style="--mask-img: url('/photos/shang hai/2024-08-17-006.jpg'); --mask-pos: center 30%;">
+      <span class="wm-1">WONDER ON</span>
+      <span class="wm-2">PATHLESS PATH</span>
+    </h1>
+
+    <div class="hero__foot">
+      <p class="hero__tagline">
+        A journey through photography, code, and zero-knowledge proofs —
+        captured, built, and explored along a pathless path.
+      </p>
+      <a href="#manifesto" class="scrollcue">Scroll</a>
+    </div>
+  </section>
+
+  <!-- Manifesto -->
+  <section class="manifesto" id="manifesto">
+    <div class="shell">
+      <p class="eyebrow reveal">A field notebook</p>
+      <h2 class="manifesto__text reveal" data-delay="1">
+        Capturing moments.<br />
+        Building systems.<br />
+        Exploring <em>cryptography.</em>
+      </h2>
+    </div>
+  </section>
+
+  <!-- 01 Photography -->
+  <section class="plate" id="photography">
+    <div class="shell">
+      <div class="plate__grid">
+        <div class="plate__art reveal">
+          <span class="plate__index">01</span>
+          <h2 class="mask plate__mark"
+              style="--mask-img: url('/photos/jiu zhai gou/2024-09-21-003.jpg'); --mask-pos: center 40%;">PHOTO</h2>
         </div>
-    </section>
-
-    <!-- Photography Panel -->
-    <section class="panel color1" id="photography">
-        <div class="panel-content">
-            <div class="panel-header">
-                <i class="fas fa-camera panel-icon"></i>
-                <h2>Photography</h2>
-                <p class="panel-description">Visual stories captured through the lens</p>
-            </div>
-            <div class="gallery-preview" id="photoGallery">
-                <!-- Photos injected by JavaScript -->
-            </div>
-            <div class="panel-actions">
-                <a href="photo-gallery.html" class="button primary"><i class="fas fa-images"></i> View Full Gallery</a>
-            </div>
+        <div class="plate__body reveal" data-delay="1">
+          <div class="plate__meta">
+            <span class="num">01</span>
+            <span class="eyebrow">Photography</span>
+          </div>
+          <h3 class="plate__title">Light,<br />collected.</h3>
+          <p class="plate__desc">
+            Visual stories through the lens — frames gathered across twelve
+            places, from Shanghai neon to the turquoise water of Jiu Zhai Gou.
+          </p>
+          <ul class="plate__list">
+            <li><span class="k">74</span><span class="v">Shanghai <small>bund · streets · skyline</small></span></li>
+            <li><span class="k">20</span><span class="v">Jiu Zhai Gou <small>water · forest · falls</small></span></li>
+            <li><span class="k">13</span><span class="v">Zhang Jia Jie <small>pillars · mist</small></span></li>
+            <li><span class="k">23</span><span class="v">Animals <small>field · macro</small></span></li>
+          </ul>
+          <a href="photo-gallery.html" class="link-arrow">
+            View full gallery
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
         </div>
-    </section>
+      </div>
+    </div>
+  </section>
 
-    <!-- Code Panel -->
-    <section class="panel color2" id="code">
-        <div class="panel-content">
-            <div class="panel-header">
-                <i class="fas fa-code panel-icon"></i>
-                <h2>Code Projects</h2>
-                <p class="panel-description">From Zero Knowledge Proofs to interactive visualizations</p>
-            </div>
-
-            <div class="project-grid">
-                <div class="project-card">
-                    <h3><i class="fas fa-gem"></i> Zero Knowledge Proof Learning</h3>
-                    <p>Exploring ZK-SNARKs through Rust implementation</p>
-                    <a href="https://github.com/minnow54426/ZK_learn" class="button small" target="_blank">View Journey →</a>
-                </div>
-
-                <div class="project-card">
-                    <h3><i class="fas fa-robot"></i> My AI Assistant</h3>
-                    <p>Building AI agents from scratch to understand how they work</p>
-                    <a href="https://github.com/minnow54426/my-ai-assistant" class="button small" target="_blank">View Project →</a>
-                </div>
-
-                <div class="project-card">
-                    <h3><i class="fas fa-tree"></i> Christmas Tree</h3>
-                    <p>Interactive visualization</p>
-                    <a href="code/christmas_tree/" class="button small">View →</a>
-                </div>
-
-                <div class="project-card">
-                    <h3><i class="fas fa-chart-area"></i> Interactiva Panel</h3>
-                    <p>Polynomial plotter</p>
-                    <a href="cryptography/polynomial-plotter.html" class="button small">View →</a>
-                </div>
-
-                <div class="project-card">
-                    <h3><i class="fas fa-book"></i> Groth16 Demo</h3>
-                    <p>Interactive book</p>
-                    <a href="code/groth16-demo/book/book/index.html" class="button small">View →</a>
-                </div>
-            </div>
+  <!-- 02 Code -->
+  <section class="plate plate--reverse" id="code">
+    <div class="shell">
+      <div class="plate__grid">
+        <div class="plate__art reveal">
+          <span class="plate__index">02</span>
+          <h2 class="mask plate__mark"
+              style="--mask-img: url('/photos/ao men/2025-10-09-004.jpg'); --mask-pos: center 35%;">CODE</h2>
         </div>
-    </section>
-
-    <!-- Cryptography Panel -->
-    <section class="panel color3" id="cryptography">
-        <div class="panel-content">
-            <div class="panel-header">
-                <i class="fas fa-lock panel-icon"></i>
-                <h2>Cryptography</h2>
-                <p class="panel-description">Interactive visualizations of cryptographic concepts</p>
-            </div>
-
-            <div class="crypto-content">
-                <p>Learn about Zero Knowledge Proofs through interactive visualizations. Explore polynomial interpolation, the foundation of ZK-SNARKs.</p>
-                <div class="panel-actions">
-                    <a href="cryptography/polynomial-plotter.html" class="button primary"><i class="fas fa-external-link-alt"></i> Try Interactive Demo</a>
-                    <a href="https://github.com/minnow54426/ZK_learn" class="button" target="_blank"><i class="fas fa-gem"></i> View Learning Journey</a>
-                </div>
-            </div>
+        <div class="plate__body reveal" data-delay="1">
+          <div class="plate__meta">
+            <span class="num">02</span>
+            <span class="eyebrow">Code</span>
+          </div>
+          <h3 class="plate__title">Systems<br />from scratch.</h3>
+          <p class="plate__desc">
+            From zero-knowledge proofs implemented in Rust to interactive
+            visualizations — building things to understand how they work.
+          </p>
+          <ul class="plate__list">
+            <li><span class="k">ZK</span><span class="v"><a href="https://github.com/minnow54426/ZK_learn" target="_blank" rel="noopener">Zero Knowledge Learning <small>Rust · SNARKs</small></a></span></li>
+            <li><span class="k">AI</span><span class="v"><a href="https://github.com/minnow54426/my-ai-assistant" target="_blank" rel="noopener">My AI Assistant <small>agents from first principles</small></a></span></li>
+            <li><span class="k">FX</span><span class="v"><a href="code/christmas_tree/">Christmas Tree <small>interactive visualization</small></a></span></li>
+            <li><span class="k">PL</span><span class="v"><a href="cryptography/polynomial-plotter.html">Polynomial Plotter <small>ZK-SNARK math, interactive</small></a></span></li>
+            <li><span class="k">G16</span><span class="v"><a href="code/groth16-demo/book/book/index.html">Groth16 Demo <small>Rust workspace · mdbook</small></a></span></li>
+          </ul>
         </div>
-    </section>
+      </div>
+    </div>
+  </section>
 
-    <!-- Creative Works Panel -->
-    <section class="panel color4" id="creative">
-        <div class="panel-content">
-            <div class="panel-header">
-                <i class="fas fa-palette panel-icon"></i>
-                <h2>Creative Works</h2>
-                <p class="panel-description">Visual art through watercolor and sound</p>
-            </div>
-
-            <div class="creative-grid">
-                <div class="creative-card">
-                    <h3><i class="fas fa-film"></i> Watercolor Paintings</h3>
-                    <p>12 artistic videos showing the creation process</p>
-                    <a href="paint.html" class="button small">View Gallery →</a>
-                </div>
-
-                <div class="creative-card">
-                    <h3><i class="fas fa-music"></i> Music</h3>
-                    <p>Coming soon...</p>
-                    <a href="music.html" class="button small">Explore →</a>
-                </div>
-            </div>
+  <!-- 03 Cryptography -->
+  <section class="plate" id="cryptography">
+    <div class="shell">
+      <div class="plate__grid">
+        <div class="plate__art reveal">
+          <span class="plate__index">03</span>
+          <h2 class="mask plate__mark"
+              style="--mask-img: url('/photos/qing dao/2025-11-29-001.jpg'); --mask-pos: center 40%;">CRYPTO</h2>
         </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <p>&copy; 2025 wonderonpathlesspath</p>
-            <div class="footer-links">
-                <a href="photo-gallery.html"><i class="fas fa-camera"></i> Photo Gallery</a>
-                <a href="cryptography/polynomial-plotter.html"><i class="fas fa-lock"></i> Cryptography</a>
-                <a href="paint.html"><i class="fas fa-palette"></i> Paint Gallery</a>
-            </div>
+        <div class="plate__body reveal" data-delay="1">
+          <div class="plate__meta">
+            <span class="num">03</span>
+            <span class="eyebrow">Cryptography</span>
+          </div>
+          <h3 class="plate__title">Prove<br />without<br />revealing.</h3>
+          <p class="plate__desc">
+            Interactive visualizations of the math behind zero-knowledge proofs —
+            starting with polynomial interpolation, the foundation of ZK-SNARKs.
+          </p>
+          <div class="plate__actions" style="display:flex; flex-direction:column; gap:1rem;">
+            <a href="cryptography/polynomial-plotter.html" class="link-arrow">
+              Try the polynomial plotter
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+            <a href="https://github.com/minnow54426/ZK_learn" target="_blank" rel="noopener" class="link-arrow">
+              View the learning journey
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+          </div>
         </div>
-    </footer>
+      </div>
+    </div>
+  </section>
 
-    <script src="assets/js/jquery.min.js"></script>
-    <script src="js/home.js"></script>
+  <!-- 04 Paint (video) -->
+  <section class="plate plate--reverse" id="paint">
+    <div class="shell">
+      <div class="plate__grid">
+        <div class="plate__art reveal">
+          <div class="plate__media">
+            <span class="media-tag">Watercolor · process</span>
+            <video data-autoplay muted loop playsinline preload="metadata"
+                   src="/paint/water_color/autumn_leave.mp4"
+                   aria-label="Autumn leave — watercolor painting process"></video>
+          </div>
+        </div>
+        <div class="plate__body reveal" data-delay="1">
+          <div class="plate__meta">
+            <span class="num">04</span>
+            <span class="eyebrow">Creative · Paint</span>
+          </div>
+          <h3 class="plate__title">Paint,<br />in motion.</h3>
+          <p class="plate__desc">
+            Watercolor studies and creative pieces — watch the painting unfold,
+            stroke by stroke, in twenty-seven short process videos.
+          </p>
+          <ul class="plate__list">
+            <li><span class="k">12</span><span class="v">Watercolor <small>finished pieces</small></span></li>
+            <li><span class="k">09</span><span class="v">Learning <small>studies &amp; practice</small></span></li>
+            <li><span class="k">06</span><span class="v">Creative <small>experimental</small></span></li>
+          </ul>
+          <a href="paint.html" class="link-arrow">
+            Open paint gallery
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 Music -->
+  <section class="plate" id="music">
+    <div class="shell">
+      <div class="plate__grid">
+        <div class="plate__art reveal">
+          <span class="plate__index">05</span>
+          <h2 class="mask plate__mark"
+              style="--mask-img: url('/photos/hu pao gong yuan/2024-09-01-007.jpg'); --mask-pos: center 45%;">MUSIC</h2>
+        </div>
+        <div class="plate__body reveal" data-delay="1">
+          <div class="plate__meta">
+            <span class="num">05</span>
+            <span class="eyebrow">Creative · Music</span>
+          </div>
+          <h3 class="plate__title">Sound,<br />soon.</h3>
+          <p class="plate__desc">
+            Original compositions, collaborative projects, and audio experiments
+            are currently in the studio — a space being prepared.
+          </p>
+          <ul class="plate__list">
+            <li><span class="k">·</span><span class="v">Ambient &amp; atmospheric</span></li>
+            <li><span class="k">·</span><span class="v">Electronic &amp; experimental</span></li>
+            <li><span class="k">·</span><span class="v">Classical influences</span></li>
+            <li><span class="k">·</span><span class="v">Sound design</span></li>
+          </ul>
+          <a href="music.html" class="link-arrow">
+            What to expect
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="shell">
+      <div class="footer__grid">
+        <div class="footer__mark mask"
+             style="--mask-img: url('/photos/nan xun gu zhen/2025-03-08-007.jpg'); --mask-pos: center 45%;">
+          WP
+        </div>
+        <div class="footer__links">
+          <a href="photo-gallery.html">Photography</a>
+          <a href="cryptography/polynomial-plotter.html">Cryptography</a>
+          <a href="paint.html">Paint</a>
+          <a href="music.html">Music</a>
+        </div>
+      </div>
+      <div class="footer__copy">
+        <span>© 2025 wonderonpathlesspath</span>
+        <span>Built along a pathless path</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/theme.js"></script>
 </body>
 </html>

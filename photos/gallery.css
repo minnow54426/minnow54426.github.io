@@ -1,169 +1,233 @@
-/* CSS Reset - Critical for consistent sizing */
-*, *::before, *::after {
-    box-sizing: border-box;
-}
+/* ==========================================================================
+   gallery.css — Sunlit Paper restyle for the photo category pages.
+   Shared by all photos/*.html. Keeps the #main > .thumb structure and the
+   jquery.poptrox lightbox (usePopupDefaultStyling:false → styled here).
+   ========================================================================== */
 
-/* Gallery Styles for HTML5 UP Multiverse Template Implementation */
-/* Override main.css to enable scrolling */
-html, body {
-    height: auto !important;
-    overflow: auto !important;
-}
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+html, body { height: auto; overflow: auto; }
 
 body {
-    font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif;
-    background: #1a1a1a;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+  background: var(--bg, #efe4cd);
+  color: var(--cream, #2b1d10);
+  font-family: var(--font-body, 'Space Grotesk', sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Ensure main container fills full width */
-#main {
-    display: flex;
-    flex-wrap: wrap;
-    padding-top: 80px;
-    width: 100%;
-}
+::selection { background: var(--accent, #b5421a); color: var(--paper, #fff); }
 
-/* Custom Header (preserved from current design) */
+/* ---------- Fixed header (category name + home) ---------- */
 header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 60px;
-    background: rgba(43, 43, 43, 0.98); /* fallback */
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 40px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  position: fixed;
+  top: 0; left: 0; width: 100%;
+  height: 64px;
+  background: color-mix(in srgb, var(--bg, #efe4cd) 86%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--rule, rgba(43,29,16,0.16));
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(1rem, 4vw, 2.5rem);
 }
-
-/* Modern browsers get the enhanced version */
-@supports (backdrop-filter: blur(10px)) {
-    header {
-        background: linear-gradient(135deg, rgba(43, 43, 43, 0.98), rgba(30, 30, 30, 0.98));
-        backdrop-filter: blur(10px);
-    }
-}
-
 header h1 {
-    font-size: 1.5em;
-    font-weight: 300;
+  margin: 0;
+  font-family: var(--font-display, 'Anton', sans-serif);
+  font-size: 1.15rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1;
 }
-
 header h1 a {
-    color: #fff;
-    text-decoration: none;
-    transition: color 0.3s;
+  color: var(--cream, #2b1d10);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: color .3s ease;
 }
-
-header h1 a:hover {
-    color: #D17A22;
-}
-
+header h1 a:hover { color: var(--accent, #b5421a); }
+header h1 a i { color: var(--accent, #b5421a); font-size: 0.85em; }
 header .back-link {
-    color: #fff;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: color 0.3s;
+  color: var(--muted, #7a6a4f);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  transition: color .3s ease;
 }
+header .back-link:hover { color: var(--accent, #b5421a); }
+header .back-link i { font-size: 0.9em; }
 
-header .back-link:hover {
-    color: #D17A22;
-}
-
-/* Responsive header adjustments */
 @media screen and (max-width: 768px) {
-    header {
-        padding: 0 20px;
-    }
-
-    header h1 {
-        font-size: 1.2em;
-    }
+  header { padding: 0 1rem; }
+  header h1 { font-size: 1rem; }
+  header .back-link { font-size: 0.66rem; }
 }
 
-/* Multiverse Template - Thumbnail Styles */
+/* ---------- Gallery grid ---------- */
+#main {
+  display: flex;
+  flex-wrap: wrap;
+  padding-top: 64px;
+  width: 100%;
+}
 
 #main .thumb {
-    position: relative;
-    overflow: hidden;
-    width: 25%;
-    height: calc(40vh - 2em);
-    min-height: 18em;
-    cursor: pointer;
-    transition: opacity 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  width: 25%;
+  height: calc(40vh - 2em);
+  min-height: 18em;
+  cursor: pointer;
+  transition: transform .4s var(--ease, ease);
 }
-
-#main .thumb:after {
-    background-image: linear-gradient(to top, rgba(10, 17, 25, 0.35) 5%, rgba(10, 17, 25, 0) 35%);
-    pointer-events: none;
-    background-size: cover;
-    content: '';
-    display: block;
-    height: 100%;
-    left: 0;
-    position: absolute;
-    top: 0;
-    width: 100%;
-    z-index: 1;
-}
-
 #main .thumb .image {
-    border: 0;
-    height: 100%;
-    left: 0;
-    position: absolute;
-    top: 0;
-    width: 100%;
-    display: block;
+  border: 0;
+  position: absolute;
+  inset: 0;
+  display: block;
 }
-
 #main .thumb .image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .6s var(--ease, ease);
+}
+#main .thumb:hover { z-index: 2; }
+#main .thumb:hover .image img { transform: scale(1.05); }
+#main .thumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 0 transparent;
+  transition: box-shadow .3s ease;
+  pointer-events: none;
+}
+#main .thumb:hover::after {
+  box-shadow: inset 0 0 0 3px var(--accent, #b5421a);
 }
 
-#main .thumb:hover {
-    opacity: 0.8;
-    z-index: 2;
+@media screen and (max-width: 1680px) { #main .thumb { width: 33.33333%; } }
+@media screen and (max-width: 1280px) { #main .thumb { width: 50%; } }
+@media screen and (max-width: 768px)  {
+  #main .thumb { width: 50%; height: calc(30vh - 2em); min-height: 15em; }
+}
+@media screen and (max-width: 480px) {
+  #main .thumb { width: 100%; height: calc(40vh - 2em); }
 }
 
-/* Responsive Breakpoints */
-@media screen and (max-width: 1680px) {
-    #main .thumb {
-        width: 33.33333%;
-    }
+body.modal-active { overflow: hidden; }
+
+/* ==========================================================================
+   Poptrox lightbox (usePopupDefaultStyling:false → all visual CSS here).
+   Plugin DOM under .poptrox-popup: .loader, .pic (> img), .closer,
+   .nav-previous, .nav-next. Positioning of overlay/popup is inline by the
+   plugin (centering trick); we only add visuals + position the controls.
+   ========================================================================== */
+.poptrox-overlay { cursor: pointer; }
+
+.poptrox-popup {
+  background: var(--bg, #efe4cd);
+  border: 1px solid var(--rule, rgba(43,29,16,0.16));
+  border-radius: 6px;
+  box-shadow: 0 30px 80px -30px rgba(20, 14, 8, 0.55);
+  overflow: hidden;
 }
 
-@media screen and (max-width: 1280px) {
-    #main .thumb {
-        width: 50%;
-    }
+/* Loading spinner (plugin toggles display on .loader) */
+.poptrox-popup .loader {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 34px; height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 2px solid var(--rule, rgba(43,29,16,0.16));
+  border-top-color: var(--accent, #b5421a);
+  border-radius: 50%;
+  animation: poptrox-spin 0.8s linear infinite;
 }
+@keyframes poptrox-spin { to { transform: rotate(360deg); } }
 
-@media screen and (max-width: 768px) {
-    #main .thumb {
-        width: 50%;
-        height: calc(30vh - 2em);
-        min-height: 15em;
-    }
+/* Poptrox hides .pic and fades it back in (fadeIn) at the end of the expand
+   animation, which reads as a flash. Force it to full opacity so the image
+   appears cleanly instead of fading from 0. */
+.poptrox-popup .pic { position: relative; opacity: 1 !important; }
+.poptrox-popup .pic img { display: block; }
+
+/* Close button (empty span → glyph via ::before) */
+.poptrox-popup .closer {
+  position: absolute;
+  top: 0.6rem; right: 0.6rem;
+  width: 2.2rem; height: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(43, 29, 16, 0.08);
+  border: 1px solid var(--rule, rgba(43,29,16,0.16));
+  cursor: pointer;
+  z-index: 3;
+  transition: background .25s ease, transform .25s ease;
 }
+.poptrox-popup .closer::before {
+  content: '×';
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--cream, #2b1d10);
+}
+.poptrox-popup .closer:hover {
+  background: var(--accent, #b5421a);
+  transform: scale(1.06);
+}
+.poptrox-popup .closer:hover::before { color: var(--paper, #fff); }
+
+/* Nav arrows — fixed to the viewport edges so they're always reachable */
+.poptrox-popup .nav-next,
+.poptrox-popup .nav-previous {
+  position: fixed;
+  top: 50%;
+  margin-top: -1.3rem;
+  width: 2.6rem; height: 2.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(239, 228, 205, 0.92);
+  border: 1px solid var(--rule, rgba(43,29,16,0.16));
+  cursor: pointer;
+  z-index: 20002;
+  transition: background .25s ease, transform .25s ease;
+}
+.poptrox-popup .nav-next::before,
+.poptrox-popup .nav-previous::before {
+  content: '';
+  width: 0.6rem; height: 0.6rem;
+  border-top: 2px solid var(--cream, #2b1d10);
+  border-right: 2px solid var(--cream, #2b1d10);
+}
+.poptrox-popup .nav-next { right: 1.4rem; }
+.poptrox-popup .nav-next::before { transform: rotate(45deg) translateY(-1px); }
+.poptrox-popup .nav-previous { left: 1.4rem; }
+.poptrox-popup .nav-previous::before { transform: rotate(-135deg) translateY(-1px); }
+.poptrox-popup .nav-next:hover,
+.poptrox-popup .nav-previous:hover { background: var(--accent, #b5421a); }
+.poptrox-popup .nav-next:hover::before,
+.poptrox-popup .nav-previous:hover::before { border-color: var(--paper, #fff); }
 
 @media screen and (max-width: 480px) {
-    #main .thumb {
-        width: 100%;
-        height: calc(40vh - 2em);
-    }
+  .poptrox-popup .nav-next { right: 0.5rem; }
+  .poptrox-popup .nav-previous { left: 0.5rem; }
 }

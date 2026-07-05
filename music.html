@@ -1,100 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music - wonderonpathlesspath</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            color: #333;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Music — wonderonpathlesspath</title>
+  <meta name="description" content="Original compositions, collaborative projects, and audio experiments — in preparation." />
 
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            padding: 8px 16px;
-            background: #4C061D;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: background 0.3s;
-        }
-
-        .back-link:hover {
-            background: #D17A22;
-        }
-
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            color: #4C061D;
-        }
-
-        .section {
-            margin: 40px 0;
-            padding: 20px;
-            background: #f5f5f5;
-            border-radius: 8px;
-        }
-
-        .section h2 {
-            margin-top: 0;
-            color: #736F4E;
-        }
-
-        .coming-soon {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-
-        .coming-soon h2 {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-
-        .coming-soon p {
-            font-size: 1.2em;
-        }
-    </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/fontawesome-all.min.css" />
+  <link rel="stylesheet" href="assets/css/theme.css" />
 </head>
 <body>
-    <a href="/" class="back-link">← Back to Home</a>
+  <div class="grain" aria-hidden="true"></div>
 
-    <h1>🎵 Music</h1>
+  <header class="topbar">
+    <a href="/" class="topbar__mark">wonderon<span>·</span>pathlesspath</a>
+    <nav class="topbar__nav">
+      <a href="photo-gallery.html">Photography</a>
+      <a href="cryptography/polynomial-plotter.html">Crypto</a>
+      <a href="paint.html">Paint</a>
+      <a href="music.html">Music</a>
+    </nav>
+  </header>
 
-    <div class="coming-soon">
-        <h2>Coming Soon</h2>
-        <p>Musical creations and collaborations are currently being prepared.</p>
-        <p>Check back later for original compositions and audio experiments.</p>
+  <main class="page">
+    <section class="page-hero">
+      <div class="shell">
+        <a href="/" class="back-link">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+          Back to home
+        </a>
+        <p class="eyebrow reveal">Creative · Music</p>
+        <h1 class="page-hero__title reveal" data-delay="1">Sound,<br />soon.</h1>
+        <p class="page-hero__lede reveal" data-delay="2">
+          A space being prepared — original compositions, collaborative projects,
+          and audio experiments. Check back for ambient pieces, sound design, and
+          whatever surfaces along the way.
+        </p>
+      </div>
+    </section>
+
+    <section class="page-body">
+      <div class="shell">
+        <div class="plate__grid" style="grid-template-columns: 0.8fr 1.2fr; align-items: center;">
+          <div class="plate__art reveal" style="min-height: clamp(260px, 40vh, 440px);">
+            <span class="plate__index">05</span>
+            <h2 class="mask plate__mark"
+                style="--mask-img: url('/photos/hu pao gong yuan/2024-09-01-007.jpg'); --mask-pos: center 45%;">MUSIC</h2>
+          </div>
+          <div class="plate__body reveal" data-delay="1">
+            <div class="plate__meta">
+              <span class="num">·</span>
+              <span class="eyebrow">In the studio</span>
+            </div>
+            <h2 class="plate__title">Coming<br />soon.</h2>
+            <p class="plate__desc">
+              Musical creations and collaborations are currently being prepared.
+              Original compositions and audio experiments will appear here.
+            </p>
+            <ul class="plate__list">
+              <li><span class="k">·</span><span class="v">Ambient &amp; atmospheric</span></li>
+              <li><span class="k">·</span><span class="v">Electronic &amp; experimental</span></li>
+              <li><span class="k">·</span><span class="v">Classical influences</span></li>
+              <li><span class="k">·</span><span class="v">Sound design &amp; visualization</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell">
+      <div class="footer__copy">
+        <a href="/" class="topbar__mark">wonderon<span>·</span>pathlesspath</a>
+        <span>© 2025 · music, in preparation</span>
+      </div>
     </div>
+  </footer>
 
-    <div class="section">
-        <h2>What to Expect</h2>
-        <ul>
-            <li>Original musical compositions</li>
-            <li>Collaborative projects</li>
-            <li>Sound experiments and ambient pieces</li>
-            <li>Music production insights</li>
-            <li>Audio visualizations</li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <h2>Genres & Styles</h2>
-        <p>This section will feature music in various styles:</p>
-        <ul>
-            <li>Ambient and atmospheric</li>
-            <li>Electronic and experimental</li>
-            <li>Classical influences</li>
-            <li>Sound design</li>
-            <li>And more...</li>
-        </ul>
-    </div>
+  <script src="js/theme.js"></script>
 </body>
 </html>

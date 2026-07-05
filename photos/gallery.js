@@ -25,7 +25,7 @@ Uses direct <img> display instead of background-image technique
 			onPopupOpen: function() {
 				$body.addClass('modal-active');
 			},
-			overlayOpacity: 0,
+			overlayOpacity: 0.78,
 			popupCloserText: '',
 			popupHeight: 150,
 			popupLoaderText: '',

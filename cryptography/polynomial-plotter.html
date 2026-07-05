@@ -3,88 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Why and How ZK-SNARK Works - Interactive Polynomial Plotter</title>
+    <title>Polynomial Plotter — wonderonpathlesspath</title>
     <meta name="description" content="Interactive polynomial plotter for understanding the mathematical foundations of ZK-SNARKs">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 240px;
-            background: linear-gradient(135deg, #4C061D 0%, #D17A22 50%, #B4C292 100%);
-            z-index: -1;
-        }
-
-        .back-link {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-            padding: 0.5em 1.5em;
-            background: rgba(255, 255, 255, 0.25);
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: background 0.3s;
-            font-weight: 600;
-            backdrop-filter: blur(10px);
-        }
-
-        .back-link:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .header {
-            padding: 2em 2em 1.5em 2em;
-            text-align: center;
-            color: white;
-        }
-
-        .header h1 {
-            margin: 0 0 1em 0;
-            font-size: 2.2em;
-            font-weight: 400;
-        }
-
-        .zk-description {
-            max-width: 800px;
-            margin: 0 auto 2em auto;
-            padding: 1.2em 1.8em;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 8px;
-            color: white;
-            text-align: left;
-            backdrop-filter: blur(10px);
-        }
-
-        .zk-description strong {
-            display: block;
-            margin-bottom: 0.5em;
-            font-size: 1.1em;
-        }
-
-        .zk-description p {
-            margin: 0;
-            line-height: 1.5;
-        }
-
+        /* Page chrome — Sunlit Paper (tool controls are styled via styles.css) */
         body {
             padding-top: 0;
             margin: 0;
-            background: #F5F3EB;
+            background: #efe4cd;
             max-width: none;
             border-radius: 0;
             box-shadow: none;
             min-height: auto;
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #2b1d10;
         }
 
         html, body {
             height: auto;
             overflow-y: auto;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 1rem;
+            left: clamp(1rem, 4vw, 2.5rem);
+            z-index: 1000;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.5rem 0.95rem;
+            background: rgba(239, 228, 205, 0.78);
+            border: 1px solid rgba(43, 29, 16, 0.16);
+            border-radius: 999px;
+            color: #5c4a36;
+            text-decoration: none;
+            font-size: 0.74rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: color 0.3s, border-color 0.3s, background 0.3s;
+        }
+
+        .back-link:hover {
+            color: #b5421a;
+            border-color: #b5421a;
+            background: rgba(239, 228, 205, 0.92);
+        }
+
+        .header {
+            padding: clamp(3.5rem, 8vh, 5rem) clamp(1rem, 5vw, 2rem) 1.5em;
+            max-width: 1200px;
+            margin: 0 auto;
+            color: #2b1d10;
+        }
+
+        .header .eyebrow {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.28em;
+            color: #7a6a4f;
+            margin: 0 0 0.7rem;
+        }
+
+        .header h1 {
+            margin: 0 0 1.2rem;
+            font-family: 'Anton', 'Arial Narrow', sans-serif;
+            font-weight: 400;
+            font-size: clamp(2rem, 6vw, 3.6rem);
+            line-height: 0.95;
+            text-transform: uppercase;
+            letter-spacing: -0.01em;
+            color: #2b1d10;
+        }
+
+        .header h1 em {
+            font-style: normal;
+            color: #b5421a;
+        }
+
+        .zk-description {
+            max-width: 800px;
+            padding: 1.1em 1.5em;
+            background: #e3d4b3;
+            border: 1px solid rgba(43, 29, 16, 0.16);
+            border-left: 3px solid #b5421a;
+            border-radius: 6px;
+            color: #2b1d10;
+            text-align: left;
+        }
+
+        .zk-description strong {
+            display: block;
+            margin-bottom: 0.4em;
+            font-family: 'Anton', 'Arial Narrow', sans-serif;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            font-size: 1rem;
+        }
+
+        .zk-description p {
+            margin: 0;
+            line-height: 1.55;
+            color: #5c4a36;
         }
 
         .container {
@@ -95,7 +125,7 @@
 
         @media (max-width: 768px) {
             .header h1 {
-                font-size: 1.6em;
+                font-size: 1.8rem;
             }
             .zk-description {
                 padding: 1em 1.2em;
@@ -106,10 +136,14 @@
     </style>
 </head>
 <body>
-    <a href="/" class="back-link">← Back to Home</a>
+    <a href="/" class="back-link">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+        Back to home
+    </a>
 
     <div class="header">
-        <h1>🔐 Why and How ZK-SNARK Works</h1>
+        <p class="eyebrow">Cryptography · Interactive</p>
+        <h1>Why and How <em>ZK-SNARK</em> Works</h1>
         <div class="zk-description">
             <strong>Interactive Polynomial Plotter for ZK-SNARK Understanding</strong>
             <p>ZK-SNARKs rely heavily on polynomial mathematics. This interactive tool helps you visualize polynomial operations that are fundamental to how zero-knowledge proofs work. Play with different polynomials to understand concepts like polynomial commitment schemes and homomorphic properties.</p>
