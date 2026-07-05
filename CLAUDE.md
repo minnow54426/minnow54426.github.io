@@ -12,12 +12,11 @@ Personal portfolio website with GitHub Pages, featuring photography, code projec
 python -m http.server 8001
 
 # View local site
-# Main page: http://localhost:8001/
-# Photo gallery: http://localhost:8001/photo-gallery.html
-# Paint gallery: http://localhost:8001/paint.html
-# Code projects: http://localhost:8001/code.html
+# Main page:         http://localhost:8001/
+# Photo gallery:     http://localhost:8001/photo-gallery.html
+# Paint gallery:     http://localhost:8001/paint.html
+# Music:             http://localhost:8001/music.html
 # Polynomial plotter: http://localhost:8001/cryptography/polynomial-plotter.html
-# Music: http://localhost:8001/music.html
 ```
 
 ### Rust Projects
@@ -81,13 +80,19 @@ git commit -m "Brief description
 
 Detailed explanation.
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+Co-Authored-By: Claude <noreply@anthropic.com>"
 
 # Push to main branch (GitHub Pages deployment)
 git push origin main
 ```
 
 **IMPORTANT**: Only push to the main branch. GitHub Pages uses main as the default branch.
+
+**Proxy gotcha**: `git config --global http.proxy` is set to `http://127.0.0.1:7890` (Clash/V2Ray) and is frequently down, which makes `git fetch`/`push` fail ("Failed to connect to 127.0.0.1 port 7890"). GitHub is reachable directly — bypass the proxy per-command:
+```bash
+git -c http.proxy= -c https.proxy= push origin main   # or fetch/pull
+HTTPS_PROXY= HTTP_PROXY= gh run list                   # or curl
+```
 
 ### Photo Management
 
@@ -101,8 +106,8 @@ ls -lh photos/shang\ hai/
 # For new categories:
 mkdir "photos/new category"
 cp /path/to/photos/*.jpg "photos/new category/"
-# Create new category HTML file following the template
-# Update photo-gallery.html to include new category link
+# Create new category HTML file following an existing one in photos/ (e.g. photos/shang-hai.html)
+# Add a category card to photo-gallery.html
 ```
 
 ### Video Management
@@ -131,57 +136,58 @@ git add -f paint/learning/*.mp4 paint/creat/*.mp4
 
 ```
 /
-├── index.html              # Main landing page (HTML5 UP Ethereal template)
-├── photo-gallery.html      # Photo category index page
+├── index.html              # Landing page — Sunlit Paper theme (masked hero + editorial plates)
+├── photo-gallery.html      # Photography category index (14 category cards)
 ├── paint.html              # Paint/watercolor video gallery
-├── code.html               # Code projects file tree navigation
-├── music.html              # Music projects page
+├── music.html              # Music page (coming soon)
 │
-├── assets/                 # HTML5 UP Ethereal template assets
-│   ├── css/               # Stylesheets (main.css, custom.css)
-│   ├── js/                # JavaScript (jQuery, browser breakpoints)
-│   ├── sass/              # SASS source files
+├── assets/
+│   ├── css/               # theme.css = active design system; main.css/custom.css are legacy Ethereal (unused)
+│   ├── js/                # jQuery, jquery.poptrox (galleries), legacy Ethereal utils
+│   ├── sass/              # Legacy SASS sources (unused)
 │   └── webfonts/          # Font Awesome webfonts
 │
-├── js/                     # Custom JavaScript
-│   └── home.js            # Homepage photo gallery preview
+├── js/
+│   └── theme.js           # Scroll-reveal, lazy video, nav-spy (vanilla, reduced-motion aware)
 │
-├── photos/                 # Photography collection (12 categories)
-│   ├── shang hai/         # Shanghai photos (62 JPGs)
-│   ├── animals/           # Animal photos (23 JPGs)
-│   ├── jiu zhai gou/      # Jiu Zhai Gou photos (20 JPGs)
-│   ├── zhang jia jie/     # Zhang Jia Jie photos (13 JPGs)
-│   ├── hu pao gong yuan/  # Hu Pao Park photos (14 JPGs)
-│   ├── qing dao/          # Qing Dao photos (16 JPGs)
-│   ├── nan xun gu zhen/   # Nanxun Ancient Town photos (10 JPGs)
-│   ├── qian dao hu/       # Qian Dao Hu photos (10 JPGs)
-│   ├── ao men/            # Ao Men photos (7 JPGs)
-│   ├── zhu hai/           # Zhu Hai photos (3 JPGs)
-│   ├── on road/           # Travel photos (4 JPGs)
-│   ├── others/            # Other photos (2 JPGs)
+├── photos/                 # Photography collection (14 categories, 210 JPGs)
+│   ├── shang hai/         # 74
+│   ├── animals/           # 23
+│   ├── jiu zhai gou/      # 20
+│   ├── zhang jia jie/     # 13
+│   ├── hu pao gong yuan/  # 14
+│   ├── qing dao/          # 15
+│   ├── nan xun gu zhen/   # 10
+│   ├── qian dao hu/       # 10
+│   ├── ao men/            # 7
+│   ├── zhu hai/           # 3
+│   ├── on road/           # 4
+│   ├── hang zhou/         # 5
+│   ├── wu xi/             # 10
+│   ├── others/            # 2
 │   │
-│   ├── gallery.css        # Shared gallery styles (Multiverse template)
+│   ├── gallery.css        # Shared gallery styles + Poptrox lightbox (Sunlit Paper)
 │   ├── gallery.js         # jQuery Poptrox initialization
-│   └── *.html             # Individual category pages (12 files)
+│   └── *.html             # Individual category pages (14 files)
 │
-├── paint/                  # Art and video collection
-│   ├── water_color/       # Watercolor videos (12 videos, MP4 format, all under 3MB)
-│   ├── learning/          # Learning watercolor videos (9 videos, MP4 format, under 3MB each)
-│   └── creat/             # Creative watercolor videos (6 videos, MP4 format, under 9MB each)
+├── paint/                  # Watercolor videos (27 total, all <10MB)
+│   ├── water_color/       # 12 videos
+│   ├── learning/          # 9 videos
+│   └── creat/             # 6 videos
 │
-├── code/                   # Code projects directory
+├── code/                   # Code projects (no index page; linked from homepage)
 │   ├── christmas_tree/    # Christmas tree visualization
-│   ├── interactiva_panel/ # Interactive panel with polynomial plotter
+│   ├── interactiva_panel/ # Interactive panel
 │   └── groth16-demo/      # Groth16 ZK-SNARK implementation (workspace)
 │       ├── crates/        # Workspace crates (math, r1cs, qap, groth16, circuits)
 │       ├── book/          # mdbook interactive documentation
 │       ├── docs/          # Additional documentation
 │       └── Cargo.toml     # Workspace configuration
 │
-├── cryptography/           # Cryptography interactive tools
-│   ├── app.js             # Polynomial plotter logic
+├── cryptography/           # Cryptography interactive tool
 │   ├── polynomial-plotter.html
-│   └── styles.css
+│   ├── app.js             # Plotly polynomial logic
+│   └── styles.css         # Plotter styles (palette aligned with site theme)
 │
 ├── .nojekyll              # Disable Jekyll processing for GitHub Pages
 ├── .gitignore             # Git ignore rules
@@ -191,56 +197,55 @@ git add -f paint/learning/*.mp4 paint/creat/*.mp4
 
 ## Website Architecture
 
-### Template System
+### Theme System — Sunlit Paper
 
-The site uses **HTML5 UP templates**:
+The entire site uses one custom design system: **`assets/css/theme.css`**. The old HTML5 UP Ethereal/Multiverse stylesheets remain on disk but are **no longer linked**.
 
-1. **Ethereal Template** (`assets/css/main.css`)
-   - Used for: `index.html`, `photo-gallery.html`, `code.html`
-   - Features: Vertical scrolling, panel-based layout, gradient backgrounds
-   - Custom overrides in: `assets/css/custom.css`
+**Palette** (CSS custom properties on `:root`):
+- `--bg #efe4cd` (warm paper), `--surface #e3d4b3` (ivory), `--cream #2b1d10` (espresso ink — primary text)
+- `--accent #b5421a` (burnt orange), `--accent2 #1f5d3e` (forest green)
+- `--rule`, `--muted` for borders/secondary text
 
-2. **Multiverse Template** (`photos/gallery.css`)
-   - Used for: Individual photo category pages in `/photos/*.html`
-   - Features: Flexbox grid, modal popup (jQuery Poptrox), responsive columns
-   - Key characteristic: Dark theme with `#1a1a1a` background
+**Typography**: **Anton** (display, Google Fonts) for headlines and masked wordmarks; **Space Grotesk** for body/UI; Font Awesome for icons.
 
-### Main Page Structure (`index.html`)
+**Signature technique — photo-into-type mask**: the `.mask` class uses `background-clip: text` + `-webkit-text-fill-color: transparent` with a `--mask-img` CSS variable to render a photograph *inside* the letterforms (hero wordmark, plate word marks, footer mark). Always provide a solid fallback color (set in `.mask`) so text remains legible if the image fails.
+  - **Gotcha**: relative `url()` in `theme.css` resolves against `assets/css/`, so mask image paths must be **root-relative** (`/photos/...`) — relative paths 404.
+  - **Gotcha**: a `transform` on a descendant of a `.mask` element, or a `filter` on the element itself, silently breaks `background-clip: text` in Chromium (the photo stops painting through the glyphs → invisible text). Don't add `transform`/`filter` to masked elements.
 
-- **Hero Panel**: Full-screen gradient header with site title and navigation
-- **Photography Panel**: Photo gallery preview (8 photos from different categories)
-- **Code Projects Panel**: Cards for ZK learning, Christmas Tree, Interactiva Panel, Groth16 Demo
-- **Cryptography Panel**: Direct link to polynomial plotter (interactive ZK-SNARK visualization)
-- **Creative Works Panel**: Music and paint gallery links
+**Behavior** (`js/theme.js`, vanilla, dependency-free):
+- `IntersectionObserver` scroll-reveal (`.reveal` → `.is-in`), with `data-delay` stagger.
+- Topbar nav-spy (highlights the current section's anchor).
+- Lazy video: `video[data-autoplay]` plays when scrolled into view, pauses when leaving; skipped entirely under `prefers-reduced-motion`.
+- All motion respects `prefers-reduced-motion`.
+
+### Main Page (`index.html`)
+
+- **Hero**: masked `WONDER ON / PATHLESS PATH` wordmark (photo through the letters), tagline, scroll cue.
+- **Manifesto**: large-type statement — "Capturing moments. Building systems. Exploring cryptography."
+- **Five editorial plates** (alternating left/right layout), each with a masked word mark + outlined numeral:
+  1. **Photography** (`PHOTO`) → `photo-gallery.html`
+  2. **Code** (`CODE`) → project links: ZK learning (GitHub), AI assistant (GitHub), Christmas Tree, polynomial plotter, Groth16 book
+  3. **Cryptography** (`CRYPTO`) → polynomial plotter
+  4. **Paint** — featured watercolor video (lazy, autoplay-in-view) → `paint.html`
+  5. **Music** (`MUSIC`) → `music.html` (coming soon)
+- **Footer**: masked `WP` mark + nav links.
 
 ### Photo Gallery System
 
-**Category Index** (`photo-gallery.html`):
-- 12 category cards with photo counts (e.g., "62 photos")
-- Links to individual category pages
-- Uses Ethereal template styling
+**Category index** (`photo-gallery.html`): 14 `.cat-card` entries (representative photo + name + count) in a responsive grid, each linking to its category page.
 
-**Individual Category Pages** (`photos/*.html`):
-- HTML5 UP Multiverse template with jQuery Poptrox
-- Modal popup: Click photo → full-size view with close button
-- Next/Prev navigation arrows between photos
-- ESC key or click outside to close
-- Responsive grid: 4 columns (desktop) → 1 column (mobile)
-- Viewport-based photo height: `calc(40vh - 2em)`
+**Category pages** (`photos/*.html`, 14 files): responsive thumbnail grid of `<article class="thumb">` blocks; jQuery Poptrox lightbox.
+- Shared styles: `photos/gallery.css` (Sunlit Paper, including the Poptrox popup `.closer` / `.nav-*` / backdrop).
+- Lightbox config: `photos/gallery.js` (`usePopupDefaultStyling: false` → all popup CSS lives in `gallery.css`). Poptrox plugin at `assets/js/jquery.poptrox.min.js`.
+- Responsive: 4 columns (≥1680px) → 3 (≥1280) → 2 (≥768) → 1 (mobile); thumb height `calc(40vh - 2em)`.
+- **Lightbox flash fix**: Poptrox's completion callback hides `.pic` and fades it back in at the end of the expand, which flashes. `gallery.css` sets `.poptrox-popup .pic { opacity: 1 !important }` to suppress it — keep this override.
 
-**Shared Gallery Resources**:
-- `photos/gallery.css` - Multiverse template styles
-- `photos/gallery.js` - jQuery Poptrox initialization
-- `assets/css/main.css` - HTML5 UP Multiverse (linked as `../assets/css/main.css`)
+### Code Projects
 
-### Code Projects Page (`code.html`)
-
-- File tree navigation with expandable/collapsible folders
-- Projects:
-  - `christmas_tree/` - Interactive visualization
-  - `interactiva_panel/` - Polynomial plotter
-  - `groth16-demo/` - Complete Groth16 implementation with mdbook
-- JavaScript for folder expand/collapse behavior
+There is **no `code.html` index**. Code projects are linked directly from the homepage "Code" plate. The projects live under `code/`:
+- `christmas_tree/` — interactive visualization
+- `interactiva_panel/` — interactive panel
+- `groth16-demo/` — complete Groth16 implementation with mdbook (see below)
 
 ### Groth16 Demo Project
 
@@ -274,33 +279,30 @@ code/groth16-demo/
 
 ### Polynomial Plotter (`cryptography/polynomial-plotter.html`)
 
-**Purpose**: Interactive visualization for understanding ZK-SNARK mathematics
+**Purpose**: Interactive visualization for understanding ZK-SNARK mathematics.
 
 **Structure**:
 ```
 cryptography/
-├── polynomial-plotter.html    # Main page with gradient header
+├── polynomial-plotter.html    # Page (chrome themed in inline <style>)
 ├── app.js                      # Plotly.js integration and polynomial logic
-└── styles.css                  # Custom plotter styles (grid layout)
+└── styles.css                  # Tool styles; :root tokens aligned with site theme
 ```
 
 **Key Features**:
 - Add/remove multiple polynomials with interactive sliders
 - Real-time plotting using Plotly.js
 - Adjustable X/Y axis ranges
-- Color-coded polynomials for easy identification
 - Responsive 2-column layout (65% plot, 35% controls)
-- "Back to Home" button in upper-left corner (fixed position)
+- "Back to home" link (fixed top-left)
 
 **Styling Notes**:
-- Uses purple gradient header matching main page theme
-- Independent styling (does not use main site CSS)
-- Scrollable page layout (no fixed viewport heights)
-- Mobile responsive: controls stack below plot on small screens
+- The plotter keeps its own `styles.css` (independent component CSS), but its `:root` color tokens are aligned with the Sunlit Paper palette so it matches the site.
+- The Plotly plot and controls are untouched by the site theme; only the page chrome (title, back link, description card) is themed.
 
 ### Paint Gallery (`paint.html`)
 
-- **Three-folder structure** with expandable/collapsible sections
+- **Three-folder structure** with expandable/collapsible sections (vanilla JS; all gallery class names are depended on by the inline script — preserve them when editing).
 - **Water Color** (12 videos): Christmas Snowman, Single Leaf, Mountain, Leaf on Water, Flower, Autumn Leave, Rose, Peach, Cherry Blossoms, Swan, Flower Bed, Whale
 - **Learning** (9 videos): Bee, Camping, Character Avatar, Chicken, Cloud Castle, Crane, Flamingo, Hummingbird, Oasis
 - **Creative** (6 videos): Cherry Blossoms, Cloud, Ghost, Mountain, Snow, Son of Light
@@ -317,19 +319,19 @@ cryptography/
 
 ### Adding New Web Content
 
-1. Create HTML file in root directory
-2. Add appropriate CSS links (Ethereal or Multiverse template)
-3. Add navigation links in `index.html` if needed
-4. Test locally with `python -m http.server 8001`
-5. Commit and push to main branch
+1. Create the HTML file in the root (or relevant directory).
+2. Link `assets/css/theme.css` + the Google Fonts (Anton + Space Grotesk); Font Awesome optional. Use the shared chrome classes: `.topbar`, `.page-hero`, `.shell`, `.footer`, `.back-link`.
+3. Add navigation links where relevant (topbar nav, homepage plates, footer).
+4. Test locally with `python -m http.server 8001`.
+5. Commit and push to `main`.
 
 ### Adding New Photos
 
-1. Copy photos to appropriate category directory
-2. Add `<article class="thumb">` blocks to category HTML file
-3. Update photo count in `photo-gallery.html`
-4. Test locally
-5. Commit and push
+1. Copy photos to the appropriate category directory under `photos/`.
+2. Add `<article class="thumb">` blocks to the category HTML file (see "Regenerating Photo Galleries" below).
+3. Add a `.cat-card` to `photo-gallery.html` (with a representative photo + count).
+4. Test locally.
+5. Commit and push.
 
 **Photo File Format**:
 - Use EXIF-based naming: `YYYY-MM-DD-###.jpg`
@@ -354,7 +356,7 @@ cryptography/
 
 3. **Add to `paint.html`**:
    - Add folder HTML section (if new category)
-   - Add video data to `folderVideos` object in JavaScript
+   - Add video data to `folderVideos` object in the inline JavaScript
    - Initialize gallery with `loadGallery('folder-id')`
 
 4. **Force add to git** (videos ignored by .gitignore):
@@ -380,7 +382,7 @@ cryptography/
 
 ### Regenerating Photo Galleries
 
-If adding many photos at once, you can use a Python script:
+If adding many photos at once, generate the `<article class="thumb">` blocks with a Python script:
 
 ```python
 import os
@@ -398,25 +400,26 @@ Then paste the output into the appropriate category HTML file.
 
 ## Important Notes
 
-- **Static Site**: No build process for web content; HTML files served directly
-- **GitHub Pages**: Uses `.nojekyll` to disable Jekyll processing, deploys from main branch
-- **Template Assets**: HTML5 UP templates in `assets/` (Ethereal) and `photos/` (Multiverse)
-- **Photo Gallery Dark Theme**: Individual category pages use dark background (`#1a1a1a`)
-- **Groth16 Workspace**: Multi-crate Rust project requiring careful dependency management
-- **Video File Sizes**: All 27 paint videos compressed and under 10MB each (~50MB total)
-- **Git Ignore**: All `.mp4` files ignored by .gitignore; must use `git add -f` to add videos
-- **GitHub Actions**: Automatic deployment on push to main branch; workflow includes all paint folders
-- **Git Worktrees**: `.worktrees/` directory contains isolated development branches (ignore in normal work)
+- **Static Site**: No build step; HTML/CSS/JS served directly.
+- **Theme**: single custom design system in `assets/css/theme.css` (Sunlit Paper). Legacy Ethereal (`assets/css/main.css`, `custom.css`) and Multiverse CSS are unused but kept on disk.
+- **Masked type**: `.mask` uses `background-clip: text`. Mask image paths must be **root-relative**; do **not** put `transform`/`filter` on masked elements (breaks the clip in Chromium → invisible text).
+- **GitHub Pages**: `.nojekyll` disables Jekyll processing; deploys from `main` via GitHub Actions.
+- **Git proxy**: `http.proxy` = `127.0.0.1:7890` (Clash) and is often down — bypass it for git/gh/curl to GitHub (see Git Workflow above). GitHub is reachable directly.
+- **Groth16 Workspace**: Multi-crate Rust project requiring careful dependency management.
+- **Video File Sizes**: All 27 paint videos compressed under 10MB each (~50MB total); `.mp4` is gitignored — use `git add -f`.
+- **GitHub Actions**: Automatic deployment on push to `main`; workflow uploads the entire repository (`path: '.'`).
+- **Git Worktrees**: `.worktrees/` directory contains isolated development branches (ignore in normal work).
 
 ## Tech Stack
 
 ### Web Frontend
-- **HTML5/CSS3** - Modern web standards
-- **HTML5 UP Templates** - Ethereal (main site), Multiverse (photo galleries)
-- **jQuery** - DOM manipulation and interactions
-- **jQuery Poptrox** - Modal popup for photo galleries (via CDN in Multiverse template)
-- **Font Awesome** - Icon system
-- **GitHub Pages** - Static hosting
+- **Sunlit Paper theme** — custom design system (`assets/css/theme.css`); `background-clip: text` masked photography.
+- **Anton + Space Grotesk** — display + body fonts (Google Fonts).
+- **Vanilla JS** — `js/theme.js` (scroll-reveal, lazy video, nav-spy); no framework.
+- **jQuery + jquery.poptrox** — photo gallery lightbox only (`photos/*.html`).
+- **Plotly.js** — polynomial plotter.
+- **Font Awesome** — icons.
+- **GitHub Pages** — static hosting.
 
 ### Rust Projects
 - **Rust 2021 Edition** - Modern Rust
@@ -445,13 +448,14 @@ git commit -m "Description
 
 Details.
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+Co-Authored-By: Claude <noreply@anthropic.com>"
 
-# 4. Push to main branch
-git push origin main
+# 4. Push to main branch (bypass the proxy if it's down)
+git -c http.proxy= -c https.proxy= push origin main
 
-# 5. Wait 1-2 minutes for GitHub Pages to rebuild
-# 6. Verify live site
+# 5. Wait ~1 minute for GitHub Pages to rebuild
+# 6. Verify live site (curl with proxy bypassed if needed)
+HTTPS_PROXY= HTTP_PROXY= curl -s https://minnow54426.github.io/ | head
 ```
 
 ### Common Deployment Issues
@@ -460,11 +464,12 @@ git push origin main
 2. **Large file push fails**: GitHub 100MB limit - compress or remove large files
 3. **Changes not visible**: Clear browser cache, wait longer for deployment
 4. **Wrong branch deployed**: Verify GitHub Pages repository settings
-5. **GitHub Actions fails**: Check that all videos are under 10MB and included in `.github/workflows/deploy.yml`
+5. **GitHub Actions fails**: Check that all videos are under 10MB
+6. **`Failed to connect to 127.0.0.1 port 7890`**: the configured proxy (Clash) is down — bypass it with `git -c http.proxy= -c https.proxy=`.
 
 ### GitHub Actions Workflow
 
-The site uses GitHub Actions for automatic deployment to GitHub Pages:
+The site uses GitHub Actions for automatic deployment to GitHub Pages.
 
 **Workflow file**: `.github/workflows/deploy.yml`
 
@@ -472,17 +477,12 @@ The site uses GitHub Actions for automatic deployment to GitHub Pages:
 - Push to `main` branch
 - Manual workflow dispatch
 
-**Included paths** (uploaded to GitHub Pages):
-- All HTML pages (index.html, photo-gallery.html, paint.html, code.html, music.html)
-- Assets (CSS, JS, fonts, images)
-- Photo galleries (photos/ with 12 categories)
-- Code projects (code/ directory)
-- **Paint videos**: `paint/water_color/`, `paint/learning/`, `paint/creat/`
+**Uploaded**: the workflow uploads `path: '.'` (the entire repository), so every file is included — HTML pages, `assets/`, `js/`, `photos/` (14 categories), `code/`, `cryptography/`, and `paint/` videos.
 
 **Requirements**:
 - All video files must be under 10MB
-- Videos are tracked in git despite .gitignore `*.mp4` rule (force added with `git add -f`)
-- Total deployment should complete in 2-3 minutes for 27 video files
+- Videos are tracked in git despite the `.gitignore` `*.mp4` rule (force added with `git add -f`)
+- Deployment typically completes in ~1 minute
 
 ### File Size Guidelines
 - **Images**: Under 5MB each
