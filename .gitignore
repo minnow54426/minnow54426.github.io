@@ -16,14 +16,7 @@ paint/water_color/*.mov
 # Git worktrees
 .worktrees/
 
-# Rust build artifacts
-**/target/
-**/*.rs.bk
-Cargo.lock
-
 # Other large files
-*.mp4
-*.mov
 *.zip
 
 # Plan documents

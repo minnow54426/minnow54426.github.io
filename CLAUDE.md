@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Personal portfolio website with GitHub Pages, featuring photography, code projects (Zero Knowledge Proof learning and Groth16 implementation), and interactive cryptography visualizations.
+Personal portfolio website with GitHub Pages, featuring photography, a Rust blockchain learning project, and creative works (watercolor, music).
 
 ## Key Commands
 
@@ -16,56 +16,6 @@ python -m http.server 8001
 # Photo gallery:     http://localhost:8001/photo-gallery.html
 # Paint gallery:     http://localhost:8001/paint.html
 # Music:             http://localhost:8001/music.html
-# Polynomial plotter: http://localhost:8001/cryptography/polynomial-plotter.html
-```
-
-### Rust Projects
-
-#### Groth16 Demo (Code Project)
-```bash
-# Navigate to project
-cd code/groth16-demo
-
-# Build workspace
-cargo build
-
-# Run tests
-cargo test
-
-# Run tests with output
-cargo test -- --nocapture
-
-# Run specific test
-cargo test test_name
-
-# Run clippy for linting
-cargo clippy
-
-# Format code
-cargo fmt
-
-# Generate documentation
-cargo doc --open
-
-# Run benchmarks
-cargo bench
-
-# Build mdbook documentation
-mdbook build book
-```
-
-#### Individual Groth16 Crates
-The Groth16 project is a workspace with multiple crates:
-- `crates/math` - Field operations, pairings, polynomials
-- `crates/r1cs` - Rank-1 Constraint System
-- `crates/qap` - Quadratic Arithmetic Programs
-- `crates/groth16` - Proof generation and verification
-- `crates/circuits` - Circuit implementations (multiplier, hash preimage, merkle, cubic)
-
-Each crate can be worked on individually:
-```bash
-cd code/groth16-demo/crates/groth16
-cargo test
 ```
 
 ### Git Workflow
@@ -142,16 +92,15 @@ git add -f paint/learning/*.mp4 paint/creat/*.mp4
 ├── music.html              # Music page (coming soon)
 │
 ├── assets/
-│   ├── css/               # theme.css = active design system; main.css/custom.css are legacy Ethereal (unused)
-│   ├── js/                # jQuery, jquery.poptrox (galleries), legacy Ethereal utils
-│   ├── sass/              # Legacy SASS sources (unused)
+│   ├── css/               # theme.css = active design system; fontawesome-all.min.css
+│   ├── js/                # jQuery, jquery.poptrox, Ethereal utils (all loaded by photo gallery pages)
 │   └── webfonts/          # Font Awesome webfonts
 │
 ├── js/
 │   └── theme.js           # Scroll-reveal, lazy video, nav-spy (vanilla, reduced-motion aware)
 │
-├── photos/                 # Photography collection (14 categories, 210 JPGs)
-│   ├── shang hai/         # 74
+├── photos/                 # Photography collection (14 categories, 234 JPGs)
+│   ├── shang hai/         # 98
 │   ├── animals/           # 23
 │   ├── jiu zhai gou/      # 20
 │   ├── zhang jia jie/     # 13
@@ -174,20 +123,6 @@ git add -f paint/learning/*.mp4 paint/creat/*.mp4
 │   ├── water_color/       # 12 videos
 │   ├── learning/          # 9 videos
 │   └── creat/             # 6 videos
-│
-├── code/                   # Code projects (no index page; linked from homepage)
-│   ├── christmas_tree/    # Christmas tree visualization
-│   ├── interactiva_panel/ # Interactive panel
-│   └── groth16-demo/      # Groth16 ZK-SNARK implementation (workspace)
-│       ├── crates/        # Workspace crates (math, r1cs, qap, groth16, circuits)
-│       ├── book/          # mdbook interactive documentation
-│       ├── docs/          # Additional documentation
-│       └── Cargo.toml     # Workspace configuration
-│
-├── cryptography/           # Cryptography interactive tool
-│   ├── polynomial-plotter.html
-│   ├── app.js             # Plotly polynomial logic
-│   └── styles.css         # Plotter styles (palette aligned with site theme)
 │
 ├── .nojekyll              # Disable Jekyll processing for GitHub Pages
 ├── .gitignore             # Git ignore rules
@@ -222,12 +157,11 @@ The entire site uses one custom design system: **`assets/css/theme.css`**. The o
 
 - **Hero**: masked `WONDER ON / PATHLESS PATH` wordmark (photo through the letters), tagline, scroll cue.
 - **Manifesto**: large-type statement — "Capturing moments. Building systems. Exploring cryptography."
-- **Five editorial plates** (alternating left/right layout), each with a masked word mark + outlined numeral:
+- **Four editorial plates** (alternating left/right layout), each with a masked word mark + outlined numeral:
   1. **Photography** (`PHOTO`) → `photo-gallery.html`
-  2. **Code** (`CODE`) → project links: ZK learning (GitHub), AI assistant (GitHub), Christmas Tree, polynomial plotter, Groth16 book
-  3. **Cryptography** (`CRYPTO`) → polynomial plotter
-  4. **Paint** — featured watercolor video (lazy, autoplay-in-view) → `paint.html`
-  5. **Music** (`MUSIC`) → `music.html` (coming soon)
+  2. **Code** (`CODE`, combined code + cryptography) → blockchain_from_scratch (GitHub)
+  3. **Paint** — featured watercolor video (lazy, autoplay-in-view) → `paint.html`
+  4. **Music** (`MUSIC`) → `music.html` (coming soon)
 - **Footer**: masked `WP` mark + nav links.
 
 ### Photo Gallery System
@@ -242,63 +176,7 @@ The entire site uses one custom design system: **`assets/css/theme.css`**. The o
 
 ### Code Projects
 
-There is **no `code.html` index**. Code projects are linked directly from the homepage "Code" plate. The projects live under `code/`:
-- `christmas_tree/` — interactive visualization
-- `interactiva_panel/` — interactive panel
-- `groth16-demo/` — complete Groth16 implementation with mdbook (see below)
-
-### Groth16 Demo Project
-
-**Workspace Structure**:
-```
-code/groth16-demo/
-├── Cargo.toml           # Workspace configuration
-├── book/                # mdbook interactive documentation
-│   └── book/           # Built HTML output
-├── crates/
-│   ├── math/           # Field wrapper, pairings, polynomials
-│   ├── r1cs/           # R1CS constraints and witnesses
-│   ├── qap/            # QAP transformation and divisibility
-│   ├── groth16/        # Trusted setup, proofs, verification
-│   └── circuits/       # Example circuits (multiplier, hash_preimage, merkle, cubic)
-└── examples/           # Binary demos (multiplier_demo, hash_preimage_demo, merkle_demo)
-```
-
-**Key Dependencies** (from `Cargo.toml`):
-- `ark-*` crates (ark-ff, ark-ec, ark-bn254, ark-poly, ark-groth16, etc.)
-- `serde` + `bincode` for serialization
-- `anyhow` + `thiserror` for error handling
-- `proptest` for property-based testing
-
-**Architecture Patterns**:
-1. **Workspace Pattern**: Multiple crates in one Cargo workspace
-2. **Type Safety**: Field wrappers, newtype patterns for cryptographic data
-3. **Modular Design**: Clear separation between math, R1CS, QAP, and Groth16 layers
-4. **Documentation**: mdbook for interactive learning materials
-5. **Testing**: Comprehensive unit tests and property-based tests
-
-### Polynomial Plotter (`cryptography/polynomial-plotter.html`)
-
-**Purpose**: Interactive visualization for understanding ZK-SNARK mathematics.
-
-**Structure**:
-```
-cryptography/
-├── polynomial-plotter.html    # Page (chrome themed in inline <style>)
-├── app.js                      # Plotly.js integration and polynomial logic
-└── styles.css                  # Tool styles; :root tokens aligned with site theme
-```
-
-**Key Features**:
-- Add/remove multiple polynomials with interactive sliders
-- Real-time plotting using Plotly.js
-- Adjustable X/Y axis ranges
-- Responsive 2-column layout (65% plot, 35% controls)
-- "Back to home" link (fixed top-left)
-
-**Styling Notes**:
-- The plotter keeps its own `styles.css` (independent component CSS), but its `:root` color tokens are aligned with the Sunlit Paper palette so it matches the site.
-- The Plotly plot and controls are untouched by the site theme; only the page chrome (title, back link, description card) is themed.
+There is **no `code.html` index** and **no local `code/` directory**. The homepage "Code" plate (combined code + cryptography) links to a single external resource: the **blockchain_from_scratch** GitHub repo.
 
 ### Paint Gallery (`paint.html`)
 
@@ -368,18 +246,6 @@ cryptography/
 
 **Important**: Videos must be under 10MB each for GitHub Pages. Use higher CRF values (35-40) for aggressive compression if needed.
 
-### Working with Groth16 Code
-
-1. Navigate to specific crate: `cd code/groth16-demo/crates/groth16`
-2. Write code following existing patterns
-3. Add comprehensive tests
-4. Run `cargo test` to verify
-5. Run `cargo clippy` for linting
-6. Format with `cargo fmt`
-7. Update documentation if needed
-8. Build mdbook: `mdbook build book` (if documentation changed)
-9. Commit changes
-
 ### Regenerating Photo Galleries
 
 If adding many photos at once, generate the `<article class="thumb">` blocks with a Python script:
@@ -401,11 +267,10 @@ Then paste the output into the appropriate category HTML file.
 ## Important Notes
 
 - **Static Site**: No build step; HTML/CSS/JS served directly.
-- **Theme**: single custom design system in `assets/css/theme.css` (Sunlit Paper). Legacy Ethereal (`assets/css/main.css`, `custom.css`) and Multiverse CSS are unused but kept on disk.
+- **Theme**: single custom design system in `assets/css/theme.css` (Sunlit Paper). Legacy Ethereal assets (main.css, custom.css, noscript.css, `assets/sass/`, `images/`) have been removed from the repo.
 - **Masked type**: `.mask` uses `background-clip: text`. Mask image paths must be **root-relative**; do **not** put `transform`/`filter` on masked elements (breaks the clip in Chromium → invisible text).
 - **GitHub Pages**: `.nojekyll` disables Jekyll processing; deploys from `main` via GitHub Actions.
 - **Git proxy**: `http.proxy` = `127.0.0.1:7890` (Clash) and is often down — bypass it for git/gh/curl to GitHub (see Git Workflow above). GitHub is reachable directly.
-- **Groth16 Workspace**: Multi-crate Rust project requiring careful dependency management.
 - **Video File Sizes**: All 27 paint videos compressed under 10MB each (~50MB total); `.mp4` is gitignored — use `git add -f`.
 - **GitHub Actions**: Automatic deployment on push to `main`; workflow uploads the entire repository (`path: '.'`).
 - **Git Worktrees**: `.worktrees/` directory contains isolated development branches (ignore in normal work).
@@ -417,18 +282,8 @@ Then paste the output into the appropriate category HTML file.
 - **Anton + Space Grotesk** — display + body fonts (Google Fonts).
 - **Vanilla JS** — `js/theme.js` (scroll-reveal, lazy video, nav-spy); no framework.
 - **jQuery + jquery.poptrox** — photo gallery lightbox only (`photos/*.html`).
-- **Plotly.js** — polynomial plotter.
 - **Font Awesome** — icons.
 - **GitHub Pages** — static hosting.
-
-### Rust Projects
-- **Rust 2021 Edition** - Modern Rust
-- **Cargo Workspaces** - Multi-crate projects
-- **ARK Crypto Libraries** (ark-ff, ark-ec, ark-bn254, ark-groth16, etc.)
-- **mdbook** - Interactive documentation
-- **serde/bincode** - Serialization
-- **anyhow/thiserror** - Error handling
-- **proptest** - Property-based testing
 
 ## Deployment
 
@@ -477,7 +332,7 @@ The site uses GitHub Actions for automatic deployment to GitHub Pages.
 - Push to `main` branch
 - Manual workflow dispatch
 
-**Uploaded**: the workflow uploads `path: '.'` (the entire repository), so every file is included — HTML pages, `assets/`, `js/`, `photos/` (14 categories), `code/`, `cryptography/`, and `paint/` videos.
+**Uploaded**: the workflow uploads `path: '.'` (the entire repository), so every file is included — HTML pages, `assets/`, `js/`, `photos/` (14 categories), and `paint/` videos.
 
 **Requirements**:
 - All video files must be under 10MB

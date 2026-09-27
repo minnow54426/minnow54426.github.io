@@ -1,12 +1,11 @@
 # Personal Portfolio Website
 
-A personal portfolio website hosted on GitHub Pages, featuring photography, code projects, and interactive cryptography visualizations.
+A personal portfolio website hosted on GitHub Pages, featuring photography, blockchain and cryptography projects, and creative works.
 
 ## Features
 
-- **Photography Gallery**: 12 curated photo categories with 200+ images from travels across China
-- **Code Projects**: Interactive visualizations and Zero Knowledge Proof implementations
-- **Cryptography Tools**: Interactive polynomial plotter for understanding ZK-SNARK mathematics
+- **Photography Gallery**: 14 curated photo categories with 230+ images from travels across China
+- **Code & Cryptography**: [blockchain_from_scratch](https://github.com/minnow54426/blockchain_from_scratch) — a blockchain built in Rust from first principles
 - **Creative Works**: Music projects and watercolor video gallery
 
 ## Live Site
@@ -26,7 +25,6 @@ python -m http.server 8001
 # View in browser
 # Main page: http://localhost:8001/
 # Photo gallery: http://localhost:8001/photo-gallery.html
-# Polynomial plotter: http://localhost:8001/cryptography/polynomial-plotter.html
 ```
 
 ## Project Structure
@@ -36,30 +34,20 @@ python -m http.server 8001
 ├── index.html              # Main landing page
 ├── photo-gallery.html      # Photo category index
 ├── paint.html              # Watercolor video gallery
-├── code.html               # Code projects navigation
 ├── music.html              # Music projects
 ├── assets/                 # CSS and JavaScript assets
-├── photos/                 # Photography collection (12 categories)
-├── paint/                  # Art and video collection
-├── code/                   # Code projects
-│   └── groth16-demo/      # Groth16 ZK-SNARK implementation
-└── cryptography/           # Interactive visualization tools
+├── photos/                 # Photography collection (14 categories)
+└── paint/                  # Art and video collection
 ```
 
 ## Technology Stack
 
 ### Frontend
 - HTML5/CSS3
-- HTML5 UP templates (Ethereal, Multiverse)
+- Sunlit Paper custom design system (`assets/css/theme.css`)
 - jQuery & jQuery Poptrox
 - Font Awesome
 - GitHub Pages
-
-### Rust Projects
-- Rust 2021 Edition
-- Cargo Workspaces
-- ARK Crypto Libraries (ark-ff, ark-ec, ark-bn254, ark-groth16)
-- mdbook for documentation
 
 ## Deployment
 
