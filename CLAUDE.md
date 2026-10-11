@@ -87,7 +87,7 @@ git add -f paint/learning/*.mp4 paint/creat/*.mp4
 ```
 /
 ├── index.html              # Landing page — Sunlit Paper theme (masked hero + editorial plates)
-├── photo-gallery.html      # Photography category index (14 category cards)
+├── photo-gallery.html      # Photography category index (15 category cards)
 ├── paint.html              # Paint/watercolor video gallery
 ├── music.html              # Music page (coming soon)
 │
@@ -99,7 +99,7 @@ git add -f paint/learning/*.mp4 paint/creat/*.mp4
 ├── js/
 │   └── theme.js           # Scroll-reveal, lazy video, nav-spy (vanilla, reduced-motion aware)
 │
-├── photos/                 # Photography collection (14 categories, 234 JPGs)
+├── photos/                 # Photography collection (15 categories, 247 JPGs)
 │   ├── shang hai/         # 98
 │   ├── animals/           # 23
 │   ├── jiu zhai gou/      # 20
@@ -113,11 +113,12 @@ git add -f paint/learning/*.mp4 paint/creat/*.mp4
 │   ├── on road/           # 4
 │   ├── hang zhou/         # 5
 │   ├── wu xi/             # 10
+│   ├── 2026.10.1 trip/    # 13
 │   ├── others/            # 2
 │   │
 │   ├── gallery.css        # Shared gallery styles + Poptrox lightbox (Sunlit Paper)
 │   ├── gallery.js         # jQuery Poptrox initialization
-│   └── *.html             # Individual category pages (14 files)
+│   └── *.html             # Individual category pages (15 files)
 │
 ├── paint/                  # Watercolor videos (27 total, all <10MB)
 │   ├── water_color/       # 12 videos
@@ -166,9 +167,9 @@ The entire site uses one custom design system: **`assets/css/theme.css`**. The o
 
 ### Photo Gallery System
 
-**Category index** (`photo-gallery.html`): 14 `.cat-card` entries (representative photo + name + count) in a responsive grid, each linking to its category page.
+**Category index** (`photo-gallery.html`): 15 `.cat-card` entries (representative photo + name + count) in a responsive grid, each linking to its category page.
 
-**Category pages** (`photos/*.html`, 14 files): responsive thumbnail grid of `<article class="thumb">` blocks; jQuery Poptrox lightbox.
+**Category pages** (`photos/*.html`, 15 files): responsive thumbnail grid of `<article class="thumb">` blocks; jQuery Poptrox lightbox.
 - Shared styles: `photos/gallery.css` (Sunlit Paper, including the Poptrox popup `.closer` / `.nav-*` / backdrop).
 - Lightbox config: `photos/gallery.js` (`usePopupDefaultStyling: false` → all popup CSS lives in `gallery.css`). Poptrox plugin at `assets/js/jquery.poptrox.min.js`.
 - Responsive: 4 columns (≥1680px) → 3 (≥1280) → 2 (≥768) → 1 (mobile); thumb height `calc(40vh - 2em)`.
