@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Run the N=8 example and step through each butterfly in VS Code.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/vscode-debugging.html">
+<title>Run &amp; debug · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
+  <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="vscode-debugging.html" aria-current="page">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Learn</div>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f91945b25ea49abd0c199db98de69454ada60759/docs/vscode-debugging.md">View source ↗</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><article class="site-article"><h1 id="run-and-debug-the-ntt-in-vs-code">Run and debug the NTT in VS Code<a class="headerlink" href="#run-and-debug-the-ntt-in-vs-code" title="Permanent link">¶</a></h1>
+<p>This project checks in a shared VS Code configuration for macOS. The first
+debug target uses the CPU reference implementation, so CUDA hardware is not
+required.</p>
+<h2 id="one-time-setup">One-time setup<a class="headerlink" href="#one-time-setup" title="Permanent link">¶</a></h2>
+<ol>
+<li>Open the repository folder in VS Code: <code>code .</code></li>
+<li>If VS Code asks, install the recommended extensions:
+   - CMake Tools
+   - C/C++
+   - LLDB DAP</li>
+<li>Wait for CMake Tools to finish configuring <code>build/debug</code>.</li>
+</ol>
+<p>The extensions are already installed on the current development Mac. The
+workspace explicitly uses Xcode's matching <code>lldb-dap</code> binary instead of
+CodeLLDB's bundled LLDB.</p>
+<h2 id="run-the-small-example">Run the small example<a class="headerlink" href="#run-the-small-example" title="Permanent link">¶</a></h2>
+<p>Open the command palette with <code>Cmd+Shift+P</code>, choose <strong>Tasks: Run Task</strong>, then
+choose <strong>Run: NTT debug example</strong>.</p>
+<p>The expected output is:</p>
+<pre><code class="language-text">natural-order coefficients: 1 2 3 4 5 6 7 8
+bit-reversed evaluation values: 5 0 13 8 9 11 5 8
+recovered coefficients: 1 2 3 4 5 6 7 8
+roundtrip passed
+</code></pre>
+<h2 id="debug-it-step-by-step">Debug it step by step<a class="headerlink" href="#debug-it-step-by-step" title="Permanent link">¶</a></h2>
+<ol>
+<li>Open <code>examples/step_by_step.cpp</code>.</li>
+<li>Click left of the <code>transform.forward(values)</code> line to create a breakpoint.</li>
+<li>Open <strong>Run and Debug</strong> with <code>Cmd+Shift+D</code>.</li>
+<li>Select <strong>Debug: NTT example (step by step)</strong>.</li>
+<li>Press <code>F5</code>. The program first stops at <code>main</code> because <code>stopOnEntry</code> is on.</li>
+<li>Press <code>F5</code> again to reach the breakpoint.</li>
+<li>Press <code>F11</code> to step into <code>NegacyclicNtt::forward</code> in <code>include/ntt/ntt.hpp</code>.</li>
+<li>Use <code>F10</code> to advance one source line at a time.</li>
+</ol>
+<p>Useful values to add to the <strong>Watch</strong> panel:</p>
+<ul>
+<li><code>stage_pair_distance</code></li>
+<li><code>group_start_index</code></li>
+<li><code>pair_offset</code></li>
+<li><code>upper_index</code></li>
+<li><code>lower_index</code></li>
+<li><code>twiddle_power</code></li>
+<li><code>values</code></li>
+</ul>
+<p>For <code>N=8</code>, the forward transform has three stages with pair distances
+<code>4</code>, <code>2</code>, and <code>1</code>. Expand <code>values</code> after each butterfly to see the array
+change in place.</p>
+<h2 id="other-shared-commands">Other shared commands<a class="headerlink" href="#other-shared-commands" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>Cmd+Shift+B</code>: configure and build the debug example.</li>
+<li><strong>Test: All CPU checks</strong>: build and run the complete CPU test suite.</li>
+<li><strong>Debug: CPU unit tests</strong>: generate the <code>N=1024</code> fixture and debug the tests.</li>
+</ul>
+<p>The debugger deliberately targets the CPU reference. CUDA kernel debugging
+will be added on the RTX machine using <code>cuda-gdb</code> or Nsight after the native
+CUDA build is available.</p>
+<h2 id="codelldb-crash-on-current-macosxcode">CodeLLDB crash on current macOS/Xcode<a class="headerlink" href="#codelldb-crash-on-current-macosxcode" title="Permanent link">¶</a></h2>
+<p>CodeLLDB 1.11.4's bundled LLDB 19.1.7 crashes with <code>SIGBUS</code> while parsing the
+Mach-O symbols produced by the current AppleClang toolchain. Xcode's native
+<code>lldb-dap</code> has been tested against this executable and stops at <code>main</code>
+correctly. If VS Code still shows a launch configuration with type <code>lldb</code>, run
+<strong>Developer: Reload Window</strong> and select the <code>lldb-dap</code> configuration again.</p></article></div><aside class="site-on-this-page" aria-label="On this page"><p>On this page</p><div class="toc">
+<ul>
+<li><a href="#one-time-setup">One-time setup</a></li>
+<li><a href="#run-the-small-example">Run the small example</a></li>
+<li><a href="#debug-it-step-by-step">Debug it step by step</a></li>
+<li><a href="#other-shared-commands">Other shared commands</a></li>
+<li><a href="#codelldb-crash-on-current-macosxcode">CodeLLDB crash on current macOS/Xcode</a></li>
+</ul>
+</div>
+</aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f91945b25ea49abd0c199db98de69454ada60759">f91945b</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

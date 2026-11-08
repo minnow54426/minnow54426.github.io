@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Dated outcomes, reasoning, verification, and next steps.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal.html">
+<title>Daily engineering journal · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
+  <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Daily journal</div>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu">Repository ↗</a></div>
+    <div class="site-reading-layout site-wide">
+      <div class="site-page-content">
+<div class="site-journal-intro"><p class="site-eyebrow">THE DAILY JOURNAL</p>
+<h1>The work, as it happens.</h1><p>Outcomes, decisions, and the evidence behind them.
+Follow the project one entry at a time.</p></div>
+<div class="site-journal-explainer">Calendar entries track the work. Roadmap working days track deliverables.
+Entries reconstructed from history are labeled in their articles.</div>
+<div class="site-journal-list">
+<a class="site-entry-card" href="journal/2026-11-08.html">
+  <div class="site-entry-meta"><time datetime="2026-11-08">08 Nov 2026</time><span>P1 / D1</span></div>
+  <h3>Open the engineering notebook</h3><p>Unified learning pages, research, plans, and daily reasoning in a navigable HTML site.</p>
+  <span class="site-entry-link">Read the entry <span aria-hidden="true">↗</span></span>
+</a>
+<a class="site-entry-card" href="journal/2026-11-07.html">
+  <div class="site-entry-meta"><time datetime="2026-11-07">07 Nov 2026</time><span>P1 / D1</span></div>
+  <h3>Make the butterfly implementation inspectable</h3><p>Added step debugging, clearer CPU variables, and rendered NTT derivations.</p>
+  <span class="site-entry-link">Read the entry <span aria-hidden="true">↗</span></span>
+</a>
+<a class="site-entry-card" href="journal/2026-11-06.html">
+  <div class="site-entry-meta"><time datetime="2026-11-06">06 Nov 2026</time><span>P1 / D1</span></div>
+  <h3>A roadmap with explicit gates</h3><p>Tracked the path through OpenFHE integration and clarified implementation naming.</p>
+  <span class="site-entry-link">Read the entry <span aria-hidden="true">↗</span></span>
+</a>
+<a class="site-entry-card" href="journal/2026-11-05.html">
+  <div class="site-entry-meta"><time datetime="2026-11-05">05 Nov 2026</time><span>P0 baseline</span></div>
+  <h3>Exactness before GPU speed</h3><p>Established the OpenFHE transform gate and recorded the GPU NTT research backlog.</p>
+  <span class="site-entry-link">Read the entry <span aria-hidden="true">↗</span></span>
+</a></div></div>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f91945b25ea49abd0c199db98de69454ada60759">f91945b</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

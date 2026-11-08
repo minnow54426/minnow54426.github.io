@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Build, test, and understand the correctness-first CKKS GPU project.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/project.html">
+<title>Project &amp; setup · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
+  <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html" aria-current="page">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Start here</div>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Start here</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f91945b25ea49abd0c199db98de69454ada60759/README.md">View source ↗</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><article class="site-article"><h1 id="ntt-gpu">ntt-gpu<a class="headerlink" href="#ntt-gpu" title="Permanent link">¶</a></h1>
+<p>GPU-accelerated RNS NTT, key-switching, and automorphism kernels for FHE (and, by shared
+core operation, ZK proving). Target: best-in-class, honestly-benchmarked CUDA kernels.</p>
+<p><strong>Status:</strong> Layer 1 (CPU <code>ref</code> backend) complete and cross-verified — 2026-10-29.
+Layer 2 written and Mac-proven (schedule simulator green); GPU gates light up
+automatically wherever nvcc exists.</p>
+<h2 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>v0.1 (2027-01-31):</strong> correct, tested RNS NTT CUDA kernel + benchmark table
+  (RTX 4090 + RTX 5090), e.g. "2^16 coefficients, 40-bit limbs: X ms, N× vs OpenFHE CPU".</li>
+<li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> Layer 1 — CPU reference negacyclic NTT + Python big-int oracle (2026-10-29)</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Layer 2 — CUDA kernel, validated on the same vectors<ul>
+<li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> 2a — the GPU stage schedule (<code>include/ntt/dev_core.hpp</code>), proven on CPU
+  by a portable simulator gate (<code>device_schedule_check</code>) at n = 64 / 1024 / 4096</li>
+<li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> 2b — the kernels themselves (<code>src/cuda/ntt_kernels.cu</code>), thin wrappers
+  around the proven schedule; GPU gates register automatically under nvcc</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> 2c — first run on a rented GPU (see below), bench table recorded</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> 2d — systematic benchmark and autotuning matrix across GPU launch
+  parameters and NTT implementations; select winners per ring size, RNS
+  tower count, and latency/throughput objective</li>
+</ul>
+</li>
+<li><strong>v0.2 (2027-04-30):</strong> key-switching / automorphism kernels; first upstream PRs.</li>
+</ul>
+<p>Benchmarking and tuning are part of the implementation, not a final reporting
+step. The primary target is RTX 5090 (<code>sm_120</code>), with RTX 4090 (<code>sm_89</code>) as the
+cross-architecture control. The matrix includes <code>N = 4096..65536</code>, realistic
+CKKS modulus widths and tower counts, threads/block, values/thread, radix,
+register and shared-memory use, split/tile shape, batch size, streams, twiddle
+representation, and transfer policy. It compares the correctness baseline,
+optimized two-pass variants, radix-4/8 register staging, and a coalesced
+Four-Step/transpose path. Kernel-only and end-to-end results are reported
+separately. See <a href="benchmark-tuning-plan.html"><code>docs/benchmark-tuning-plan.md</code></a>.</p>
+<h2 id="build-test">Build &amp; test<a class="headerlink" href="#build-test" title="Permanent link">¶</a></h2>
+<p>No dependencies beyond CMake, a C++20 compiler, and Python 3 (stdlib only).
+Without a CUDA toolkit (e.g. the dev Mac):</p>
+<pre><code class="language-sh">cmake -S . -B build &amp;&amp; cmake --build build -j &amp;&amp; ctest --test-dir build --output-on-failure
+</code></pre>
+<p>Six gates: vector generation ×3 sizes (RNS primes + 2N-th roots of unity at
+n = 64/1024/4096), unit tests (modular arithmetic, bit-reversal, forward/inverse
+roundtrip, NTT-multiply vs O(N²) schoolbook mod x^N+1), the cross-language
+oracle check — the C++ fast transform must equal a definitional naive O(N²)
+big-integer transform in Python, limb by limb, with position-wise CRT
+reconstruction over all limbs — and the device-schedule check: the simulator
+(<code>src/device_sim.cpp</code>) runs the exact stage bodies the CUDA kernels run and
+must match the CPU reference array-for-array, bit-reversed order included.</p>
+<p>For a ready-to-run macOS VS Code setup, including an <code>N=8</code> example and LLDB
+single-stepping instructions, see
+<a href="vscode-debugging.html"><code>docs/vscode-debugging.md</code></a>.</p>
+<p>With nvcc present, CMake auto-detects it and adds <code>ntt_cuda_cli</code> plus three
+GPU gates, unchanged commands otherwise: <code>cuda_oracle_crosscheck</code> (the same
+Python oracle against the CUDA binary — its output is byte-identical to
+<code>ntt_cli</code>), <code>cuda_matches_ref</code> (byte-compare of both binaries' transform
+output at n = 1024 and 4096; valid at any size, use a 2^18 fixture freely),
+and <code>cuda_verify</code> (in-process GPU-vs-ref forward/roundtrip/multiply on the
+fixtures plus a generated n = 65536 case).</p>
+<h3 id="exact-openfhe-compatibility">Exact OpenFHE compatibility<a class="headerlink" href="#exact-openfhe-compatibility" title="Permanent link">¶</a></h3>
+<p>The OpenFHE gate pins <strong>OpenFHE 1.6.1</strong> at commit
+<code>b59e1f291965f14fbee5172cd83a20f5b856204f</code>, builds it under the ignored
+<code>build/</code> tree, and compares the public <code>NativePoly</code> coefficient/evaluation
+conversion against <code>NegacyclicNtt</code> element for element:</p>
+<pre><code class="language-sh">bash scripts/openfhe_setup.sh
+</code></pre>
+<p><code>openfhe_exact_compat</code> covers <code>N = 4096, 8192, 16384, 32768, 65536</code>, two
+OpenFHE-selected CKKS-sized modulus widths (50 and 59 bits), zero, maximum,
+ramp, and deterministic-random coefficient inputs, plus independent random
+evaluation-domain inputs for inverse transforms. Equality includes OpenFHE's
+exact bit-reversed evaluation ordering; this is not a decrypt-tolerance test.
+The CUDA gates already require GPU output to equal the same CPU reference, so
+the two exact gates compose to OpenFHE == reference == CUDA on GPU hardware.</p>
+<p>The ordinary dependency-free build remains unchanged. To reuse an existing
+OpenFHE installation instead of the setup script, configure with
+<code>-DNTT_ENABLE_OPENFHE_COMPAT=ON</code> and point <code>CMAKE_PREFIX_PATH</code> at its install
+prefix; CMake requires version 1.6.1 exactly.</p>
+<p>Architecture default: sm_89 + sm_120 when the toolkit is ≥ 12.8, else sm_89
+(the build embeds compute_89 PTX, which a 5090 driver JITs) — one build runs
+on both rentable cards. Override with <code>-DCMAKE_CUDA_ARCHITECTURES=native</code>
+(CMake ≥ 3.24) on a single known box.</p>
+<h3 id="first-session-on-a-rented-gpu">First session on a rented GPU<a class="headerlink" href="#first-session-on-a-rented-gpu" title="Permanent link">¶</a></h3>
+<pre><code class="language-sh">bash scripts/autodl_setup.sh          # or: NTT_REPO_DIR=... NTT_CUDA_ARCH=...
+</code></pre>
+<p>Idempotent one-shot: finds nvcc (PATH or <code>/usr/local/cuda/bin</code>), clone-or-pull,
+configure + build, run every gate, run the bench sweep, and write <code>VERDICT.txt</code>
+(GPU name, driver, toolkit, arch sanity check, per-gate results, bench table).
+Exit code reflects the gates. Bench numbers are attached to that hardware
+header or they don't get quoted.</p>
+<h2 id="design">Design<a class="headerlink" href="#design" title="Permanent link">¶</a></h2>
+<p>Two backends behind one interface:</p>
+<ul>
+<li><code>ref</code> — CPU reference (correctness is defined here; big-int-checked test vectors)</li>
+<li><code>cuda</code> — GPU kernel (validated against <code>ref</code> on identical vectors)</li>
+</ul>
+<p>The CUDA port's index math lives once in <code>include/ntt/dev_core.hpp</code>, compiled
+by the Mac simulator and by the kernels alike, so schedule and device cannot
+drift; the reference arithmetic (<code>mod_arith.hpp</code>) is <code>__host__ __device__</code>, so
+the GPU runs literally the reference <code>mul_mod</code>. The schedule is a two-pass
+split at 256: pass 1 over 256 strided groups (the far stages, whose pair
+distance is a multiple of 256, pair values sharing their offset mod 256),
+pass 2 over contiguous 256-tiles (the near stages). All 16 stages at
+N = 65,536 run on shared-memory counters; the "mix" between passes is pure
+data movement (scatter strided, gather contiguous), so VRAM traffic is 4
+round-trips per value instead of the 14 a global-memory phase would cost —
+and one forward is 2 kernel launches. v1 uses the <code>__uint128_t</code>
+division lowering on device — emulated there, and honestly slow; the bench
+table quantifies exactly that pre-Barrett gap, and Barrett/Montgomery lands
+later behind the same signature with a dedicated cross-check. The simulator
+is serial by nature: it proves the math, not barriers or launch configs —
+the GPU gates exist for that residue.</p>
+<p>Benchmarks are only ever reported from the <code>cuda</code> backend on named hardware.</p>
+<p>Transform convention (see <code>include/ntt/ntt.hpp</code>): ψ a primitive 2N-th root of
+unity mod q, <code>forward: A_j = Σ_i a_i·ψ^((2j+1)·i) mod q</code> — evaluation at the
+odd powers of ψ, where x^N+1 splits into linear factors.</p>
+<h2 id="docs">Docs<a class="headerlink" href="#docs" title="Permanent link">¶</a></h2>
+<p>The documentation now builds as one HTML engineering notebook: shared navigation,
+search, learning pages, research, plans, and a daily journal recording outcomes,
+reasoning, evidence, open questions, and next steps.</p>
+<pre><code class="language-sh">python3 -m venv .venv
+.venv/bin/python -m pip install -r docs/requirements.txt
+.venv/bin/python scripts/build_docs.py --check
+python3 -m http.server 8000 --bind 127.0.0.1 --directory build/docs-site
+</code></pre>
+<p>Open <code>http://127.0.0.1:8000/</code>. Markdown remains editable source; the generated
+site publishes HTML. The existing interactive explainers also work independently.
+See <a href="contributing-docs.html">writing and publishing</a> for GitHub Pages setup and the
+daily-entry workflow. These optional dependencies do not affect the C++ build.</p>
+<ul>
+<li><a href="butterfly-explained.html"><code>docs/butterfly-explained.html</code></a> — an interactive,
+  dependency-free beginner's explainer: why the NTT is built from butterfly units,
+  from the one-line definition through the negacyclic fold rule to the full N=8
+  network (open in any browser).</li>
+<li><a href="gpu-ntt-explained.html"><code>docs/gpu-ntt-explained.html</code></a> — the GPU port
+  explained from zero: the machine's concepts and real parameters (threads,
+  blocks, SMs, the 4090/5090 numbers), then how this repo splits the NTT into
+  strided groups and contiguous tiles so every stage runs on a shared-memory
+  counter.</li>
+<li><a href="gpu-ntt-survey.html"><code>docs/gpu-ntt-survey.md</code></a> — primary-source survey of
+  GPU NTT and CKKS implementations, with the techniques this project can absorb.</li>
+<li><a href="gpu-selection-survey.html"><code>docs/gpu-selection-survey.md</code></a> — primary-source
+  comparison of RTX 5090, RTX 4090, RTX PRO 6000, L40S, A100, H100/H200, and
+  B200 for this project's exact <code>u32</code>/<code>u64</code> modular-arithmetic workload.</li>
+<li><a href="benchmark-tuning-plan.html"><code>docs/benchmark-tuning-plan.md</code></a> — reproducible
+  benchmark matrix and tuning/selection rules for GPU parameters and kernel
+  variants.</li>
+<li><a href="openfhe-integration-plan.html"><code>docs/openfhe-integration-plan.md</code></a> — the
+  tracked 95-day implementation plan (plus risk reserve) from the current NTT
+  baseline through GPU base conversion, Hybrid key switching, and validated
+  OpenFHE integration.</li>
+<li><a href="vscode-debugging.html"><code>docs/vscode-debugging.md</code></a> — shared VS Code build,
+  run, test, and LLDB step-debugging setup for the small CPU NTT example.</li>
+</ul>
+<h2 id="provenance">Provenance<a class="headerlink" href="#provenance" title="Permanent link">¶</a></h2>
+<p>Independent clean-room implementation. Contains no code, data, or artifacts from any
+past or present employer. Development history is fully documented in this repository's
+git log from the first commit.</p>
+<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">¶</a></h2>
+<p>TBD (decide before accepting outside contributions).</p></article></div><aside class="site-on-this-page" aria-label="On this page"><p>On this page</p><div class="toc">
+<ul>
+<li><a href="#roadmap">Roadmap</a></li>
+<li><a href="#build-test">Build &amp; test</a><ul>
+<li><a href="#exact-openfhe-compatibility">Exact OpenFHE compatibility</a></li>
+<li><a href="#first-session-on-a-rented-gpu">First session on a rented GPU</a></li>
+</ul>
+</li>
+<li><a href="#design">Design</a></li>
+<li><a href="#docs">Docs</a></li>
+<li><a href="#provenance">Provenance</a></li>
+<li><a href="#license">License</a></li>
+</ul>
+</div>
+</aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f91945b25ea49abd0c199db98de69454ada60759">f91945b</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

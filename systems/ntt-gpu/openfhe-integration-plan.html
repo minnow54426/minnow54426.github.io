@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The tracked 95-working-day plan through exact OpenFHE Hybrid integration.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/openfhe-integration-plan.html">
+<title>Integration roadmap · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
+  <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html" aria-current="page">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Plans</div>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f91945b25ea49abd0c199db98de69454ada60759/docs/openfhe-integration-plan.md">View source ↗</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><article class="site-article"><h1 id="ckks-gpu-to-openfhe-integration-plan">CKKS GPU-to-OpenFHE integration plan<a class="headerlink" href="#ckks-gpu-to-openfhe-integration-plan" title="Permanent link">¶</a></h1>
+<p><strong>Target:</strong> OpenFHE 1.6.1 CKKS with Hybrid key switching<br>
+<strong>Primary arithmetic:</strong> 50–60-bit RNS primes stored in <code>uint64_t</code>, with
+<code>uint32_t</code> indexing/control paths where safe<br>
+<strong>Ring dimensions:</strong> <code>4096</code>, <code>8192</code>, <code>16384</code>, <code>32768</code>, <code>65536</code><br>
+<strong>Estimate:</strong> 95 planned working days + 15 risk-reserve days<br>
+<strong>Last updated:</strong> 2026-11-08 (Asia/Shanghai)</p>
+<p>This file is the source of truth for work from the current correctness-first
+NTT implementation through GPU base conversion, GPU Hybrid key switching, and
+validated OpenFHE integration. Update the tracker and progress log in the same
+commit as each completed gate.</p>
+<h2 id="live-tracker">Live tracker<a class="headerlink" href="#live-tracker" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Current value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Working day</td>
+<td><strong>D1</strong></td>
+</tr>
+<tr>
+<td>Active phase</td>
+<td><strong>P1 — contract and architecture freeze</strong></td>
+</tr>
+<tr>
+<td>Active task</td>
+<td>Read the CUDA implementation in execution order and document its data/ordering contract</td>
+</tr>
+<tr>
+<td>Next gate</td>
+<td>P1 architecture review: frozen OpenFHE representation, buffer, ordering, and integration contracts</td>
+</tr>
+<tr>
+<td>Overall state</td>
+<td>In progress</td>
+</tr>
+</tbody>
+</table>
+<p>Hardware decision: use RTX 5090 as the primary development/optimization target,
+retain RTX 4090 as the Ada control, and move to RTX PRO 6000 Blackwell only if
+measured resident memory or production reliability requires it. H200/B200 remain
+benchmark candidates rather than assumed winners. See
+<a href="gpu-selection-survey.html"><code>gpu-selection-survey.md</code></a>.</p>
+<p>Status vocabulary: <code>DONE</code>, <code>IN PROGRESS</code>, <code>NOT STARTED</code>, <code>BLOCKED</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th style="text-align: right;">Working days</th>
+<th>Status</th>
+<th>Exit artifact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0 — pre-plan correctness baseline</td>
+<td style="text-align: right;">Before D1</td>
+<td>DONE</td>
+<td>CPU oracle, schedule simulator, CUDA source, exact OpenFHE NTT gate</td>
+</tr>
+<tr>
+<td>P1 — contracts and architecture</td>
+<td style="text-align: right;">D1–D10</td>
+<td>IN PROGRESS</td>
+<td>Architecture decision record and frozen operation graph</td>
+</tr>
+<tr>
+<td>P2 — first RTX GPU baseline</td>
+<td style="text-align: right;">D11–D15</td>
+<td>NOT STARTED</td>
+<td>Exact CUDA results and named-hardware baseline</td>
+</tr>
+<tr>
+<td>P3 — production GPU NTT</td>
+<td style="text-align: right;">D16–D40</td>
+<td>NOT STARTED</td>
+<td>Tuned, device-resident NTT dispatch</td>
+</tr>
+<tr>
+<td>P4 — exact base-conversion model</td>
+<td style="text-align: right;">D41–D49</td>
+<td>NOT STARTED</td>
+<td>OpenFHE-exact CPU Q↔QP oracle and fixtures</td>
+</tr>
+<tr>
+<td>P5 — GPU base conversion</td>
+<td style="text-align: right;">D50–D61</td>
+<td>NOT STARTED</td>
+<td>Exact and tuned ModUp/ModDown kernels</td>
+</tr>
+<tr>
+<td>P6 — Hybrid key-switch contract</td>
+<td style="text-align: right;">D62–D68</td>
+<td>NOT STARTED</td>
+<td>Frozen decomposition/QP/MAC/ModDown graph</td>
+</tr>
+<tr>
+<td>P7 — GPU Hybrid key switching</td>
+<td style="text-align: right;">D69–D85</td>
+<td>NOT STARTED</td>
+<td>Exact relinearization and rotation backend</td>
+</tr>
+<tr>
+<td>P8 — OpenFHE integration</td>
+<td style="text-align: right;">D86–D95</td>
+<td>NOT STARTED</td>
+<td>Integrated backend with fallback and full tests</td>
+</tr>
+<tr>
+<td>P9 — risk reserve</td>
+<td style="text-align: right;">D96–D110</td>
+<td>NOT STARTED</td>
+<td>Used only for integration and correctness risks</td>
+</tr>
+</tbody>
+</table>
+<h2 id="definition-of-exact-compatibility">Definition of exact compatibility<a class="headerlink" href="#definition-of-exact-compatibility" title="Permanent link">¶</a></h2>
+<p>Given the same parameters, input arrays, ciphertext components, and evaluation
+keys, the GPU path must produce the same per-tower arrays as the pinned OpenFHE
+implementation. Approximate CKKS decryption agreement is a secondary test, not
+the compatibility criterion. Key generation randomness is outside this rule;
+the fixed generated key is part of the test input.</p>
+<p>Every production kernel must pass, in order:</p>
+<ol>
+<li>arithmetic primitive versus the <code>__uint128_t</code> oracle;</li>
+<li>operation versus this repository's CPU reference;</li>
+<li>operation versus pinned OpenFHE 1.6.1;</li>
+<li>full pipeline versus OpenFHE using fixed inputs and keys;</li>
+<li>benchmark/profiler gate on named hardware.</li>
+</ol>
+<h2 id="p0-pre-plan-baseline-done">P0 — pre-plan baseline (DONE)<a class="headerlink" href="#p0-pre-plan-baseline-done" title="Permanent link">¶</a></h2>
+<ul>
+<li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> Negacyclic CPU NTT and Python big-integer oracle.</li>
+<li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> Shared CPU/CUDA stage bodies and portable schedule simulator.</li>
+<li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> Correctness-first two-pass CUDA source.</li>
+<li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> Exact public OpenFHE 1.6.1 transform compatibility for all target <code>N</code>.</li>
+<li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> RTX 4090/5090 build targets and rented-GPU setup script.</li>
+<li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> Benchmark and tuning methodology.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Execution of CUDA gates on real hardware; this belongs to P2.</li>
+</ul>
+<h2 id="p1-contract-and-architecture-freeze-d1d10">P1 — contract and architecture freeze (D1–D10)<a class="headerlink" href="#p1-contract-and-architecture-freeze-d1d10" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Day</th>
+<th>Work</th>
+<th>Required output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">D1</td>
+<td>Read forward column kernel and launch geometry</td>
+<td>Index and memory-access map for <code>N=4096</code> and <code>N=65536</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">D2</td>
+<td>Derive forward column butterfly indices</td>
+<td>Worked <code>p,g,j,u,v,r,d</code> example and twiddle proof</td>
+</tr>
+<tr>
+<td style="text-align: right;">D3</td>
+<td>Read inverse column kernel and DIT arithmetic</td>
+<td>Forward/inverse correspondence</td>
+</tr>
+<tr>
+<td style="text-align: right;">D4</td>
+<td>Read contiguous tile kernels</td>
+<td>Proof that every global stage appears exactly once</td>
+</tr>
+<tr>
+<td style="text-align: right;">D5</td>
+<td>Read constructor, buffers, and public API</td>
+<td>Host/device dataflow and allocation map</td>
+</tr>
+<tr>
+<td style="text-align: right;">D6</td>
+<td>Read modular arithmetic and exact test gates</td>
+<td>Arithmetic bounds and adversarial-test list</td>
+</tr>
+<tr>
+<td style="text-align: right;">D7</td>
+<td>Trace OpenFHE NTT/DCRT representation</td>
+<td>Natural/bit-reversed and coefficient/evaluation contract</td>
+</tr>
+<tr>
+<td style="text-align: right;">D8</td>
+<td>Trace OpenFHE Hybrid implementation</td>
+<td>Exact <code>Q -&gt; QP -&gt; MAC -&gt; Q</code> operation graph</td>
+</tr>
+<tr>
+<td style="text-align: right;">D9</td>
+<td>Design buffer views and backend seam</td>
+<td>Device buffer/stream/cache API proposal</td>
+</tr>
+<tr>
+<td style="text-align: right;">D10</td>
+<td>Architecture review</td>
+<td>Accepted ADR and implementation backlog</td>
+</tr>
+</tbody>
+</table>
+<p>P1 exit gate:</p>
+<ul>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Representation and ordering transitions are explicit.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> The exact OpenFHE rounding/reduction order is identified.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Buffer views record ring size, Q/P towers, level, representation,
+  ordering, device, stream, and event ownership.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> The first integration seam and CPU fallback behavior are frozen.</li>
+</ul>
+<h2 id="p2-first-real-gpu-baseline-d11d15">P2 — first real GPU baseline (D11–D15)<a class="headerlink" href="#p2-first-real-gpu-baseline-d11d15" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Day</th>
+<th>Work</th>
+<th>Required output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">D11</td>
+<td>Provision the selected GPU and CUDA toolkit</td>
+<td>Reproducible environment record</td>
+</tr>
+<tr>
+<td style="text-align: right;">D12</td>
+<td>Build native architecture and run smoke tests</td>
+<td>Successful native CUDA build</td>
+</tr>
+<tr>
+<td style="text-align: right;">D13</td>
+<td>Run exact gates over all <code>N</code> and modulus widths</td>
+<td>Correctness report</td>
+</tr>
+<tr>
+<td style="text-align: right;">D14</td>
+<td>Profile with CUDA events and Nsight</td>
+<td>Kernel, L2, DRAM, occupancy, and register data</td>
+</tr>
+<tr>
+<td style="text-align: right;">D15</td>
+<td>Analyze and publish baseline</td>
+<td>Raw samples, summary table, first bottleneck decision</td>
+</tr>
+</tbody>
+</table>
+<p>Minimum cases: zero, one, <code>q-1</code>, alternating bounds, deterministic random,
+forward, inverse, round-trip, evaluation-domain inverse, and polynomial
+multiplication. Record 50-, 55-, and 59/60-bit OpenFHE-compatible primes.</p>
+<p>P2 exit gate:</p>
+<ul>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> <code>OpenFHE == CPU reference == CUDA</code> for every target size.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Kernel-only and transfer-inclusive timings are separated.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Actual sectors/requested byte and L2/DRAM traffic are recorded for the
+  strided pass.</li>
+</ul>
+<h2 id="p3-production-gpu-ntt-d16d40">P3 — production GPU NTT (D16–D40)<a class="headerlink" href="#p3-production-gpu-ntt-d16d40" title="Permanent link">¶</a></h2>
+<h3 id="d16d25-arithmetic-and-device-api">D16–D25 — arithmetic and device API<a class="headerlink" href="#d16d25-arithmetic-and-device-api" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Days</th>
+<th>Work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">D16–D17</td>
+<td>Introduce an arithmetic-policy interface while retaining the oracle path</td>
+</tr>
+<tr>
+<td style="text-align: right;">D18–D20</td>
+<td>Implement Shoup multiplication and parallel twiddle quotient tables</td>
+</tr>
+<tr>
+<td style="text-align: right;">D21</td>
+<td>Add adversarial Shoup tests at maximum supported modulus width</td>
+</tr>
+<tr>
+<td style="text-align: right;">D22–D23</td>
+<td>Implement and test Barrett variable multiplication</td>
+</tr>
+<tr>
+<td style="text-align: right;">D24</td>
+<td>Add device-buffer, asynchronous stream, and event API</td>
+</tr>
+<tr>
+<td style="text-align: right;">D25</td>
+<td>Run complete exact regression and benchmark</td>
+</tr>
+</tbody>
+</table>
+<h3 id="d26d40-layout-radix-and-selection">D26–D40 — layout, radix, and selection<a class="headerlink" href="#d26d40-layout-radix-and-selection" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Days</th>
+<th>Work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">D26–D29</td>
+<td>Prototype coalesced transpose/Four-Step replacement for the column pass</td>
+</tr>
+<tr>
+<td style="text-align: right;">D30–D32</td>
+<td>Implement radix-4 register staging</td>
+</tr>
+<tr>
+<td style="text-align: right;">D33–D35</td>
+<td>Implement radix-8 register staging and padded shared memory</td>
+</tr>
+<tr>
+<td style="text-align: right;">D36</td>
+<td>Compare warp shuffle and shared-memory exchange for small stages</td>
+</tr>
+<tr>
+<td style="text-align: right;">D37</td>
+<td>Add compile-time specializations for the five ring dimensions</td>
+</tr>
+<tr>
+<td style="text-align: right;">D38</td>
+<td>Run latency/throughput autotuning over real tower and batch counts</td>
+</tr>
+<tr>
+<td style="text-align: right;">D39</td>
+<td>Freeze the per-device/per-size dispatch table</td>
+</tr>
+<tr>
+<td style="text-align: right;">D40</td>
+<td>Production NTT gate and documentation update</td>
+</tr>
+</tbody>
+</table>
+<p>P3 exit gate:</p>
+<ul>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Exact transform for all target sizes and moduli.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> No optimized kernel silently uses device-side integer remainder.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Device-resident forward, inverse, and pointwise operations compose
+  without host synchronization.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> A selected latency and throughput configuration exists for every target
+  size on the primary GPU.</li>
+</ul>
+<h2 id="p4-exact-base-conversion-model-d41d49">P4 — exact base-conversion model (D41–D49)<a class="headerlink" href="#p4-exact-base-conversion-model-d41d49" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Day</th>
+<th>Work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">D41</td>
+<td>Locate and trace OpenFHE ModUp (<code>Q -&gt; QP</code>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">D42</td>
+<td>Locate and trace OpenFHE ApproxModDown (<code>QP -&gt; Q</code>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">D43</td>
+<td>Record precomputed constants, reductions, rounding, and table layouts</td>
+</tr>
+<tr>
+<td style="text-align: right;">D44</td>
+<td>Extract fixed OpenFHE intermediate fixtures</td>
+</tr>
+<tr>
+<td style="text-align: right;">D45</td>
+<td>Implement standalone CPU <code>Q -&gt; QP</code> oracle</td>
+</tr>
+<tr>
+<td style="text-align: right;">D46</td>
+<td>Implement standalone CPU <code>QP -&gt; Q</code> oracle</td>
+</tr>
+<tr>
+<td style="text-align: right;">D47</td>
+<td>Test every target level, tower count, and adversarial coefficient</td>
+</tr>
+<tr>
+<td style="text-align: right;">D48</td>
+<td>Design base-conversion buffer and batched APIs</td>
+</tr>
+<tr>
+<td style="text-align: right;">D49</td>
+<td>Review and freeze the exact contract</td>
+</tr>
+</tbody>
+</table>
+<p>P4 exit gate: the standalone CPU base-conversion arrays equal pinned OpenFHE
+at every intermediate boundary, not only after a complete key switch.</p>
+<h2 id="p5-gpu-base-conversion-d50d61">P5 — GPU base conversion (D50–D61)<a class="headerlink" href="#p5-gpu-base-conversion-d50d61" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Days</th>
+<th>Work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">D50–D52</td>
+<td>Implement batched GPU Q-to-P basis extension</td>
+</tr>
+<tr>
+<td style="text-align: right;">D53</td>
+<td>Exact Q-to-P tests and profiler pass</td>
+</tr>
+<tr>
+<td style="text-align: right;">D54–D56</td>
+<td>Implement GPU QP-to-Q reduction</td>
+</tr>
+<tr>
+<td style="text-align: right;">D57</td>
+<td>Exact QP-to-Q tests and profiler pass</td>
+</tr>
+<tr>
+<td style="text-align: right;">D58</td>
+<td>Add dynamic CKKS level and tower-count support</td>
+</tr>
+<tr>
+<td style="text-align: right;">D59</td>
+<td>Tune coefficient tile, output-tower mapping, accumulation, and reduction</td>
+</tr>
+<tr>
+<td style="text-align: right;">D60</td>
+<td>Run the complete size/tower/batch benchmark matrix</td>
+</tr>
+<tr>
+<td style="text-align: right;">D61</td>
+<td>Production base-conversion gate</td>
+</tr>
+</tbody>
+</table>
+<p>P5 exit gate:</p>
+<ul>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Exact Q-to-QP and QP-to-Q arrays.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Dynamic active Q/P tower counts.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> NTT and base conversion share device buffers without conversion copies.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Selected latency and throughput configurations are recorded.</li>
+</ul>
+<h2 id="p6-hybrid-key-switch-contract-d62d68">P6 — Hybrid key-switch contract (D62–D68)<a class="headerlink" href="#p6-hybrid-key-switch-contract-d62d68" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Day</th>
+<th>Work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">D62</td>
+<td>Trace evaluation-key generation and storage</td>
+</tr>
+<tr>
+<td style="text-align: right;">D63</td>
+<td>Trace digit decomposition and transform placement</td>
+</tr>
+<tr>
+<td style="text-align: right;">D64</td>
+<td>Trace ModUp and evaluation-key multiplication</td>
+</tr>
+<tr>
+<td style="text-align: right;">D65</td>
+<td>Trace ModDown and final ciphertext folding</td>
+</tr>
+<tr>
+<td style="text-align: right;">D66</td>
+<td>Extract fixed intermediate fixtures from OpenFHE</td>
+</tr>
+<tr>
+<td style="text-align: right;">D67</td>
+<td>Design GPU evaluation-key layout, cache, and lifetime rules</td>
+</tr>
+<tr>
+<td style="text-align: right;">D68</td>
+<td>Freeze the full Hybrid operation graph</td>
+</tr>
+</tbody>
+</table>
+<p>P6 exit gate: all decomposition, basis, ordering, scaling, rounding, and final
+accumulation boundaries have exact OpenFHE fixtures.</p>
+<h2 id="p7-gpu-hybrid-key-switching-d69d85">P7 — GPU Hybrid key switching (D69–D85)<a class="headerlink" href="#p7-gpu-hybrid-key-switching-d69d85" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Days</th>
+<th>Work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">D69–D71</td>
+<td>Implement device-resident digit decomposition</td>
+</tr>
+<tr>
+<td style="text-align: right;">D72–D73</td>
+<td>Connect inverse NTT and Q-to-QP ModUp</td>
+</tr>
+<tr>
+<td style="text-align: right;">D74–D76</td>
+<td>Implement evaluation-key multiply-accumulate in QP</td>
+</tr>
+<tr>
+<td style="text-align: right;">D77–D78</td>
+<td>Connect QP-to-Q ModDown</td>
+</tr>
+<tr>
+<td style="text-align: right;">D79</td>
+<td>Implement final <code>c0/c1</code> accumulation</td>
+</tr>
+<tr>
+<td style="text-align: right;">D80</td>
+<td>Validate relinearization</td>
+</tr>
+<tr>
+<td style="text-align: right;">D81</td>
+<td>Validate automorphism/rotation</td>
+</tr>
+<tr>
+<td style="text-align: right;">D82</td>
+<td>Exercise all target CKKS levels and digit counts</td>
+</tr>
+<tr>
+<td style="text-align: right;">D83</td>
+<td>Run exact intermediate and final-array tests</td>
+</tr>
+<tr>
+<td style="text-align: right;">D84</td>
+<td>Profile key cache, L2 behavior, memory footprint, and launch gaps</td>
+</tr>
+<tr>
+<td style="text-align: right;">D85</td>
+<td>Production Hybrid key-switch gate</td>
+</tr>
+</tbody>
+</table>
+<p>P7 exit gate:</p>
+<ul>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Fixed inputs and evaluation keys produce exact OpenFHE tower arrays.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Relinearization and rotations pass exact and decryption tests.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Evaluation keys and constants upload once and remain cached.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Full key-switch latency and batched throughput are reported.</li>
+</ul>
+<h2 id="p8-openfhe-integration-d86d95">P8 — OpenFHE integration (D86–D95)<a class="headerlink" href="#p8-openfhe-integration-d86d95" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Day</th>
+<th>Work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">D86</td>
+<td>Implement the OpenFHE GPU backend adapter</td>
+</tr>
+<tr>
+<td style="text-align: right;">D87</td>
+<td>Add CMake CUDA discovery and opt-in configuration</td>
+</tr>
+<tr>
+<td style="text-align: right;">D88</td>
+<td>Map <code>DCRTPoly</code> towers to versioned GPU buffer views</td>
+</tr>
+<tr>
+<td style="text-align: right;">D89</td>
+<td>Add parameter, twiddle, basis-table, and scratch caches</td>
+</tr>
+<tr>
+<td style="text-align: right;">D90</td>
+<td>Add evaluation-key cache</td>
+</tr>
+<tr>
+<td style="text-align: right;">D91</td>
+<td>Dispatch NTT, base conversion, and Hybrid key switching</td>
+</tr>
+<tr>
+<td style="text-align: right;">D92</td>
+<td>Implement explicit unsupported-case CPU fallback</td>
+</tr>
+<tr>
+<td style="text-align: right;">D93</td>
+<td>Finish stream/event lifetime, synchronization, and error handling</td>
+</tr>
+<tr>
+<td style="text-align: right;">D94</td>
+<td>Run OpenFHE CKKS examples and relevant upstream tests</td>
+</tr>
+<tr>
+<td style="text-align: right;">D95</td>
+<td>Integration release gate, documentation, and benchmark report</td>
+</tr>
+</tbody>
+</table>
+<p>Dispatch policy:</p>
+<pre><code class="language-text">supported parameters + GPU enabled -&gt; CUDA backend
+GPU unavailable                    -&gt; existing OpenFHE CPU path
+unsupported parameter combination -&gt; explicit documented CPU fallback
+CUDA runtime failure               -&gt; visible error, never silent corruption
+</code></pre>
+<p>P8 exit gate:</p>
+<ul>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> OpenFHE CKKS runs with Hybrid key switching through the GPU backend.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Original CPU tests and fallback remain green.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> NTT, base conversion, relinearization, and rotation meet exact gates.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Constants and evaluation keys remain resident across operations.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> All results identify hardware, clocks/power mode, driver, toolkit,
+  compiler, commit, parameters, timing boundary, and correctness status.</li>
+</ul>
+<h2 id="p9-risk-reserve-d96d110">P9 — risk reserve (D96–D110)<a class="headerlink" href="#p9-risk-reserve-d96d110" title="Permanent link">¶</a></h2>
+<p>Use only for work that blocks a preceding exit gate:</p>
+<ul>
+<li>OpenFHE rounding/reduction-order differences;</li>
+<li>natural/bit-reversed ordering mistakes;</li>
+<li>CKKS level/tower corner cases;</li>
+<li>register spilling, shared-memory pressure, or poor occupancy;</li>
+<li>evaluation-key memory pressure and cache eviction;</li>
+<li>CUDA stream/event lifetime defects;</li>
+<li>primary-GPU compiler or architecture problems;</li>
+<li>cross-GPU dispatch regressions.</li>
+</ul>
+<p>Do not schedule new features in the reserve. Cipher inference begins only after
+P8 is green; it is a separate plan covering model operators, rescaling,
+rotations, graph scheduling, accuracy, and end-to-end latency.</p>
+<h2 id="progress-log">Progress log<a class="headerlink" href="#progress-log" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th style="text-align: right;">Day</th>
+<th>Change</th>
+<th>Evidence/commit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-11-06</td>
+<td style="text-align: right;">D1</td>
+<td>Created tracked integration plan; began line-by-line CUDA forward-column review; completed primary-source GPU selection survey</td>
+<td>dbf06cd</td>
+</tr>
+<tr>
+<td>2026-11-07</td>
+<td style="text-align: right;">D1</td>
+<td>Added the N=8 VS Code debug example and native LLDB DAP setup; clarified CPU butterfly variable names; expanded the direct-sum and negacyclic derivations with locally bundled math rendering. CPU learning prerequisites are covered; the D1 CUDA index/memory map remains the next deliverable.</td>
+<td>Debug example and CTest gates; 57 formulas verified in the browser</td>
+</tr>
+<tr>
+<td>2026-11-08</td>
+<td style="text-align: right;">D1</td>
+<td>Organized the documentation into an HTML engineering notebook with a daily journal, shared navigation, search, and a Pages workflow. Historical entries cite commits and are marked reconstructed. Implementation gates remain unchanged.</td>
+<td><a href="journal/2026-11-08.html">Daily entry</a>; documentation build and regression checks</td>
+</tr>
+</tbody>
+</table></article></div><aside class="site-on-this-page" aria-label="On this page"><p>On this page</p><div class="toc">
+<ul>
+<li><a href="#live-tracker">Live tracker</a></li>
+<li><a href="#definition-of-exact-compatibility">Definition of exact compatibility</a></li>
+<li><a href="#p0-pre-plan-baseline-done">P0 — pre-plan baseline (DONE)</a></li>
+<li><a href="#p1-contract-and-architecture-freeze-d1d10">P1 — contract and architecture freeze (D1–D10)</a></li>
+<li><a href="#p2-first-real-gpu-baseline-d11d15">P2 — first real GPU baseline (D11–D15)</a></li>
+<li><a href="#p3-production-gpu-ntt-d16d40">P3 — production GPU NTT (D16–D40)</a><ul>
+<li><a href="#d16d25-arithmetic-and-device-api">D16–D25 — arithmetic and device API</a></li>
+<li><a href="#d26d40-layout-radix-and-selection">D26–D40 — layout, radix, and selection</a></li>
+</ul>
+</li>
+<li><a href="#p4-exact-base-conversion-model-d41d49">P4 — exact base-conversion model (D41–D49)</a></li>
+<li><a href="#p5-gpu-base-conversion-d50d61">P5 — GPU base conversion (D50–D61)</a></li>
+<li><a href="#p6-hybrid-key-switch-contract-d62d68">P6 — Hybrid key-switch contract (D62–D68)</a></li>
+<li><a href="#p7-gpu-hybrid-key-switching-d69d85">P7 — GPU Hybrid key switching (D69–D85)</a></li>
+<li><a href="#p8-openfhe-integration-d86d95">P8 — OpenFHE integration (D86–D95)</a></li>
+<li><a href="#p9-risk-reserve-d96d110">P9 — risk reserve (D96–D110)</a></li>
+<li><a href="#progress-log">Progress log</a></li>
+</ul>
+</div>
+</aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f91945b25ea49abd0c199db98de69454ada60759">f91945b</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

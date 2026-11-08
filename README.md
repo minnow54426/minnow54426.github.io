@@ -7,6 +7,8 @@ A personal portfolio website hosted on GitHub Pages, featuring photography, bloc
 - **Photography Gallery**: 14 curated photo categories with 230+ images from travels across China
 - **Code & Cryptography**: [blockchain_from_scratch](https://github.com/minnow54426/blockchain_from_scratch) — a blockchain built in Rust from first principles
 - **Creative Works**: Music projects and watercolor video gallery
+- **NTT-GPU**: [CKKS From Scratch](systems/ntt-gpu/index.html) — interactive
+  explanations, implementation surveys, plans, and a daily engineering journal.
 
 ## Live Site
 
@@ -28,6 +30,23 @@ python -m http.server 8001
 ```
 
 ## Project Structure
+
+### NTT-GPU HTML documentation
+
+The **Systems from Scratch** section opens the explicit HTML entry page
+`systems/ntt-gpu/index.html`. It can also be opened directly as a local file;
+its navigation, search, and math assets are bundled alongside it.
+
+The pages are generated from the separate NTT-GPU repository. To refresh them,
+run from that repository:
+
+```sh
+.venv/bin/python scripts/export_website.py --website-root /path/to/website
+```
+
+Serve this website root on port 8001 and open
+`http://127.0.0.1:8001/systems/ntt-gpu/index.html`.
+Edit NTT-GPU source documents rather than the generated website copy.
 
 ```
 /

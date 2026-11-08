@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Workload matrix, profiling evidence, and per-device kernel selection.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/benchmark-tuning-plan.html">
+<title>Benchmarks &amp; tuning · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
+  <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html" aria-current="page">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Plans</div>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f91945b25ea49abd0c199db98de69454ada60759/docs/benchmark-tuning-plan.md">View source ↗</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><article class="site-article"><h1 id="gpu-ntt-benchmark-and-tuning-plan">GPU NTT benchmark and tuning plan<a class="headerlink" href="#gpu-ntt-benchmark-and-tuning-plan" title="Permanent link">¶</a></h1>
+<p><strong>Primary target:</strong> NVIDIA RTX 5090 (<code>sm_120</code>)<br>
+<strong>Cross-architecture control:</strong> NVIDIA RTX 4090 (<code>sm_89</code>)<br>
+<strong>Workload target:</strong> OpenFHE 1.6.1 CKKS with Hybrid key switching<br>
+<strong>Ring dimensions:</strong> <code>4096</code>, <code>8192</code>, <code>16384</code>, <code>32768</code>, <code>65536</code></p>
+<p>Benchmarking and tuning are deliverables of the project. A kernel is not
+considered complete merely because it is correct or fast for one transform
+size. Selection must account for the GPU, CKKS parameters, batch shape, and
+whether the objective is latency or throughput.</p>
+<h2 id="1-implementations-to-compare">1. Implementations to compare<a class="headerlink" href="#1-implementations-to-compare" title="Permanent link">¶</a></h2>
+<p>Each implementation must preserve the same transform convention and pass the
+same exact correctness gates.</p>
+<ol>
+<li>Current radix-2 two-pass implementation using reference modular arithmetic.</li>
+<li>Two-pass implementation with Shoup twiddle multiplication and Barrett or
+   Montgomery variable multiplication.</li>
+<li>Radix-4 register-staged implementation.</li>
+<li>Radix-8 register-staged implementation with padded shared memory.</li>
+<li>Coalesced Four-Step/transpose implementation.</li>
+<li>Fused variants used by base conversion and Hybrid key switching.</li>
+</ol>
+<p>External libraries such as GPU-NTT and FIDESlib are comparison baselines when
+their transform semantics, modulus limits, and timing boundaries can be matched.
+Their numbers must not be compared directly when one result includes transfers
+or an entire RNS polynomial and the other does not.</p>
+<h2 id="2-workload-matrix">2. Workload matrix<a class="headerlink" href="#2-workload-matrix" title="Permanent link">¶</a></h2>
+<p>The minimum matrix is:</p>
+<table>
+<thead>
+<tr>
+<th>Axis</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ring dimension</td>
+<td><code>2^12</code>, <code>2^13</code>, <code>2^14</code>, <code>2^15</code>, <code>2^16</code></td>
+</tr>
+<tr>
+<td>Modulus width</td>
+<td>OpenFHE-compatible 50, 55, 59/60-bit primes</td>
+</tr>
+<tr>
+<td>Active RNS towers</td>
+<td>representative shallow, medium, and deep CKKS levels</td>
+</tr>
+<tr>
+<td>Polynomial count</td>
+<td>one component, full ciphertext, key-switch digits</td>
+</tr>
+<tr>
+<td>Batch size</td>
+<td><code>1</code>, <code>2</code>, <code>4</code>, <code>8</code>, then L2-capacity-limited sweep</td>
+</tr>
+<tr>
+<td>Direction</td>
+<td>forward, inverse, forward–pointwise–inverse</td>
+</tr>
+<tr>
+<td>Objective</td>
+<td>single-operation latency and steady-state throughput</td>
+</tr>
+<tr>
+<td>Transfer policy</td>
+<td>device-resident, pinned end-to-end, pageable end-to-end</td>
+</tr>
+<tr>
+<td>GPU</td>
+<td>RTX 5090 primary; RTX 4090 control</td>
+</tr>
+</tbody>
+</table>
+<p>The exact tower counts and Hybrid digit counts must come from the pinned
+OpenFHE parameter sets used by the inference examples, rather than synthetic
+three-limb inputs alone.</p>
+<h2 id="3-gpu-and-kernel-parameters-to-tune">3. GPU and kernel parameters to tune<a class="headerlink" href="#3-gpu-and-kernel-parameters-to-tune" title="Permanent link">¶</a></h2>
+<p>Tune or record all of the following:</p>
+<ul>
+<li>threads per block and blocks per transform;</li>
+<li>values and butterflies per thread;</li>
+<li>radix and number of stages fused per kernel;</li>
+<li>tile/split dimensions and transpose shape;</li>
+<li>register count per thread and register spilling;</li>
+<li>static/dynamic shared memory per block and bank conflicts;</li>
+<li>active blocks and warps per SM;</li>
+<li>warp-shuffle versus shared-memory exchange boundaries;</li>
+<li>twiddle layout, Shoup table layout, and on-the-fly twiddle generation;</li>
+<li>lazy-reduction range and reduction frequency;</li>
+<li>RNS limb, ciphertext, and operation batch layout;</li>
+<li>CUDA stream count, asynchronous copies, and CUDA Graph replay;</li>
+<li>scratch-buffer reuse and allocator behavior.</li>
+</ul>
+<p>Compiler resource reports (<code>ptxas -v</code>) and measured Nsight occupancy must both
+be retained. A lower register count is not automatically better: the decision
+criterion is end-to-end performance without spills or unacceptable occupancy.</p>
+<h2 id="4-measurements">4. Measurements<a class="headerlink" href="#4-measurements" title="Permanent link">¶</a></h2>
+<h3 id="timing">Timing<a class="headerlink" href="#timing" title="Permanent link">¶</a></h3>
+<ul>
+<li>CUDA-event kernel-only latency for every kernel and complete transform;</li>
+<li>transfer-inclusive latency, separating pinned and pageable host memory;</li>
+<li>transforms per second and coefficients/towers processed per second;</li>
+<li>full polynomial multiplication latency;</li>
+<li>Hybrid key switch, relinearization, rotation, and hoisted-rotation latency;</li>
+<li>complete encrypted-inference latency and peak device memory;</li>
+<li>cold setup, warm steady state, and CUDA Graph replay separately.</li>
+</ul>
+<p>Report median, p5, and p95 after warm-up. Store raw samples so later summaries
+can be regenerated without rerunning the GPU.</p>
+<h3 id="hardware-counters">Hardware counters<a class="headerlink" href="#hardware-counters" title="Permanent link">¶</a></h3>
+<ul>
+<li>achieved DRAM and L2 bandwidth;</li>
+<li>global load/store transaction efficiency;</li>
+<li>L2 hit rate and read/write sectors;</li>
+<li>shared-memory bank conflicts;</li>
+<li>registers per thread, spills, occupancy, and eligible warps;</li>
+<li>SM and memory-pipeline utilization;</li>
+<li>kernel-launch count and synchronization gaps.</li>
+</ul>
+<p>The current column pass must specifically record memory sectors per requested
+byte because its neighboring-thread coefficient addresses are 2,048 bytes
+apart.</p>
+<h2 id="5-reproducibility-record">5. Reproducibility record<a class="headerlink" href="#5-reproducibility-record" title="Permanent link">¶</a></h2>
+<p>Every result row must include:</p>
+<ul>
+<li>GPU name, compute capability, clocks, power mode, and memory size;</li>
+<li>driver, CUDA toolkit/runtime, compiler, CMake flags, and git commit;</li>
+<li>implementation/variant ID and all tuned launch parameters;</li>
+<li><code>N</code>, modulus bits, actual moduli or parameter-set ID, tower count, digit count,
+  batch shape, transform ordering, and transfer policy;</li>
+<li>correctness-gate result and profiler command/version;</li>
+<li>whether setup, allocation, transfers, and synchronization are included.</li>
+</ul>
+<p>Results without this header are exploratory and must not appear in published
+comparison tables.</p>
+<h2 id="6-tuning-procedure">6. Tuning procedure<a class="headerlink" href="#6-tuning-procedure" title="Permanent link">¶</a></h2>
+<ol>
+<li>Run exact arithmetic and transform gates for the candidate variant.</li>
+<li>Reject variants that spill unexpectedly, exceed resource limits, or violate
+   lazy-reduction bounds.</li>
+<li>Sweep launch and staging parameters for each supported ring dimension.</li>
+<li>Profile the best latency and throughput candidates with Nsight Compute.</li>
+<li>Repeat using realistic RNS tower and Hybrid digit batches.</li>
+<li>Validate finalists on RTX 4090 to identify architecture-specific choices.</li>
+<li>Record the winner in a dispatch table keyed by GPU capability, ring
+   dimension, tower/batch range, and latency/throughput mode.</li>
+<li>Re-run the complete Hybrid key-switch and inference benchmarks. A locally
+   faster NTT variant is accepted only if it improves the target pipeline or
+   supplies a clearly justified fallback.</li>
+</ol>
+<h2 id="7-acceptance-gates">7. Acceptance gates<a class="headerlink" href="#7-acceptance-gates" title="Permanent link">¶</a></h2>
+<ul>
+<li>Exact forward/inverse agreement for every supported <code>N</code> and OpenFHE modulus.</li>
+<li>No silent fallback to device-side integer remainder in optimized kernels.</li>
+<li>No benchmark mixes kernel-only and end-to-end timing boundaries.</li>
+<li>A selected implementation exists for all five ring dimensions on RTX 5090.</li>
+<li>RTX 4090 results either validate the same dispatch or document a separate one.</li>
+<li>Full Hybrid key-switch and inference results accompany NTT microbenchmarks.</li>
+<li>The HTML explainer identifies which schedule is the correctness baseline and
+  which implementation the tuner selected for each workload class.</li>
+</ul></article></div><aside class="site-on-this-page" aria-label="On this page"><p>On this page</p><div class="toc">
+<ul>
+<li><a href="#1-implementations-to-compare">1. Implementations to compare</a></li>
+<li><a href="#2-workload-matrix">2. Workload matrix</a></li>
+<li><a href="#3-gpu-and-kernel-parameters-to-tune">3. GPU and kernel parameters to tune</a></li>
+<li><a href="#4-measurements">4. Measurements</a><ul>
+<li><a href="#timing">Timing</a></li>
+<li><a href="#hardware-counters">Hardware counters</a></li>
+</ul>
+</li>
+<li><a href="#5-reproducibility-record">5. Reproducibility record</a></li>
+<li><a href="#6-tuning-procedure">6. Tuning procedure</a></li>
+<li><a href="#7-acceptance-gates">7. Acceptance gates</a></li>
+</ul>
+</div>
+</aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f91945b25ea49abd0c199db98de69454ada60759">f91945b</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>
