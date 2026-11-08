@@ -33,7 +33,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f91945b25ea49abd0c199db98de69454ada60759/docs/journal/2026-11-08.md">View source ↗</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/6665603044efbdc52aabbdb99b49ef8ac2f210e8/docs/journal/2026-11-08.md">View source ↗</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-08">2026-11-08</time><span>P1 / D1</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="open-the-engineering-notebook">Open the engineering notebook<a class="headerlink" href="#open-the-engineering-notebook" title="Permanent link">¶</a></h1>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
@@ -50,10 +50,10 @@ Historical entries explicitly cite their reconstruction. Calendar dates and
 roadmap working days are separate.</p>
 <h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="https://github.com/minnow54426/ntt-gpu/blob/f91945b25ea49abd0c199db98de69454ada60759/docs/site.json">Site catalog</a>.</li>
+<li><a href="https://github.com/minnow54426/ntt-gpu/blob/6665603044efbdc52aabbdb99b49ef8ac2f210e8/docs/site.json">Site catalog</a>.</li>
 <li><a href="../contributing-docs.html">Writing and publishing guide</a>.</li>
-<li><a href="https://github.com/minnow54426/ntt-gpu/blob/f91945b25ea49abd0c199db98de69454ada60759/scripts/build_docs.py">Site builder</a>.</li>
-<li><a href="https://github.com/minnow54426/ntt-gpu/blob/f91945b25ea49abd0c199db98de69454ada60759/scripts/new_journal.py">Daily-entry helper</a>.</li>
+<li><a href="https://github.com/minnow54426/ntt-gpu/blob/6665603044efbdc52aabbdb99b49ef8ac2f210e8/scripts/build_docs.py">Site builder</a>.</li>
+<li><a href="https://github.com/minnow54426/ntt-gpu/blob/6665603044efbdc52aabbdb99b49ef8ac2f210e8/scripts/new_journal.py">Daily-entry helper</a>.</li>
 <li><a href="../openfhe-integration-plan.html">Integration tracker</a>.</li>
 <li>Follow-up: added a complete main-page directory with a direct link and visible
   URL for every article, plan, and published daily entry. Displayed URLs resolve
@@ -62,7 +62,7 @@ roadmap working days are separate.</p>
 <li>Website integration: added <strong>NTT-GPU · CKKS From Scratch</strong> beside the Rust
   blockchain topic in the personal website's <strong>Systems from Scratch</strong> section.
   The notebook is exported to <code>/systems/ntt-gpu/</code>, with a return link to the
-  website. A repeatable <a href="https://github.com/minnow54426/ntt-gpu/blob/f91945b25ea49abd0c199db98de69454ada60759/scripts/export_website.py">export helper</a> keeps
+  website. A repeatable <a href="https://github.com/minnow54426/ntt-gpu/blob/6665603044efbdc52aabbdb99b49ef8ac2f210e8/scripts/export_website.py">export helper</a> keeps
   the website copy derived from these source documents.</li>
 <li>Corrected the integration to use the user's existing website checkout. The
   topic now opens the explicit HTML page <code>systems/ntt-gpu/index.html</code> rather
@@ -92,11 +92,18 @@ suite to 15 passing tests. All 15 exported HTML pages returned HTTP 200 under
 confirmed the homepage topic, all 14 destination URLs, 57 rendered formulas,
 interactive butterfly agreement, and the nested-journal return link. The
 website and notebook fit a phone-sized viewport without horizontal overflow.</p>
+<p>Public release verification: source commit <code>f91945b</code> and website commit
+<code>fd1a73e5</code> were pushed. Both website Pages workflows completed successfully;
+the <a href="https://github.com/minnow54426/minnow54426.github.io/actions/runs/42461293403">deployment run</a>
+is the release evidence. All 15 public HTML pages returned HTTP 200. Live browser
+checks confirmed the homepage topic, public directory URLs, search, all 57
+rendered formulas, and interactive butterfly agreement.</p>
 <h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">¶</a></h2>
-<p>The personal website already has a Pages deployment workflow. The new topic
-is tested locally but still needs its website changes committed and pushed
-before it appears publicly. The standalone project Pages workflow is optional.
-Future entries should attach named-device measurements when they exist.</p>
+<p>The notebook is now public at
+<a href="https://minnow54426.github.io/systems/ntt-gpu/index.html">the personal website</a>.
+Future entries should attach named-device measurements when they exist; real
+GPU execution and the D1 kernel mapping remain outstanding. The standalone
+project Pages workflow is optional.</p>
 <h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
 <p>Resume D1: map <code>forward_strided_group_kernel</code> blocks, threads, butterfly pairs,
 twiddles, and memory accesses for N=4096 and N=65536.</p></article></div><aside class="site-on-this-page" aria-label="On this page"><p>On this page</p><div class="toc">
@@ -113,7 +120,7 @@ twiddles, and memory accesses for N=4096 and N=65536.</p></article></div><aside 
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f91945b25ea49abd0c199db98de69454ada60759">f91945b</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/6665603044efbdc52aabbdb99b49ef8ac2f210e8">6665603</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
