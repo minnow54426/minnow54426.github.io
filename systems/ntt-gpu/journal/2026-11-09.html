@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Added an interactive explanation of polynomial layout and block/thread ownership.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal/2026-11-09.html">
+<title>Make the 4096-point CUDA schedule tangible · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="../vendor/katex/katex.min.css">
+<script defer src="../vendor/katex/katex.min.js"></script>
+<script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="../math-rendering.js"></script>
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../search-index.js"></script>
+<script defer src="../assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="../search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
+  <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-4096-work-distribution.html">4096 &amp; 65536: work distribution</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="../index.html">Notebook</a><span>/</span>Daily journal</div>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/405b73328cdc63b590ba19895bac07f67c22371f/docs/journal/2026-11-09.md">View source ↗</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-09">2026-11-09</time><span>P1 / D1 → D3</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="make-the-4096-point-cuda-schedule-tangible">Make the 4096-point CUDA schedule tangible<a class="headerlink" href="#make-the-4096-point-cuda-schedule-tangible" title="Permanent link">¶</a></h1>
+<h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
+<p>Added a standalone HTML learning page explaining the current forward CUDA
+schedule using a concrete 4096-coefficient polynomial and one RNS limb.
+No CUDA implementation or roadmap gate changed.
+Later follow-up: completed the D1 index/memory map for both target extremes
+and advanced the working-day tracker to D2; the P1 architecture exit gate
+is still open.
+Subsequent D2 work completed the column index/twiddle proof and exhaustive
+stage-helper checks; the tracker now points to D3 inverse-column work.</p>
+<h2 id="reasoning">Reasoning<a class="headerlink" href="#reasoning" title="Permanent link">¶</a></h2>
+<p>Line-by-line reading obscures the overall work distribution. The explanation
+starts with data ownership: columns for the four far stages, then rows for the
+eight near stages. Interactive stage, block, and thread selection shows how
+butterfly pairs change, including inactive threads in the baseline schedule.</p>
+<h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="../ntt-4096-work-distribution.html">4096-point NTT work distribution</a>.</li>
+<li>Registered the learning page in the site catalog.</li>
+<li>Exported the existing interactive explanation with a standalone runtime and
+  added context about synchronization, shared memory, and limb-major storage.</li>
+<li>Formatting follow-up: replaced the exported iframe/runtime with a small,
+  self-contained lesson. Added consistent notebook typography, numbered
+  sections, jump links, side-by-side pass descriptions, and an integrated
+  light-themed explorer. The page now scrolls as one document; controls and
+  pass descriptions stack at narrow widths. Mathematical content and thread
+  mapping are retained.</li>
+<li>Added N=65536 to the same explorer, preserving the existing page URL and
+  N=4096 example. Sparse row rendering includes selected operands and labels
+  all omitted rows instead of drawing 256 rows.</li>
+<li>Documented the 256×256 layout, 8+8 stages, 512 KiB per-limb storage,
+  2 KiB shared memory per block, active thread ranges, stride-2048-byte
+  column accesses, contiguous row accesses, and logical value-array traffic.</li>
+<li>Added a three-limb N=65536 fixture to the portable CTest schedule gate and
+  dependency-free Node tests of the actual explorer script.</li>
+<li>D2: added the CPU-offset identity <code>J = 256j + r</code>, the pair-ownership
+  bijection, both multiplier exponents, bit-operation equivalence, and table
+  bounds to the HTML page, with six first/intermediate/last-stage examples.</li>
+<li>The explorer now displays CPU offset J, ladder exponent d, and difference
+  exponent E for active threads, and no twiddle read for inactive threads.</li>
+<li>Added <code>tests/column_mapping_tests.cpp</code> and the <code>column_mapping_check</code> CTest
+  target. Two basis-input probes execute the production helper using tagged
+  power tables; all destinations and exact selected entries are checked
+  independently of the helper's own index formulas.</li>
+</ul>
+<h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
+<ul>
+<li>Installed/confirmed <code>docs/requirements.txt</code> in the isolated <code>.venv</code>.</li>
+<li><code>.venv/bin/python -m unittest discover -s tests/docs -v</code>: all 15 tests passed.</li>
+<li><code>.venv/bin/python scripts/build_docs.py --check</code>: built 17 pages and validated
+  local links and fragments.</li>
+<li>Browser inspection at desktop and 375px embedded viewport widths: controls
+  render and reflow; selecting distance 128 gives positions 773/901 for block
+  3, thread 5, and distance 1 gives 778/779.</li>
+<li>This documentation work does not constitute a real GPU run or benchmark.</li>
+<li>Formatting follow-up verification: all 15 documentation tests and the
+  17-page link/fragment build passed again. Browser inspection confirmed the
+  desktop layout and 375px reflow, and the distance-128 control still displays
+  global positions 773/901 for block 3, thread 5.</li>
+<li>N=65536 follow-up: <code>node --test tests/docs/work_distribution.test.cjs</code>
+  passed 3 tests, including all-stage selected-pair checks and complete
+  index coverage for both sizes. <code>ctest --test-dir build -R
+  '^device_schedule_check$' --output-on-failure</code> passed the schedule gate
+  plus its 4 fixture generators, including N=65536 with three primes.
+  The simulator compares forward arrays, round trips, and multiplication
+  against the CPU reference. These are CPU results, not real CUDA results.</li>
+<li>Browser checks of the extended page at desktop and a 375px viewport passed:
+  N=65536 selects 16 stage controls and displays 1283/34051 for the first
+  stage at block 3/thread 5. Comparison and explorer tables remain separate;
+  selected operand rows stay visible in the sparse matrix.</li>
+<li>D2 checks: <code>ctest --test-dir build -R
+  'column_mapping_check|device_schedule_check' --output-on-failure</code> passed
+  both gates and four fixture generators (6/6). The column gate checks
+  8,192 + 262,144 pairs, using 540,672 active-pair probes, plus every inactive
+  thread at every column stage. Every global index and active thread owner
+  is covered once per stage. All 3 explorer tests (now including displayed
+  twiddle exponents), all 15 documentation tests, and the documentation
+  build/link checks also passed. These remain CPU-only checks.</li>
+<li>D2 browser review: proof text and formula blocks reflow at desktop and
+  375px widths; the live N=65536 example displays J=1283, c=ψ^32768,
+  and w=ψ^2566 for column 3/thread 5 in the first stage.</li>
+</ul>
+<h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">¶</a></h2>
+<p>The first pass uses few butterfly threads and strided global accesses. Changes
+to that baseline require correctness checks and measurements on real hardware.</p>
+<h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
+<p>D3: derive how the inverse-column DIT butterfly undoes each forward butterfly,
+including the final N-inverse normalization and reversed stage order.</p></article></div><aside class="site-on-this-page" aria-label="On this page"><p>On this page</p><div class="toc">
+<ul>
+<li><a href="#outcome">Outcome</a></li>
+<li><a href="#reasoning">Reasoning</a></li>
+<li><a href="#changes">Changes</a></li>
+<li><a href="#verification">Verification</a></li>
+<li><a href="#open-questions">Open questions</a></li>
+<li><a href="#next-step">Next step</a></li>
+</ul>
+</div>
+</aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/405b73328cdc63b590ba19895bac07f67c22371f">405b733</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>
