@@ -30,27 +30,32 @@
   <header class="site-topbar">
     <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
     <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Research</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/docs/gpu-ntt-survey.md">View source ↗</a></div>
+    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/docs/gpu-ntt-survey.md">View source ↗</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><article class="site-article"><h1 id="gpu-ntt-survey-for-ckks-hybrid-key-switching-openfhe-and-rtx-5090">GPU NTT survey for CKKS, Hybrid key switching, OpenFHE, and RTX 5090<a class="headerlink" href="#gpu-ntt-survey-for-ckks-hybrid-key-switching-openfhe-and-rtx-5090" title="Permanent link">¶</a></h1>
+      <div class="site-page-content"><article class="site-article"><h1 id="gpu-ntt-implementations">GPU NTT implementations<a class="headerlink" href="#gpu-ntt-implementations" title="Permanent link">¶</a></h1>
 <p><strong>Date:</strong> 2026-11-05<br>
 <strong>Project target:</strong> CKKS, OpenFHE 1.6.1, Hybrid RNS key switching, NVIDIA RTX 5090 (<code>sm_120</code>), ring dimension <code>65536</code><br>
 <strong>Current repository revision inspected:</strong> <code>363f972</code><br>
 <strong>Evidence policy:</strong> implementation facts below come only from author papers, official repositories/source code, or NVIDIA documentation. Recommendations and inferences are explicitly labelled.</p>
 <h2 id="executive-conclusions">Executive conclusions<a class="headerlink" href="#executive-conclusions" title="Permanent link">¶</a></h2>
-<ol>
-<li><strong>The current two-pass structure is a reasonable correctness scaffold, not yet a competitive GPU NTT.</strong> It has a valuable exact-reference contract, only two forward launches, shared-memory stage execution, and RNS-limb batching. Its principal performance blockers are device-side <code>__uint128_t % q</code>, severely strided global accesses in the column pass, a host-only synchronous API, and one fixed launch shape for all sizes and limb counts.</li>
-<li><strong>FIDESlib is the most important comparison.</strong> It implements CKKS Hybrid key switching, targets OpenFHE 1.6.1, supports <code>sm_120</code>, keeps CKKS objects on the GPU, fuses NTT/INTT boundaries with rescale, ModDown, and key-switch dot products, and tests exact GPU/CPU ciphertext equality. It is substantially closer to this project's end goal than a standalone NTT benchmark.</li>
-<li><strong>Use Shoup multiplication for precomputed twiddles first.</strong> Every butterfly has a known multiplier, making Shoup's precomputed quotient a natural replacement for division. Use a separate Barrett/Montgomery-style path for variable-by-variable pointwise products. Introduce lazy ranges only with explicit range proofs and boundary tests.</li>
-<li><strong>Replace the fixed radix-2-per-thread inner loop with multi-butterfly thread work.</strong> The strongest CKKS implementations hold 4 or 8 values in registers per thread, perform radix-4/radix-8 local work, exchange through padded shared memory, and reduce synchronization and twiddle traffic.</li>
-<li><strong>Treat global layout and key-switch scheduling as first-class design decisions.</strong> On RTX 5090, recent analysis finds optimized NTT and basis-conversion kernels limited by L2/write bandwidth. The current column gather uses a 2,048-byte stride between neighboring threads' 64-bit loads at <code>N &gt;= 512</code>, so nominal byte counts understate the actual memory-transaction cost.</li>
-<li><strong>Do not optimize NTT in isolation.</strong> The target unit is the GPU-resident Hybrid key-switch sequence: inverse NTT/decomposition, basis extension, forward NTT, evaluation-key multiply-accumulate, and basis reduction. Fuse safe producer/consumer boundaries and retain the extended <code>QP</code> representation when the OpenFHE operation sequence allows it.</li>
-<li><strong>Benchmark both latency and throughput.</strong> A single ciphertext may underfill a 5090. Report kernel-only and end-to-end latency, batched tower/ciphertext throughput, memory traffic, achieved bandwidth, occupancy, and the complete key-switch/rotation latency. Always attach device, clocks, toolkit, driver, modulus bits, tower count, ordering, and transfer policy.</li>
-</ol>
-<h2 id="1-current-implementation-what-it-does-well-and-where-it-differs-from-the-literature">1. Current implementation: what it does well and where it differs from the literature<a class="headerlink" href="#1-current-implementation-what-it-does-well-and-where-it-differs-from-the-literature" title="Permanent link">¶</a></h2>
+<p>Keep exact OpenFHE array compatibility while replacing three bottlenecks:
+modular division, strided column accesses, and repeated host transfers.</p>
+<ul>
+<li><strong>Arithmetic:</strong> Shoup for fixed twiddles; Barrett/Montgomery for variable products.</li>
+<li><strong>Layout:</strong> compare the baseline with a coalesced transpose/Four-Step path.</li>
+<li><strong>Thread work:</strong> test 4/8 register-held values and fewer block barriers.</li>
+<li><strong>Integration:</strong> keep buffers, keys, and the Hybrid <code>Q → QP → Q</code> pipeline on GPU.</li>
+<li><strong>Evidence:</strong> use FIDESlib as the closest CKKS/OpenFHE comparison; measure
+  complete operations as well as individual NTTs.</li>
+</ul>
+<p>These are recommendations from the sources below, not measured speedups for
+this repository.</p>
+<p><a id="1-current-implementation-what-it-does-well-and-where-it-differs-from-the-literature"></a></p>
+<h2 id="1-current-implementation">1. Current implementation<a class="headerlink" href="#1-current-implementation" title="Permanent link">¶</a></h2>
 <h3 id="11-sourced-facts-from-this-repository">1.1 Sourced facts from this repository<a class="headerlink" href="#11-sourced-facts-from-this-repository" title="Permanent link">¶</a></h3>
 <p>The CUDA backend uses a negacyclic transform with folded twisting and the following schedule:</p>
 <ul>
@@ -64,7 +69,7 @@
 <li>Device multiplication is currently <code>(__uint128_t(a) * b) % q</code>.</li>
 <li>CPU simulation shares the exact stage bodies with CUDA, and CUDA tests compare exact arrays to a CPU reference and Python big-integer oracle.</li>
 </ul>
-<p>Primary code: <a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/src/cuda/ntt_kernels.cu"><code>ntt_kernels.cu</code></a>, <a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/include/ntt/dev_core.hpp"><code>dev_core.hpp</code></a>, <a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/include/ntt/mod_arith.hpp"><code>mod_arith.hpp</code></a>, and <a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/include/ntt/cuda_ntt.hpp"><code>cuda_ntt.hpp</code></a>.</p>
+<p>Primary code: <a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/src/cuda/ntt_kernels.cu"><code>ntt_kernels.cu</code></a>, <a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/include/ntt/dev_core.hpp"><code>dev_core.hpp</code></a>, <a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/include/ntt/mod_arith.hpp"><code>mod_arith.hpp</code></a>, and <a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/include/ntt/cuda_ntt.hpp"><code>cuda_ntt.hpp</code></a>.</p>
 <h3 id="12-strengths-worth-retaining">1.2 Strengths worth retaining<a class="headerlink" href="#12-strengths-worth-retaining" title="Permanent link">¶</a></h3>
 <p><strong>Recommendation/inference:</strong> keep these properties through optimization:</p>
 <ul>
@@ -75,17 +80,84 @@
 <li>Named-hardware benchmark provenance and automatic correctness gates.</li>
 </ul>
 <h3 id="13-immediate-limitations">1.3 Immediate limitations<a class="headerlink" href="#13-immediate-limitations" title="Permanent link">¶</a></h3>
-<p><strong>Repository fact:</strong> <code>mul_mod</code> performs 128-bit remainder on every device multiply. The source itself marks this as a correctness-first, pre-Barrett implementation.</p>
-<p><strong>Recommendation/inference:</strong> this must be replaced before NTT timing says anything useful. A radix-2 butterfly currently performs two modular products in this formulation, so division emulation dominates any memory-layout comparison.</p>
-<p><strong>Repository fact:</strong> in <code>dif_col_kernel</code>, neighboring threads access <code>a[r + 256*t]</code>. For 64-bit coefficients, adjacent threads are separated by 2,048 bytes. The scatter has the same pattern.</p>
-<p><strong>Recommendation/inference:</strong> this is the largest structural memory concern. Although the algorithm moves each coefficient through global memory only once per pass, the column pass is not warp-coalesced. Measure actual DRAM sectors and L2 transactions; do not describe the implementation as “four round-trips” without also reporting transaction efficiency.</p>
-<p><strong>Repository fact:</strong> the tile and column kernels fetch twiddles from a full global table inside each stage, and synchronize the whole block after every radix-2 stage.</p>
-<p><strong>Recommendation/inference:</strong> stage-major twiddle packing, precomputed Shoup quotients, register-held radix-4/8 work, warp shuffles for the smallest distances, and padded shared-memory exchange are the highest-value inner-kernel experiments.</p>
-<p><strong>Repository fact:</strong> every transform uses 256 threads and a 256-way split, independent of <code>N</code>, modulus count, register pressure, shared-memory use, and GPU architecture.</p>
-<p><strong>Recommendation/inference:</strong> replace the single hard-coded shape with a small, benchmarked dispatch table for <code>N = 2^16</code> and for low/high tower counts. Compile-time specialization for the target size is reasonable and permits unrolling and constant launch geometry.</p>
-<p><strong>Repository fact:</strong> the public interface accepts host <code>std::vector</code> objects and uses synchronous <code>cudaMemcpy</code>; it has no stream, device-buffer, external allocator, or graph-capture contract.</p>
-<p><strong>Recommendation/inference:</strong> retain this API as a convenience/reference facade, but add a device-resident API before OpenFHE integration. Otherwise host transfers and forced synchronization will erase key-switch gains.</p>
-<h2 id="2-representative-implementations-and-transferable-techniques">2. Representative implementations and transferable techniques<a class="headerlink" href="#2-representative-implementations-and-transferable-techniques" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Observed source behavior</th>
+<th>Recommended experiment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mul_mod</code> uses 128-bit remainder</td>
+<td>Division-free Shoup and Barrett policies</td>
+</tr>
+<tr>
+<td>Column threads load <code>a[r + 256*t]</code>: 2,048-byte spacing</td>
+<td>Coalesced transpose/Four-Step; measure sectors per requested byte</td>
+</tr>
+<tr>
+<td>Full power table and a barrier after every radix-2 stage</td>
+<td>Packed twiddles, Shoup quotients, radix-4/8 register work</td>
+</tr>
+<tr>
+<td>Fixed 256-thread split</td>
+<td>Tune launch shape for N=65536 and real tower/batch counts</td>
+</tr>
+<tr>
+<td>Host vectors and synchronous copies</td>
+<td>Add device views, stream ownership, and reusable scratch</td>
+</tr>
+</tbody>
+</table>
+<p>Keep the reference path as an oracle. Four logical array movements alone do
+not establish efficient DRAM access.</p>
+<p><a id="2-representative-implementations-and-transferable-techniques"></a></p>
+<h2 id="2-libraries-and-techniques">2. Libraries and techniques<a class="headerlink" href="#2-libraries-and-techniques" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Reference</th>
+<th>Technique to evaluate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FIDESlib</td>
+<td>Exact OpenFHE interoperability, device state, transform-boundary fusion</td>
+</tr>
+<tr>
+<td>GPU-NTT / HEonGPU</td>
+<td>Merge versus Four-Step schedules, batches, streams, memory pools</td>
+</tr>
+<tr>
+<td>CKKS-GPU-CORE</td>
+<td>Eight values per thread and padded shared memory</td>
+</tr>
+<tr>
+<td>PhantomFHE</td>
+<td>Radix-8, lazy Shoup ranges, key-switch fusion</td>
+</tr>
+<tr>
+<td>TensorFHE</td>
+<td>Operation batching; tensor arithmetic is a separate research path</td>
+</tr>
+<tr>
+<td>ICICLE</td>
+<td>Explicit ordering, device domains, and asynchronous APIs</td>
+</tr>
+<tr>
+<td>cuFHE / cuHE</td>
+<td>Resident keys and stream-aware operations in a different FHE scheme</td>
+</tr>
+<tr>
+<td>Theodosian</td>
+<td>RTX 5090 cache/write-bandwidth limits and fusion tradeoffs</td>
+</tr>
+</tbody>
+</table>
+<details>
+<summary>Read the implementation evidence and source links</summary>
 <h3 id="21-fideslib-the-closest-match-to-the-project-target">2.1 FIDESlib: the closest match to the project target<a class="headerlink" href="#21-fideslib-the-closest-match-to-the-project-target" title="Permanent link">¶</a></h3>
 <p>FIDESlib describes itself as a server-side CKKS GPU library interoperable with OpenFHE. Its current release states support for OpenFHE 1.6.1, Hybrid key switching, CUDA 12/13, and <code>sm_70</code> through <code>sm_120</code>; it also states that GPU operations are compared bit-for-bit to a patched OpenFHE CPU reference. These are precisely this project's scheme, integration, key-switch, and GPU targets. See the <a href="https://github.com/CAPS-UMU/FIDESlib/tree/597a0b3ab072dbbe061d8cacea216411208359d2#readme">official README</a> and its <a href="https://github.com/CAPS-UMU/FIDESlib/blob/597a0b3ab072dbbe061d8cacea216411208359d2/BITCOMPAT.md">bit-compatibility design record</a>.</p>
 <p>Its current 1D NTT uses CT butterflies for forward and GS butterflies for inverse, shared-memory staging, warp-level synchronization below a warp, vectorized 16-byte loads/stores, and Shoup/Barrett arithmetic selected by templates. More importantly, the NTT mode is templated to fuse downstream work including rescale, plaintext multiplication, ModDown, and key-switch dot/accumulate operations. See <a href="https://github.com/CAPS-UMU/FIDESlib/blob/597a0b3ab072dbbe061d8cacea216411208359d2/src/NTT_1D.cu"><code>NTT_1D.cu</code></a>, <a href="https://github.com/CAPS-UMU/FIDESlib/blob/597a0b3ab072dbbe061d8cacea216411208359d2/src/INTT_1D.cu"><code>INTT_1D.cu</code></a>, <a href="https://github.com/CAPS-UMU/FIDESlib/blob/597a0b3ab072dbbe061d8cacea216411208359d2/src/NTTfusions.cuh"><code>NTTfusions.cuh</code></a>, and <a href="https://github.com/CAPS-UMU/FIDESlib/blob/597a0b3ab072dbbe061d8cacea216411208359d2/src/ModMult.cuh"><code>ModMult.cuh</code></a>.</p>
@@ -107,7 +179,7 @@
 <p>What to absorb:</p>
 <ul>
 <li>Compare at least two schedules: an improved two-pass/Merge path and a Four-Step or explicit transpose path. Do not assume the current fixed split is optimal.</li>
-<li>Build a per-size launch table. The supported range is only five powers of two, so exhaustive offline tuning on the 5090 is tractable.</li>
+<li>Build a launch table for N=65536 across tower and batch counts; tune it on the 5090.</li>
 <li>Treat batches as part of the NTT API, not a benchmark wrapper. CKKS naturally supplies many modulus towers and often multiple ciphertext components.</li>
 <li>Report throughput as well as latency; the best shape changes when enough independent transforms exist to saturate the GPU.</li>
 <li>Add an allocator and stream contract at the library boundary.</li>
@@ -168,7 +240,9 @@
 <li>Capture stable key-switch/rotation/inference sequences in CUDA Graphs.</li>
 <li>Pipeline stages with complementary DRAM/L2 behavior only after dependencies and cache interference are measured.</li>
 </ul>
-<h2 id="3-algorithm-and-arithmetic-choices-for-this-project">3. Algorithm and arithmetic choices for this project<a class="headerlink" href="#3-algorithm-and-arithmetic-choices-for-this-project" title="Permanent link">¶</a></h2>
+</details>
+<p><a id="3-algorithm-and-arithmetic-choices-for-this-project"></a></p>
+<h2 id="3-algorithms-and-arithmetic">3. Algorithms and arithmetic<a class="headerlink" href="#3-algorithms-and-arithmetic" title="Permanent link">¶</a></h2>
 <h3 id="31-ctgs-versus-stockham-and-four-step">3.1 CT/GS versus Stockham and Four-Step<a class="headerlink" href="#31-ctgs-versus-stockham-and-four-step" title="Permanent link">¶</a></h3>
 <p><strong>Sourced observation:</strong> Phantom and FIDESlib use CT forward plus GS inverse; GPU-NTT compares iterative Merge and Four-Step schedules; ICICLE exposes mixed-radix and ordering choices.</p>
 <p><strong>Recommendation:</strong> keep CT/DIF forward and GS/DIT inverse as the first optimized path because the current repository already has the equivalent ordering contract and no bit-reversal pass. Add a Four-Step/transpose prototype only as a benchmarked alternative for the strided column pass. A Stockham autosort path may offer regular accesses and natural ordering, but it normally ping-pongs global buffers; for the target sizes, its extra full-array traffic must beat the cost of the current uncoalesced gather before adoption.</p>
@@ -201,7 +275,8 @@
 <li>a metadata record containing transform convention, direction, modulus, ordering, and supported lazy range.</li>
 </ul>
 <p>The CPU reference can continue to build a simple power table; a packing step should produce the device format and be independently cross-checked.</p>
-<h2 id="4-rns-data-layout-and-hybrid-key-switch-implications">4. RNS data layout and Hybrid key-switch implications<a class="headerlink" href="#4-rns-data-layout-and-hybrid-key-switch-implications" title="Permanent link">¶</a></h2>
+<p><a id="4-rns-data-layout-and-hybrid-key-switch-implications"></a></p>
+<h2 id="4-rns-layout-and-hybrid-state">4. RNS layout and Hybrid state<a class="headerlink" href="#4-rns-layout-and-hybrid-state" title="Permanent link">¶</a></h2>
 <h3 id="41-baseline-layout">4.1 Baseline layout<a class="headerlink" href="#41-baseline-layout" title="Permanent link">¶</a></h3>
 <p><strong>Recommendation:</strong> keep coefficient data limb-major:</p>
 <pre><code class="language-text">poly[component][digit-or-batch][limb][coefficient]
@@ -237,7 +312,8 @@
 <li>Pointwise accumulation across Hybrid digits, deferring reduction only under a proved bound.</li>
 </ul>
 <p><strong>Caution:</strong> fusion can lower occupancy by increasing registers/shared memory and can prevent cache-friendly scheduling. Theodosian shows additional fusion is not automatically beneficial on RTX 5090. Require profiler evidence for every fused variant.</p>
-<h2 id="5-streams-transfers-allocation-and-launch-strategy">5. Streams, transfers, allocation, and launch strategy<a class="headerlink" href="#5-streams-transfers-allocation-and-launch-strategy" title="Permanent link">¶</a></h2>
+<p><a id="5-streams-transfers-allocation-and-launch-strategy"></a></p>
+<h2 id="5-streams-and-memory">5. Streams and memory<a class="headerlink" href="#5-streams-and-memory" title="Permanent link">¶</a></h2>
 <p>NVIDIA documents that asynchronous host/device copies require pinned host memory and can overlap with kernels in other streams. It also documents global-to-shared asynchronous copies and pipelines, and states that CUDA Graphs reduce repeated launch setup cost for fixed workflows. See the <a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/#asynchronous-and-overlapping-transfers-with-computation">CUDA Best Practices Guide</a>, <a href="https://docs.nvidia.com/cuda/cuda-programming-guide/04-special-topics/async-copies.html">asynchronous copy documentation</a>, and <a href="https://docs.nvidia.com/cuda/cuda-programming-guide/04-special-topics/cuda-graphs.html">CUDA Graphs documentation</a>.</p>
 <p>Recommended API split:</p>
 <ul>
@@ -249,7 +325,8 @@
 <li>captured CUDA graphs for fixed ring dimension, level, digit count, and operation sequence.</li>
 </ul>
 <p><strong>Recommendation/inference:</strong> try <code>cuda::memcpy_async</code>/pipeline only after the coalesced phase layout is fixed. The current column gather has no useful sequential “next tile” per block to hide without first changing data ownership; async copy cannot repair uncoalesced addresses.</p>
-<h2 id="6-correctness-and-benchmark-methodology">6. Correctness and benchmark methodology<a class="headerlink" href="#6-correctness-and-benchmark-methodology" title="Permanent link">¶</a></h2>
+<p><a id="6-correctness-and-benchmark-methodology"></a></p>
+<h2 id="6-correctness-and-measurement">6. Correctness and measurement<a class="headerlink" href="#6-correctness-and-measurement" title="Permanent link">¶</a></h2>
 <h3 id="61-correctness-ladder">6.1 Correctness ladder<a class="headerlink" href="#61-correctness-ladder" title="Permanent link">¶</a></h3>
 <ol>
 <li>Arithmetic primitive versus <code>__uint128_t % q</code>, including adversarial bounds and every OpenFHE modulus.</li>
@@ -282,40 +359,39 @@
 <li>Stock OpenFHE 1.6.1 CPU, with build flags and thread count recorded.</li>
 </ul>
 <p>Do not compare one implementation's kernel-only time with another's transfer-inclusive time, nor one-limb latency with an entire RNS polynomial.</p>
-<h2 id="7-prioritized-points-to-absorb">7. Prioritized points to absorb<a class="headerlink" href="#7-prioritized-points-to-absorb" title="Permanent link">¶</a></h2>
-<h3 id="p0-required-before-meaningful-performance-work">P0: required before meaningful performance work<a class="headerlink" href="#p0-required-before-meaningful-performance-work" title="Permanent link">¶</a></h3>
-<ul>
-<li>Add Shoup twiddle multiplication and a variable-product Barrett/Montgomery path.</li>
-<li>Add exact arithmetic gates for the maximum OpenFHE modulus width.</li>
-<li>Add a device-resident, stream-aware API.</li>
-<li>Benchmark the current column pass's memory-transaction efficiency on RTX 5090.</li>
-<li>Pin OpenFHE 1.6.1 and extract its exact Hybrid transform/order/basis contract into tests.</li>
-</ul>
-<h3 id="p1-first-competitive-ntt">P1: first competitive NTT<a class="headerlink" href="#p1-first-competitive-ntt" title="Permanent link">¶</a></h3>
-<ul>
-<li>Implement per-size compile-time dispatch for <code>2^16</code>.</li>
-<li>Implement radix-4/8 register staging with padded shared memory.</li>
-<li>Pack stage-major twiddle and Shoup tables.</li>
-<li>Prototype a coalesced transpose/Four-Step alternative to the strided column pass.</li>
-<li>Benchmark latency and RNS/ciphertext throughput; choose by size and batch, not one universal kernel.</li>
-</ul>
-<h3 id="p2-base-conversion-and-hybrid-key-switching">P2: base conversion and Hybrid key switching<a class="headerlink" href="#p2-base-conversion-and-hybrid-key-switching" title="Permanent link">¶</a></h3>
-<ul>
-<li>Freeze the limb-major <code>Q/QP</code> device layout and explicit domain/basis metadata.</li>
-<li>Implement basis conversion with output-limb × coefficient parallelism and bounded wide accumulators.</li>
-<li>Fuse selected NTT/basis/key-dot boundaries.</li>
-<li>Keep evaluation keys and scratch buffers resident.</li>
-<li>Add CUDA Graph capture for relinearization and rotation.</li>
-</ul>
-<h3 id="p3-inference-oriented-optimization">P3: inference-oriented optimization<a class="headerlink" href="#p3-inference-oriented-optimization" title="Permanent link">¶</a></h3>
-<ul>
-<li>Add operation-level batching with an L2-capacity guard.</li>
-<li>Hoist decomposition for groups of rotations.</li>
-<li>Reuse extended-basis results across compatible operations.</li>
-<li>Profile complementary stream pipelines and whole-model memory traffic.</li>
-<li>Consider 32-bit/tensor-core research only as an optional backend because it changes OpenFHE parameter representation and compatibility assumptions.</li>
-</ul>
-<h2 id="8-licensing-and-clean-room-implementation">8. Licensing and clean-room implementation<a class="headerlink" href="#8-licensing-and-clean-room-implementation" title="Permanent link">¶</a></h2>
+<p><a id="7-prioritized-points-to-absorb"></a></p>
+<h2 id="7-priorities">7. Priorities<a class="headerlink" href="#7-priorities" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Deliverable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0</td>
+<td>Real-GPU exact checks, arithmetic policies, device-buffer/stream contract</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Shoup/Barrett kernels, register staging, coalesced layout, measured dispatch</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>Explicit Q/QP state, exact basis conversion, resident keys, safe fusion</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>Hoisting, operation batching, graph replay, whole-inference profiling</td>
+</tr>
+</tbody>
+</table>
+<p>The <a href="openfhe-integration-plan.html">integration plan</a> tracks completion; the
+<a href="benchmark-tuning-plan.html">benchmark plan</a> defines the workload and acceptance
+record. The priorities here do not mark a roadmap gate complete.</p>
+<p><a id="8-licensing-and-clean-room-implementation"></a></p>
+<h2 id="8-licensing-and-provenance">8. Licensing and provenance<a class="headerlink" href="#8-licensing-and-provenance" title="Permanent link">¶</a></h2>
 <p>This section is informational, not legal advice.</p>
 <ul>
 <li><strong>FIDESlib:</strong> MIT license in its official repository. Its OpenFHE interoperability currently depends on patches, which should be reviewed separately for upstream/license provenance.</li>
@@ -327,7 +403,8 @@
 <li><strong>cuFHE/cuHE:</strong> their official repositories state their licenses; verify individual files before reuse.</li>
 </ul>
 <p><strong>Recommendation:</strong> continue the repository's clean-room policy. Cite papers and inspect behavior/interfaces, but write original kernels. If code is adapted from MIT/Apache sources, preserve required notices and record the exact file/commit. Do not copy GPL or CC BY-NC-SA kernel code unless the project's license decision explicitly permits it.</p>
-<h2 id="9-decision-summary-for-the-next-code-update">9. Decision summary for the next code update<a class="headerlink" href="#9-decision-summary-for-the-next-code-update" title="Permanent link">¶</a></h2>
+<p><a id="9-decision-summary-for-the-next-code-update"></a></p>
+<h2 id="9-next-implementation-steps">9. Next implementation steps<a class="headerlink" href="#9-next-implementation-steps" title="Permanent link">¶</a></h2>
 <p>The survey supports the following immediate implementation sequence:</p>
 <ol>
 <li>Introduce arithmetic policies and implement <code>ShoupTwiddle</code> plus <code>BarrettVariable</code>, with exact tests.</li>
@@ -345,6 +422,8 @@ acceptance gates are defined in
 <a href="benchmark-tuning-plan.html"><code>benchmark-tuning-plan.md</code></a>.</p>
 <p>The HTML explainer should then be updated to show both the current correctness schedule and the selected production schedule. It should no longer imply that low nominal global byte count alone means efficient VRAM access; it should visualize coalescing, register-held radix-8 work, padded shared memory, and the complete <code>Q -&gt; QP -&gt; Q</code> Hybrid dataflow.</p>
 <h2 id="primary-sources">Primary sources<a class="headerlink" href="#primary-sources" title="Permanent link">¶</a></h2>
+<details>
+<summary>Papers, repositories, and NVIDIA documentation</summary>
 <ul>
 <li>Özcan and Savaş, <a href="https://eprint.iacr.org/2023/1410">Two Algorithms for Fast GPU Implementation of NTT</a>; <a href="https://github.com/Alisah-Ozcan/GPU-NTT">GPU-NTT source</a>.</li>
 <li>Özcan and Savaş, <a href="https://eprint.iacr.org/2024/1543">HEonGPU</a>; <a href="https://github.com/enCRYPTON-labs/HEonGPU">HEonGPU source</a>.</li>
@@ -356,64 +435,12 @@ acceptance gates are defined in
 <li>Ingonyama, <a href="https://github.com/ingonyama-zk/icicle/blob/main/docs/versioned_docs/version-4.0.0/api/cpp/ntt.md">ICICLE NTT API</a>.</li>
 <li>Vernam Lab, <a href="https://github.com/vernamlab/cuFHE">cuFHE</a> and <a href="https://github.com/vernamlab/cuHE">cuHE</a>.</li>
 <li>NVIDIA, <a href="https://docs.nvidia.com/cuda/cuda-programming-guide/">CUDA C++ Programming Guide</a>, <a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/">CUDA C++ Best Practices Guide</a>, and <a href="https://docs.nvidia.com/nsight-compute/">Nsight Compute documentation</a>.</li>
-</ul></article></div><aside class="site-on-this-page" aria-label="On this page"><p>On this page</p><div class="toc">
-<ul>
-<li><a href="#executive-conclusions">Executive conclusions</a></li>
-<li><a href="#1-current-implementation-what-it-does-well-and-where-it-differs-from-the-literature">1. Current implementation: what it does well and where it differs from the literature</a><ul>
-<li><a href="#11-sourced-facts-from-this-repository">1.1 Sourced facts from this repository</a></li>
-<li><a href="#12-strengths-worth-retaining">1.2 Strengths worth retaining</a></li>
-<li><a href="#13-immediate-limitations">1.3 Immediate limitations</a></li>
 </ul>
-</li>
-<li><a href="#2-representative-implementations-and-transferable-techniques">2. Representative implementations and transferable techniques</a><ul>
-<li><a href="#21-fideslib-the-closest-match-to-the-project-target">2.1 FIDESlib: the closest match to the project target</a></li>
-<li><a href="#22-gpu-ntt-heongpu-merge-ntt-and-four-step-ntt">2.2 GPU-NTT / HEonGPU: Merge NTT and Four-Step NTT</a></li>
-<li><a href="#23-ckks-gpu-core-memory-centric-ckks-and-8-point-per-thread-ntt">2.3 CKKS-GPU-CORE: memory-centric CKKS and 8-point-per-thread NTT</a></li>
-<li><a href="#24-phantomfhe-radix-8-nwt-lazy-shoup-butterflies-and-scheme-level-fusion">2.4 PhantomFHE: radix-8 NWT, lazy Shoup butterflies, and scheme-level fusion</a></li>
-<li><a href="#25-tensorfhe-tensor-core-ntt-and-operation-level-batching">2.5 TensorFHE: tensor-core NTT and operation-level batching</a></li>
-<li><a href="#26-icicle-useful-api-ideas-not-a-direct-ckks-backend">2.6 ICICLE: useful API ideas, not a direct CKKS backend</a></li>
-<li><a href="#27-cufhecuhe-historically-relevant-but-not-the-integration-model">2.7 cuFHE/cuHE: historically relevant but not the integration model</a></li>
-<li><a href="#28-theodosian-rtx-5090-changes-the-optimization-priority">2.8 Theodosian: RTX 5090 changes the optimization priority</a></li>
-</ul>
-</li>
-<li><a href="#3-algorithm-and-arithmetic-choices-for-this-project">3. Algorithm and arithmetic choices for this project</a><ul>
-<li><a href="#31-ctgs-versus-stockham-and-four-step">3.1 CT/GS versus Stockham and Four-Step</a></li>
-<li><a href="#32-mixed-radix-and-register-staging">3.2 Mixed radix and register staging</a></li>
-<li><a href="#33-modular-multiplication">3.3 Modular multiplication</a></li>
-<li><a href="#34-twiddle-representation">3.4 Twiddle representation</a></li>
-</ul>
-</li>
-<li><a href="#4-rns-data-layout-and-hybrid-key-switch-implications">4. RNS data layout and Hybrid key-switch implications</a><ul>
-<li><a href="#41-baseline-layout">4.1 Baseline layout</a></li>
-<li><a href="#42-extended-basis-state">4.2 Extended-basis state</a></li>
-<li><a href="#43-target-hybrid-pipeline">4.3 Target Hybrid pipeline</a></li>
-<li><a href="#44-fusion-candidates">4.4 Fusion candidates</a></li>
-</ul>
-</li>
-<li><a href="#5-streams-transfers-allocation-and-launch-strategy">5. Streams, transfers, allocation, and launch strategy</a></li>
-<li><a href="#6-correctness-and-benchmark-methodology">6. Correctness and benchmark methodology</a><ul>
-<li><a href="#61-correctness-ladder">6.1 Correctness ladder</a></li>
-<li><a href="#62-required-performance-views">6.2 Required performance views</a></li>
-<li><a href="#63-baselines">6.3 Baselines</a></li>
-</ul>
-</li>
-<li><a href="#7-prioritized-points-to-absorb">7. Prioritized points to absorb</a><ul>
-<li><a href="#p0-required-before-meaningful-performance-work">P0: required before meaningful performance work</a></li>
-<li><a href="#p1-first-competitive-ntt">P1: first competitive NTT</a></li>
-<li><a href="#p2-base-conversion-and-hybrid-key-switching">P2: base conversion and Hybrid key switching</a></li>
-<li><a href="#p3-inference-oriented-optimization">P3: inference-oriented optimization</a></li>
-</ul>
-</li>
-<li><a href="#8-licensing-and-clean-room-implementation">8. Licensing and clean-room implementation</a></li>
-<li><a href="#9-decision-summary-for-the-next-code-update">9. Decision summary for the next code update</a></li>
-<li><a href="#primary-sources">Primary sources</a></li>
-</ul>
-</div>
-</aside>
+</details></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#executive-conclusions">Executive conclusions</a></li><li><a href="#1-current-implementation">1. Current implementation</a></li><li><a href="#2-libraries-and-techniques">2. Libraries and techniques</a></li><li><a href="#3-algorithms-and-arithmetic">3. Algorithms and arithmetic</a></li><li><a href="#4-rns-layout-and-hybrid-state">4. RNS layout and Hybrid state</a></li><li><a href="#5-streams-and-memory">5. Streams and memory</a></li><li><a href="#6-correctness-and-measurement">6. Correctness and measurement</a></li><li><a href="#7-priorities">7. Priorities</a></li><li><a href="#8-licensing-and-provenance">8. Licensing and provenance</a></li><li><a href="#9-next-implementation-steps">9. Next implementation steps</a></li><li><a href="#primary-sources">Primary sources</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a578e7ae32a4caf029fb93098a6e0514416efd99">a578e7a</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8">8aa94c3</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

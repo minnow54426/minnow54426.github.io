@@ -30,15 +30,15 @@
   <header class="site-topbar">
     <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
     <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Learn</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/docs/vscode-debugging.md">View source ↗</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/docs/vscode-debugging.md">View source ↗</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="run-and-debug-the-ntt-in-vs-code">Run and debug the NTT in VS Code<a class="headerlink" href="#run-and-debug-the-ntt-in-vs-code" title="Permanent link">¶</a></h1>
-<p>This project checks in a shared VS Code configuration for macOS. The first
-debug target uses the CPU reference implementation, so CUDA hardware is not
-required.</p>
+<p>Run the N=8 CPU example on macOS, then step through its butterflies in VS Code.
+CUDA hardware is not required.</p>
 <h2 id="one-time-setup">One-time setup<a class="headerlink" href="#one-time-setup" title="Permanent link">¶</a></h2>
 <ol>
 <li>Open the repository folder in VS Code: <code>code .</code></li>
@@ -48,9 +48,7 @@ required.</p>
    - LLDB DAP</li>
 <li>Wait for CMake Tools to finish configuring <code>build/debug</code>.</li>
 </ol>
-<p>The extensions are already installed on the current development Mac. The
-workspace explicitly uses Xcode's matching <code>lldb-dap</code> binary instead of
-CodeLLDB's bundled LLDB.</p>
+<p>The workspace uses Xcode's <code>lldb-dap</code>; check that Xcode command-line tools are installed.</p>
 <h2 id="run-the-small-example">Run the small example<a class="headerlink" href="#run-the-small-example" title="Permanent link">¶</a></h2>
 <p>Open the command palette with <code>Cmd+Shift+P</code>, choose <strong>Tasks: Run Task</strong>, then
 choose <strong>Run: NTT debug example</strong>.</p>
@@ -94,24 +92,14 @@ change in place.</p>
 will be added on the RTX machine using <code>cuda-gdb</code> or Nsight after the native
 CUDA build is available.</p>
 <h2 id="codelldb-crash-on-current-macosxcode">CodeLLDB crash on current macOS/Xcode<a class="headerlink" href="#codelldb-crash-on-current-macosxcode" title="Permanent link">¶</a></h2>
-<p>CodeLLDB 1.11.4's bundled LLDB 19.1.7 crashes with <code>SIGBUS</code> while parsing the
-Mach-O symbols produced by the current AppleClang toolchain. Xcode's native
-<code>lldb-dap</code> has been tested against this executable and stops at <code>main</code>
-correctly. If VS Code still shows a launch configuration with type <code>lldb</code>, run
-<strong>Developer: Reload Window</strong> and select the <code>lldb-dap</code> configuration again.</p></article></div><aside class="site-on-this-page" aria-label="On this page"><p>On this page</p><div class="toc">
-<ul>
-<li><a href="#one-time-setup">One-time setup</a></li>
-<li><a href="#run-the-small-example">Run the small example</a></li>
-<li><a href="#debug-it-step-by-step">Debug it step by step</a></li>
-<li><a href="#other-shared-commands">Other shared commands</a></li>
-<li><a href="#codelldb-crash-on-current-macosxcode">CodeLLDB crash on current macOS/Xcode</a></li>
-</ul>
-</div>
-</aside>
+<p>The recorded CodeLLDB 1.11.4 / LLDB 19.1.7 setup crashed with <code>SIGBUS</code> on
+AppleClang symbols. Xcode <code>lldb-dap</code> stopped correctly at <code>main</code>. If an old
+<code>lldb</code> configuration appears, run <strong>Developer: Reload Window</strong> and select
+the <code>lldb-dap</code> configuration.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#one-time-setup">One-time setup</a></li><li><a href="#run-the-small-example">Run the small example</a></li><li><a href="#debug-it-step-by-step">Debug it step by step</a></li><li><a href="#other-shared-commands">Other shared commands</a></li><li><a href="#codelldb-crash-on-current-macosxcode">CodeLLDB crash on current macOS/Xcode</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a578e7ae32a4caf029fb93098a6e0514416efd99">a578e7a</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8">8aa94c3</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

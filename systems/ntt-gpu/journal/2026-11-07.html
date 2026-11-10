@@ -30,12 +30,13 @@
   <header class="site-topbar">
     <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
     <div class="site-breadcrumb"><a href="../index.html">Notebook</a><span>/</span>Daily journal</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/docs/journal/2026-11-07.md">View source ↗</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/docs/journal/2026-11-07.md">View source ↗</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-07">2026-11-07</time><span>P1 / D1</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="make-the-butterfly-implementation-inspectable">Make the butterfly implementation inspectable<a class="headerlink" href="#make-the-butterfly-implementation-inspectable" title="Permanent link">¶</a></h1>
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-07">2026-11-07</time><span>P1 / D1</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="make-the-butterfly-implementation-inspectable">Make the butterfly implementation inspectable<a class="headerlink" href="#make-the-butterfly-implementation-inspectable" title="Permanent link">¶</a></h1><p class="site-journal-summary">Added step debugging, clearer CPU variables, and rendered NTT derivations.</p>
 <p>Reconstructed on 2026-11-08 from commit <code>751e723</code> and verification recorded
 during that work.</p>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
@@ -52,7 +53,7 @@ Xcode LLDB DAP replaces the observed crashing CodeLLDB adapter.</p>
 <li><a href="https://github.com/minnow54426/ntt-gpu/commit/751e723">Implementation and explainer commit</a>.</li>
 <li><a href="../butterfly-explained.html">Butterfly derivation</a>.</li>
 <li><a href="../vscode-debugging.html">Debugging guide</a>.</li>
-<li><a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/examples/step_by_step.cpp">N=8 example</a>.</li>
+<li><a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/examples/step_by_step.cpp">N=8 example</a>.</li>
 </ul>
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
 <p>Recorded on 2026-11-07: 7/7 CPU CTest checks and 8/8 OpenFHE configuration
@@ -62,21 +63,11 @@ after changing a coefficient. These are not RTX CUDA runtime results.</p>
 <h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">¶</a></h2>
 <p>How do CUDA blocks and threads select butterfly indices and memory addresses?</p>
 <h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
-<p>Complete D1's forward-kernel index and memory-access map.</p></article></div><aside class="site-on-this-page" aria-label="On this page"><p>On this page</p><div class="toc">
-<ul>
-<li><a href="#outcome">Outcome</a></li>
-<li><a href="#reasoning">Reasoning</a></li>
-<li><a href="#changes">Changes</a></li>
-<li><a href="#verification">Verification</a></li>
-<li><a href="#open-questions">Open questions</a></li>
-<li><a href="#next-step">Next step</a></li>
-</ul>
-</div>
-</aside>
+<p>Complete D1's forward-kernel index and memory-access map.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a578e7ae32a4caf029fb93098a6e0514416efd99">a578e7a</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8">8aa94c3</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

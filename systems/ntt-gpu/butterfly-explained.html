@@ -391,11 +391,12 @@
   <header class="site-topbar">
     <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
     <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Learn</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/docs/butterfly-explained.html">View source ↗</a></div>
-    <div class="site-reading-layout site-wide">
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/docs/butterfly-explained.html">View source ↗</a></div>
+    <div class="site-reading-layout">
       <div class="site-page-content"><div class="site-legacy">
 <div class="page">
 
@@ -403,7 +404,7 @@
   <header class="hero">
     <div>
       <div class="kicker">ntt-gpu · a beginner's field guide</div>
-      <h1>How an NTT <em>really works.</em></h1>
+      <h1>NTT and <em>butterflies.</em></h1>
       <p class="hero-sub">An NTT turns one expensive polynomial multiplication into many small, repeated butterfly operations.</p>
       <div class="hero-meta">
         <span class="chip"><b>no</b> prerequisites</span>
@@ -476,7 +477,7 @@
 
     <!-- ============================ 1. THE DATA ============================ -->
     <section id="s1" class="reveal">
-      <div class="sec-head"><div class="sec-num">01</div><h2>Start with coefficients</h2></div>
+      <div class="sec-head"><div class="sec-num">01</div><h2 id="start-with-coefficients">Start with coefficients</h2></div>
       <p>The input is a <b>list of N numbers</b>. In this page, that list represents a polynomial:</p>
       <div class="chips-row" aria-label="An example list of eight numbers as chips">
         <span class="numchip">3<small>slot 0</small></span><span class="numchip">7<small>slot 1</small></span>
@@ -491,7 +492,7 @@
 
     <!-- ============================ 2. THE WHEEL ============================ -->
     <section id="s2" class="reveal">
-      <div class="sec-head"><div class="sec-num">02</div><h2>Choose special modular points</h2></div>
+      <div class="sec-head"><div class="sec-num">02</div><h2 id="choose-special-modular-points">Choose special modular points</h2></div>
       <p>Modulo 17, start at 1 and keep multiplying by 2. After eight different values, the sequence returns to 1:</p>
       <div class="widget">
         <div class="w-title">The wheel — the eight powers of 2, mod 17 · start at 1, keep multiplying by 2</div>
@@ -556,7 +557,7 @@
 
     <!-- ============================ 3. THE EQUATION ============================ -->
     <section id="s3" class="reveal">
-      <div class="sec-head"><div class="sec-num">03</div><h2>What the NTT does</h2></div>
+      <div class="sec-head"><div class="sec-num">03</div><h2 id="what-the-ntt-does">What the NTT does</h2></div>
       <p>A list like <span class="m">\((2, 1)\)</span> is a tiny machine: plug a number t in for x, get a value out. And plugged-in values multiply one by one:</p>
       <div class="math typeset">\[(A\cdot B)(t) = A(t)\times B(t)\]</div>
       <p><b>One multiplication, no crossing terms</b> — and it holds for <i>every</i> t. Both roads below use <span class="m">\(t = 2\)</span> (mod 5); change any coefficient and they still agree:</p>
@@ -610,7 +611,7 @@
 
     <!-- ============================ 4. THE DIRECT COST ============================ -->
     <section id="s4" class="reveal">
-      <div class="sec-head"><div class="sec-num">04</div><h2>Direct evaluation is too expensive</h2></div>
+      <div class="sec-head"><div class="sec-num">04</div><h2 id="direct-evaluation-is-too-expensive">Direct evaluation is too expensive</h2></div>
       <p>The equation demands N outputs, each a sum of N products — computed one by one, that's <span class="m">\(N \times  N\)</span> multiplications per transform:</p>
       <div class="widget">
         <div class="w-title">Interactive · feel the N² pain</div>
@@ -629,12 +630,12 @@
 
     <!-- ============================ 5. EXPANSION ============================ -->
     <section id="s5" class="reveal">
-      <div class="sec-head"><div class="sec-num">05</div><h2>Turn the NTT sum into butterflies</h2></div>
+      <div class="sec-head"><div class="sec-num">05</div><h2 id="turn-the-ntt-sum-into-butterflies">Turn the NTT sum into butterflies</h2></div>
       <p>Start from the ordinary NTT definition. For output index k, direct evaluation forms one N-term sum:</p>
       <div class="math typeset" style="display:block;">\[
 A_k = \sum_{r=0}^{N-1} a_r\,\omega^{rk}, \qquad 0\leq k&lt;N
 \]</div>
-      <p>The optimization is not an approximation. Split that exact sum by whether the input index r is even or odd. Write <span class="m">\(r = 2m\)</span> for even indices and <span class="m">\(r = 2m+1\)</span> for odd indices:</p>
+      <p>Split the exact sum into even and odd input indices. Write <span class="m">\(r = 2m\)</span> for even indices and <span class="m">\(r = 2m+1\)</span> for odd indices:</p>
       <div class="math typeset" style="display:block;">\[
 \begin{aligned}
 \textcolor{#14655A}{E_k} &= \sum_{m=0}^{N/2-1} a_{2m}\,(\omega^2)^{mk} \\
@@ -672,7 +673,7 @@ A_2 &= a_0+a_1\omega^2+a_2+a_3\omega^2 \\
 A_3 &= a_0+a_1\omega^3+a_2\omega^2+a_3\omega
 \end{aligned}
 \]</div>
-      <p>Four outputs × four terms — sixteen products if you charge ahead blindly. Now regroup every line, even-position terms first, odd-position terms second, and stare at what repeats:</p>
+      <p>Direct evaluation uses sixteen products. Regroup the even and odd terms to expose shared work:</p>
       <div class="math typeset" style="display:block;">\[
 \begin{aligned}
 A_0 &= \textcolor{#14655A}{(a_0+a_2)}+\textcolor{#C2410C}{(a_1+a_3)} \\
@@ -709,7 +710,7 @@ A_1 &= q+\omega s, & A_3 &= q-\omega s && (w=\omega)
         <p>Halfway around, every point is the negative of its mirror: <span class="m">\(ω^{j+N/2} = -ω^{j}\)</span> (mod 17, ω = 4: ω² = 16 = −1). The repo checks this exact fact at <code class="inline">ntt.hpp:66</code>: <code class="inline">psi^n == q−1</code>.</p>
       </div>
       </details>
-      <p>The same derivation with real numbers — set the coefficients yourself:</p>
+      <p>Try the derivation with integer residues by changing a coefficient:</p>
       <div class="widget">
         <div class="w-title">Interactive · both levels, real numbers — mod 17, ω = 4 (ω² = 16 ≡ −1)</div>
         <div class="w-row" style="gap:18px;">
@@ -724,15 +725,15 @@ A_1 &= q+\omega s, & A_3 &= q-\omega s && (w=\omega)
         </div>
         <div class="math" id="s5work" style="display:block; margin-top:22px;"></div>
         <div class="w-row" style="margin-top:10px;"><span class="equals-badge" id="s5agree"></span></div>
-        <div class="w-note">Change any coefficient: level 1 feeds level 2, four butterflies total — and the answer never dares to disagree with the one-line definition.</div>
+        <div class="w-note">Change any coefficient: level 1 feeds level 2, four butterflies total — and the result is checked against the direct definition.</div>
       </div>
       <p><b>One multiply, one add, one subtract; two values in, two out.</b> That is the fast algorithm's only moving part. At N = 8 it simply nests one level deeper — chapter 7's machine, where we go next.</p>
     </section>
 
     <!-- ============================ 6. THE BUTTERFLY ============================ -->
     <section id="s6" class="reveal">
-      <div class="sec-head"><div class="sec-num">06</div><h2>Meet the butterfly</h2></div>
-      <p>You met this unit four times in chapter 5. Draw its formulas as a circuit: two wires in, two out, crossing once — from the side, two wings. Someone in 1969 said <i>"butterfly"</i>, and the name never left. It comes in two costumes — same wings, the multipliers ride different legs:</p>
+      <div class="sec-head"><div class="sec-num">06</div><h2 id="meet-the-butterfly">Meet the butterfly</h2></div>
+      <p>A butterfly takes two inputs and produces a sum and a weighted difference. The crossing wires give the circuit its name. These two common forms place the multiplier on different legs:</p>
       <div class="widget" style="padding:26px;">
         <div style="max-width:840px; margin:0 auto;">
           <svg viewBox="0 0 720 200" width="100%" role="img" aria-label="DIT butterfly: inputs a and b; first multiply b by w, then add and subtract; outputs a plus b w and a minus b w">
@@ -799,7 +800,7 @@ A_1 &= q+\omega s, & A_3 &= q-\omega s && (w=\omega)
 
     <!-- ============================ 7. THE NETWORK ============================ -->
     <section id="s7" class="reveal">
-      <div class="sec-head"><div class="sec-num">07</div><h2>Connect butterflies into stages</h2></div>
+      <div class="sec-head"><div class="sec-num">07</div><h2 id="connect-butterflies-into-stages">Connect butterflies into stages</h2></div>
       <p>Eight wires, values flowing left to right; every X is one butterfly. <b>Press play</b> (arithmetic mod 17, ω = 2), or click any butterfly to inspect it. The partner distance doubles each stage — 1, 2, 4 — the recursion of chapter 5, unrolled one level more and laid out flat.</p>
       <div class="widget">
         <div class="w-title">Interactive · the N = 8 butterfly network (mod 17)</div>
@@ -831,7 +832,7 @@ A_1 &= q+\omega s, & A_3 &= q-\omega s && (w=\omega)
 
     <!-- ============================ 8. THE SCORE ============================ -->
     <section id="s8" class="reveal">
-      <div class="sec-head"><div class="sec-num">08</div><h2>How much work is saved?</h2></div>
+      <div class="sec-head"><div class="sec-num">08</div><h2 id="how-much-work-is-saved">How much work is saved?</h2></div>
       <p>Count the X's in the picture: 4 per stage × 3 stages = <b>12 butterflies</b> for N = 8, against the 64 products of computing chapter 3's equation output-by-output. In general: <span class="m">\((N/2) \, \log_{2}(N)\)</span> butterflies versus <span class="m">\(N^{2}\)</span> products. The two complexities, side by side:</p>
       <div class="widget">
         <div class="w-title">Interactive · direct N² vs butterflies (N/2)·log₂N — log–log plot</div>
@@ -850,7 +851,7 @@ A_1 &= q+\omega s, & A_3 &= q-\omega s && (w=\omega)
 
     <!-- ============================ 9. NEGACYCLIC ============================ -->
     <section id="s9" class="reveal">
-      <div class="sec-head"><div class="sec-num">09</div><h2>CKKS uses the negacyclic form</h2></div>
+      <div class="sec-head"><div class="sec-num">09</div><h2 id="ckks-uses-the-negacyclic-form">CKKS uses the negacyclic form</h2></div>
       <p>One loose end from chapter 1: the operation there was "multiply two lists, <b>get back a list of the same length N</b>." But plain multiplication lengthens the list:</p>
       <div class="math typeset">\[(2+x)(3+2x)=6+7x+2x^2\]</div>
       <p>If every multiplication grew the list, nothing could chain. The fix is one fold rule, in exactly two flavors:</p>
@@ -923,7 +924,7 @@ w_{d,j} &= \psi^{\frac{N}{d}j} = \omega^{\frac{N}{2d}j} \\[0.5em]
 
     <!-- ============================ 10. IN CODE ============================ -->
     <section id="s10" class="reveal">
-      <div class="sec-head"><div class="sec-num">10</div><h2>Map the picture to code</h2></div>
+      <div class="sec-head"><div class="sec-num">10</div><h2 id="map-the-picture-to-code">Map the picture to code</h2></div>
       <p>Here is the actual loop from this repo's CPU reference (<code class="inline">include/ntt/ntt.hpp</code>, the <code class="inline">forward</code> DIF sweep — twist folded in as ladder constants, natural values in, bit-reversed values out). Read the comments with chapter 7 open next to it — every line is a part of the picture:</p>
       <pre class="code"><span class="k">for</span> (<span class="t">uint64_t</span> stage_pair_distance = n_ / <span class="hl">2</span>;
      stage_pair_distance &gt;= <span class="hl">1</span>; stage_pair_distance &gt;&gt;= <span class="hl">1</span>) {
@@ -955,8 +956,8 @@ w_{d,j} &= \psi^{\frac{N}{d}j} = \omega^{\frac{N}{2d}j} \\[0.5em]
 
     <!-- ============================ SUMMARY ============================ -->
     <div class="summary reveal">
-      <h3>The whole page in one breath</h3>
-      <p>A root of unity generates a wheel of N exact plug-in points that multiply like clock positions; the NTT is its one-line equation — the list evaluated at every wheel point. Computing that directly costs <b>N²</b> products; expanded longhand, the outputs share brackets, and each shared pair costs <b>one multiply, one add, one subtract</b> — a butterfly. Tiled across log₂N stages, N² collapses to (N/2)·log₂N: at N = 65,536, from 4.3 billion products down to 524,288 butterflies. The negacyclic variant plugs in at the odd steps of a doubled wheel (ψ^N = −1) to multiply under a fold-with-minus rule — the same butterflies inside.</p>
+      <h3>Recap</h3>
+      <p>The NTT evaluates a polynomial at modular roots of unity. Reusing even/odd subtransforms reduces N² direct products to (N/2)·log₂N butterflies. At N=65,536 that is 524,288 butterflies. CKKS uses odd powers of a primitive 2N-th root, giving multiplication modulo x^N+1.</p>
     </div>
 
     <footer>
@@ -1481,11 +1482,11 @@ w_{d,j} &= \psi^{\frac{N}{d}j} = \omega^{\frac{N}{2d}j} \\[0.5em]
   })();
 })();
 </script>
-</div></div>
+</div></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#quick-title">The idea in four steps</a></li><li><a href="#start-with-coefficients">Start with coefficients</a></li><li><a href="#choose-special-modular-points">Choose special modular points</a></li><li><a href="#what-the-ntt-does">What the NTT does</a></li><li><a href="#direct-evaluation-is-too-expensive">Direct evaluation is too expensive</a></li><li><a href="#turn-the-ntt-sum-into-butterflies">Turn the NTT sum into butterflies</a></li><li><a href="#meet-the-butterfly">Meet the butterfly</a></li><li><a href="#connect-butterflies-into-stages">Connect butterflies into stages</a></li><li><a href="#how-much-work-is-saved">How much work is saved?</a></li><li><a href="#ckks-uses-the-negacyclic-form">CKKS uses the negacyclic form</a></li><li><a href="#map-the-picture-to-code">Map the picture to code</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a578e7ae32a4caf029fb93098a6e0514416efd99">a578e7a</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8">8aa94c3</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

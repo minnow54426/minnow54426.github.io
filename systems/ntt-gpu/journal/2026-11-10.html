@@ -30,12 +30,13 @@
   <header class="site-topbar">
     <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
     <div class="site-breadcrumb"><a href="../index.html">Notebook</a><span>/</span>Daily journal</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/docs/journal/2026-11-10.md">View source ↗</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/docs/journal/2026-11-10.md">View source ↗</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-10">2026-11-10</time><span>P1 / D3</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="standardize-the-polynomial-workload-at-65536">Standardize the polynomial workload at 65536<a class="headerlink" href="#standardize-the-polynomial-workload-at-65536" title="Permanent link">¶</a></h1>
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-10">2026-11-10</time><span>P1 / D3</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="standardize-the-polynomial-workload-at-65536">Standardize the polynomial workload at 65536<a class="headerlink" href="#standardize-the-polynomial-workload-at-65536" title="Permanent link">¶</a></h1><p class="site-journal-summary">Remove the 4096 workload from the interactive lessons, defaults, and implementation gates.</p>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
 <p>The project workload is now N=65536. The work-distribution lesson has one
 fixed size, with 256 rows and columns, 16 stages, 524,288 butterflies, and
@@ -85,21 +86,125 @@ Historical notebook observations and cited research ranges remain historical.</p
 CPU simulation does not establish GPU launch or synchronization correctness.</p>
 <h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
 <p>Continue the inverse-column correspondence proof at N=65536; no roadmap gate
-advances solely because the workload scope changed.</p></article></div><aside class="site-on-this-page" aria-label="On this page"><p>On this page</p><div class="toc">
+advances solely because the workload scope changed.</p>
+<h2 id="notebook-reading-review">Notebook reading review<a class="headerlink" href="#notebook-reading-review" title="Permanent link">¶</a></h2>
+<p>Reviewed all 18 published pages individually. The site now has one section
+sidebar generated from each page's main headings, including interactive HTML.
+Desktop sections stay beside the article; smaller screens expose the same
+links through <strong>Sections</strong> in the top bar. The current section updates while
+scrolling, and keyboard users can open, close, and follow section links.</p>
+<h3 id="page-by-page-changes">Page-by-page changes<a class="headerlink" href="#page-by-page-changes" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Reading change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Overview</td>
+<td>Removed repeated collections and recent-entry cards; retained one complete directory and a shorter implementation sequence</td>
+</tr>
+<tr>
+<td>Project &amp; setup</td>
+<td>Cut repeated status/design prose; put build commands and exactness gates first</td>
+</tr>
+<tr>
+<td>NTT &amp; butterflies</td>
+<td>Shorter introduction and recap; preserved derivations, formulas, and interactive controls</td>
+</tr>
+<tr>
+<td>CPU to CUDA</td>
+<td>Shorter vocabulary and SIMT explanation; corrected wave, occupancy, and memory-traffic claims</td>
+</tr>
+<tr>
+<td>65536 work distribution</td>
+<td>Shorter ownership explanation; preserved the index proof and explorer</td>
+</tr>
+<tr>
+<td>Run &amp; debug</td>
+<td>Removed assumptions about installed tools; compressed recorded debugger troubleshooting</td>
+</tr>
+<tr>
+<td>GPU NTT implementations</td>
+<td>Decision tables and shorter headings; library evidence and citations in expandable sections</td>
+</tr>
+<tr>
+<td>Choosing the GPU</td>
+<td>Compact specifications and decision tables; historical pricing and full citations remain expandable</td>
+</tr>
+<tr>
+<td>Integration roadmap</td>
+<td>Shorter introduction; preserved day tables and gates; corrected the stale five-size specialization task</td>
+</tr>
+<tr>
+<td>Benchmarks &amp; tuning</td>
+<td>Shorter policy prose; corrected the stale five-dimension acceptance requirement to N=65536</td>
+</tr>
+<tr>
+<td>Writing &amp; publishing</td>
+<td>One concise editing, validation, and export workflow; documented page and section navigation</td>
+</tr>
+<tr>
+<td>Journal index</td>
+<td>Clearer date-versus-deliverable explanation and a single-column entry list</td>
+</tr>
+<tr>
+<td>Journal 2026-11-05</td>
+<td>Added summary and six-section navigation; preserved reconstructed evidence</td>
+</tr>
+<tr>
+<td>Journal 2026-11-06</td>
+<td>Added summary and six-section navigation; preserved historical roadmap state</td>
+</tr>
+<tr>
+<td>Journal 2026-11-07</td>
+<td>Added summary and six-section navigation; preserved recorded test results</td>
+</tr>
+<tr>
+<td>Journal 2026-11-08</td>
+<td>Added summary and six-section navigation; preserved publishing history</td>
+</tr>
+<tr>
+<td>Journal 2026-11-09</td>
+<td>Added summary and six-section navigation; preserved the original mapping work and follow-ups</td>
+</tr>
+<tr>
+<td>Journal 2026-11-10</td>
+<td>Kept the workload change above and appended this review</td>
+</tr>
+</tbody>
+</table>
+<p>Article text, tables, code, and section links use larger type and consistent
+spacing. Wide tables scroll within the article. Existing heading IDs and
+bookmarked research-section aliases are retained. Search still includes
+collapsed references. No roadmap gate or CUDA implementation changed.</p>
+<h3 id="review-verification">Review verification<a class="headerlink" href="#review-verification" title="Permanent link">¶</a></h3>
 <ul>
-<li><a href="#outcome">Outcome</a></li>
-<li><a href="#reasoning">Reasoning</a></li>
-<li><a href="#changes">Changes</a></li>
-<li><a href="#verification">Verification</a></li>
-<li><a href="#open-questions">Open questions</a></li>
-<li><a href="#next-step">Next step</a></li>
-</ul>
-</div>
-</aside>
+<li>All 17 documentation unit tests passed, including heading-ID collisions,
+  inline-script preservation, and Markdown/math inside expandable references.</li>
+<li>The documentation build validated all 18 pages, local links, and fragments.</li>
+<li>All 3 explorer tests passed.</li>
+<li>Chromium checked every section link on every page at 1440, 1280, 1024, and
+  375px: 72 page/width checks passed with no JavaScript errors or page-wide
+  horizontal overflow. Menu, section navigation, search, and Escape behavior
+  were exercised at each width. Desktop and mobile screenshots were inspected.</li>
+<li>The review found and fixed Escape handling in search. No GPU execution or
+  performance measurement is implied by these browser checks.</li>
+<li>Final narrow-screen checks passed on all 18 pages at both 320 and 375px.
+  The 320px pass exposed an unwrapped GPU vocabulary table; shared scrolling
+  wrappers now also cover lesson tables without nesting existing matrix wrappers.</li>
+<li>Focused browser checks confirmed sticky desktop sections, reading-position
+  updates, final-section selection, both butterfly coefficient widgets, network
+  step/reset, GPU pair-stage controls, expandable citations, and rendered math
+  without KaTeX errors at desktop/mobile widths. Mobile section-menu screenshots
+  were also inspected.</li>
+</ul></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li><li><a href="#notebook-reading-review">Notebook reading review</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a578e7ae32a4caf029fb93098a6e0514416efd99">a578e7a</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8">8aa94c3</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

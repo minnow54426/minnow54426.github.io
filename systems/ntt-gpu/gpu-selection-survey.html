@@ -30,141 +30,158 @@
   <header class="site-topbar">
     <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
     <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Research</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/docs/gpu-selection-survey.md">View source ↗</a></div>
+    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/docs/gpu-selection-survey.md">View source ↗</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><article class="site-article"><h1 id="gpu-selection-survey-for-ckks-ntt-base-conversion-and-hybrid-key-switching">GPU Selection Survey for CKKS NTT, Base Conversion, and Hybrid Key Switching<a class="headerlink" href="#gpu-selection-survey-for-ckks-ntt-base-conversion-and-hybrid-key-switching" title="Permanent link">¶</a></h1>
-<p>Last updated: 2026-11-06<br>
-Status: initial hardware decision; validate with the benchmark gate below before purchase or long-term rental</p>
+      <div class="site-page-content"><article class="site-article"><h1 id="choosing-a-gpu-for-ckks">Choosing a GPU for CKKS<a class="headerlink" href="#choosing-a-gpu-for-ckks" title="Permanent link">¶</a></h1>
+<p>Hardware assessment recorded on 2026-11-06. The RTX 5090 choice is provisional;
+production selection requires the benchmark gate below. Specifications and
+historical prices are reference values, not current quotes or kernel timings.</p>
 <h2 id="decision">Decision<a class="headerlink" href="#decision" title="Permanent link">¶</a></h2>
-<p><strong>Use the GeForce RTX 5090 as the primary development and optimization target.</strong> It is the strongest practical single-workstation choice for this project: Blackwell <code>sm_120</code>, 32 GB of GDDR7, 1.792 TB/s peak memory bandwidth, 96 MB of L2, and 104.8 peak non-Tensor INT32 TOPS. NVIDIA <a href="https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5090/">lists a US starting price of $1,999</a>, although actual market prices vary. These characteristics are relevant to NTT/RNS work even though the card is also marketed heavily for FP4/FP8 AI.</p>
-<p><strong>Use an RTX PRO 6000 Blackwell when 32 GB is proven insufficient or production reliability is required.</strong> It has the same 1.792 TB/s memory bandwidth but 96 GB of GDDR7 with ECC, 128 MB of L2, 24,064 CUDA cores, and 126 peak non-Tensor INT32 TOPS. The tradeoff is a much higher price and a 600 W board power limit.</p>
-<p><strong>Do not choose H100/H200/B200 solely from AI Tensor-Core numbers.</strong> Their HBM capacity and bandwidth are excellent, but NVIDIA does not publish a directly comparable native INT64 modular-multiply throughput. They may win a memory-bound, large-batch production workload, but that is an inference that must be established by our kernels and profiler data.</p>
-<p>This is a provisional decision, not a claim that the RTX 5090 is universally fastest. The final selection must pass the cross-GPU benchmark gate in this report.</p>
-<h2 id="why-fp8-and-fp16-marketing-does-not-answer-our-question">Why FP8 and FP16 marketing does not answer our question<a class="headerlink" href="#why-fp8-and-fp16-marketing-does-not-answer-our-question" title="Permanent link">¶</a></h2>
-<p>Our hot operations are expected to be:</p>
-<ul>
-<li><code>u32</code>/<code>u64</code> modular add and subtract;</li>
-<li>32-by-32-to-64 and 64-by-64 product-high/product-low operations;</li>
-<li>Shoup or Barrett reduction;</li>
-<li>permutations, gathers, transposes, and RNS-tower traffic;</li>
-<li>shared-memory and register movement;</li>
-<li>base-conversion accumulation across Q and P towers.</li>
-</ul>
-<p>NVIDIA's <a href="https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/compute-capabilities.html#features-and-technical-specifications">Tensor Core input-type table</a> lists FP64, TF32, BF16, FP16, FP8, FP6, FP4, INT8, and INT4. It does <strong>not</strong> list arbitrary <code>u32</code> or <code>u64</code> modular arithmetic. Therefore, FP8/FP16 Tensor TOPS are not a direct performance metric for our kernels.</p>
-<p>NVIDIA's <a href="https://docs.nvidia.com/cuda/parallel-thread-execution/#integer-arithmetic-instructions-mul">PTX integer instruction documentation</a> supports <code>mul.hi</code>, <code>mul.lo</code>, and <code>mul.wide</code>. The full-width <code>.wide</code> form exists only for 16- and 32-bit inputs. CUDA also exposes <a href="https://docs.nvidia.com/cuda/cuda-math-api/cuda_math_api/group__CUDA__MATH__INTRINSIC__INT.html"><code>__umul64hi</code></a>, which returns the high half of a 64-by-64-bit product. These are the relevant building blocks for Shoup/Barrett arithmetic.</p>
-<p>The <a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/#throughput-of-native-arithmetic-instructions">CUDA Best Practices throughput table</a> gives <code>mad.lo.s32</code> a theoretical 64 results per cycle per SM for the listed architectures, with a footnote of 32 for extended-precision operations. It publishes a row for 64-bit integer addition, but <strong>no row for 64-bit integer multiplication</strong>. Consequently, any claim such as “GPU X has Y INT64 TOPS” would be unsupported by NVIDIA's public specifications.</p>
-<p>NVIDIA's RTX Blackwell whitepaper does state that the RTX Blackwell SM doubles integer-math throughput per clock compared with Ada and publishes peak non-Tensor INT32 totals. This is useful evidence for the RTX 5090, but it still does not replace measurement of our multi-instruction modular multiplication.</p>
-<h2 id="official-specification-comparison">Official specification comparison<a class="headerlink" href="#official-specification-comparison" title="Permanent link">¶</a></h2>
-<p><code>INT32</code> below means the published non-Tensor peak when NVIDIA provides one. It must not be read as INT64 or modular-multiplication throughput. <code>Not published</code> is intentional; this report does not invent missing numbers.</p>
 <table>
 <thead>
 <tr>
+<th>Role</th>
 <th>GPU</th>
-<th>Architecture / CC</th>
-<th style="text-align: right;">Memory</th>
-<th style="text-align: right;">Peak bandwidth</th>
-<th style="text-align: right;">Official L2</th>
-<th>ECC / reliability statement</th>
-<th style="text-align: right;">Power</th>
-<th style="text-align: right;">Published non-Tensor INT32</th>
-<th>CUDA support</th>
+<th>Reason</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>GeForce RTX 5090</td>
-<td>RTX Blackwell GB202 / 12.0</td>
-<td style="text-align: right;">32 GB GDDR7</td>
-<td style="text-align: right;">1,792 GB/s</td>
-<td style="text-align: right;">96 MB</td>
-<td>GDDR7 built-in single-bit correction is always enabled; not the same enterprise product/support proposition as RTX PRO/data-center cards</td>
-<td style="text-align: right;">575 W TGP</td>
-<td style="text-align: right;">104.8 TOPS</td>
-<td>CUDA 12.8+; compile <code>sm_120</code></td>
+<td>Primary development</td>
+<td>RTX 5090</td>
+<td>32 GB, 1.792 TB/s bandwidth, Blackwell <code>sm_120</code></td>
 </tr>
 <tr>
-<td>GeForce RTX 4090</td>
-<td>Ada AD102 / 8.9</td>
-<td style="text-align: right;">24 GB GDDR6X</td>
-<td style="text-align: right;">1,008 GB/s</td>
-<td style="text-align: right;">72 MB</td>
-<td>No product-level ECC feature published</td>
-<td style="text-align: right;">450 W TGP</td>
-<td style="text-align: right;">41.3 TOPS</td>
-<td>CUDA 11.8+; compile <code>sm_89</code></td>
+<td>Compatibility control</td>
+<td>RTX 4090</td>
+<td>Ada <code>sm_89</code>; useful when owned or rented</td>
 </tr>
 <tr>
-<td>RTX PRO 6000 Blackwell Workstation</td>
-<td>RTX Blackwell GB202 / 12.0</td>
-<td style="text-align: right;">96 GB GDDR7 with ECC</td>
-<td style="text-align: right;">1,792 GB/s</td>
-<td style="text-align: right;">128 MB</td>
-<td>ECC, enterprise drivers/support, MIG</td>
-<td style="text-align: right;">600 W board power</td>
-<td style="text-align: right;">126.0 TOPS</td>
-<td>CUDA 12.8+; compile <code>sm_120</code></td>
+<td>More capacity / enterprise support</td>
+<td>RTX PRO 6000 Blackwell</td>
+<td>96 GB ECC; evaluate when the working set exceeds 32 GB</td>
 </tr>
 <tr>
-<td>L40S</td>
-<td>Ada / 8.9</td>
-<td style="text-align: right;">48 GB GDDR6 with ECC</td>
-<td style="text-align: right;">864 GB/s</td>
-<td style="text-align: right;">Not stated on the current L40S page; 96 MB is documented for L40/full AD102</td>
-<td>ECC; designed for continuous data-center operation</td>
-<td style="text-align: right;">350 W</td>
-<td style="text-align: right;">Not published for L40S</td>
-<td>CUDA 11.8+; compile <code>sm_89</code></td>
-</tr>
-<tr>
-<td>A100 80 GB SXM</td>
-<td>Ampere GA100 / 8.0</td>
-<td style="text-align: right;">80 GB HBM2e</td>
-<td style="text-align: right;">2,039 GB/s</td>
-<td style="text-align: right;">40 MB</td>
-<td>HBM, L2, L1, and register-file ECC documented</td>
-<td style="text-align: right;">400 W standard; selected systems up to 500 W</td>
-<td style="text-align: right;">19.5 TOPS in NVIDIA's architecture comparison</td>
-<td>CUDA 11.0+; compile <code>sm_80</code></td>
-</tr>
-<tr>
-<td>H100 SXM</td>
-<td>Hopper GH100 / 9.0</td>
-<td style="text-align: right;">80 GB HBM3</td>
-<td style="text-align: right;">3.35 TB/s</td>
-<td style="text-align: right;">50 MB</td>
-<td>Data-center HBM ECC/error-containment family</td>
-<td style="text-align: right;">Up to 700 W</td>
-<td style="text-align: right;">30 TOPS in NVIDIA's architecture comparison</td>
-<td>CUDA 11.8+/12.x; compile <code>sm_90</code></td>
-</tr>
-<tr>
-<td>H200 SXM</td>
-<td>Hopper GH100 / 9.0</td>
-<td style="text-align: right;">141 GB HBM3e</td>
-<td style="text-align: right;">4.8 TB/s</td>
-<td style="text-align: right;">50 MB Hopper L2</td>
-<td>Data-center HBM ECC/error-containment family</td>
-<td style="text-align: right;">Up to 700 W</td>
-<td style="text-align: right;">Not published in current product sheet</td>
-<td>CUDA 11.8+/12.x; compile <code>sm_90</code></td>
-</tr>
-<tr>
-<td>B200 SXM</td>
-<td>Blackwell GB100 / 10.0</td>
-<td style="text-align: right;">180 GB HBM3e</td>
-<td style="text-align: right;">Up to 8 TB/s</td>
-<td style="text-align: right;">126 MB</td>
-<td>Data-center HBM ECC/error-containment family</td>
-<td style="text-align: right;">Configurable up to 1,000 W in HGX</td>
-<td style="text-align: right;">Not published for native INT32/INT64 modular arithmetic</td>
-<td>CUDA 12.8+; compile <code>sm_100</code></td>
+<td>Later production comparison</td>
+<td>H200 / B200</td>
+<td>Larger HBM and bandwidth; benchmark the complete workload</td>
 </tr>
 </tbody>
 </table>
+<p>Use the 5090 for development. Select a production GPU only after measuring
+resident memory and end-to-end Hybrid key switching.</p>
+<h2 id="why-fp8-and-fp16-marketing-does-not-answer-our-question">Why FP8 and FP16 marketing does not answer our question<a class="headerlink" href="#why-fp8-and-fp16-marketing-does-not-answer-our-question" title="Permanent link">¶</a></h2>
+<p>These kernels perform exact modular <code>u32</code>/<code>u64</code> arithmetic and move RNS data.
+Tensor TOPS do not measure that workload. NVIDIA's
+<a href="https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/compute-capabilities.html#features-and-technical-specifications">Tensor Core type table</a>
+does not list arbitrary <code>u32</code>/<code>u64</code> modular operations.</p>
+<p>Relevant primitives include <a href="https://docs.nvidia.com/cuda/parallel-thread-execution/#integer-arithmetic-instructions-mul"><code>mul.hi</code>, <code>mul.lo</code>, and <code>mul.wide</code></a>
+and <a href="https://docs.nvidia.com/cuda/cuda-math-api/cuda_math_api/group__CUDA__MATH__INTRINSIC__INT.html"><code>__umul64hi</code></a>.
+The <a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/#throughput-of-native-arithmetic-instructions">native instruction table</a>
+does not publish a directly comparable 64-bit multiply throughput. Measure
+Shoup/Barrett instruction chains rather than deriving an “INT64 TOPS” ranking.</p>
+<h2 id="official-specification-comparison">Official specification comparison<a class="headerlink" href="#official-specification-comparison" title="Permanent link">¶</a></h2>
+<p>Bandwidth is a peak specification. INT32 is published non-Tensor throughput,
+not modular multiplication performance. “—” means no comparable value was
+published in the cited product material.</p>
+<table>
+<thead>
+<tr>
+<th>GPU</th>
+<th>Memory</th>
+<th>Peak bandwidth</th>
+<th>L2</th>
+<th>CC</th>
+<th>INT32 TOPS</th>
+<th>Power</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RTX 5090</td>
+<td>32 GB GDDR7</td>
+<td>1.792 TB/s</td>
+<td>96 MB</td>
+<td>12.0</td>
+<td>104.8</td>
+<td>575 W</td>
+</tr>
+<tr>
+<td>RTX 4090</td>
+<td>24 GB GDDR6X</td>
+<td>1.008 TB/s</td>
+<td>72 MB</td>
+<td>8.9</td>
+<td>41.3</td>
+<td>450 W</td>
+</tr>
+<tr>
+<td>RTX PRO 6000 Blackwell</td>
+<td>96 GB ECC GDDR7</td>
+<td>1.792 TB/s</td>
+<td>128 MB</td>
+<td>12.0</td>
+<td>126</td>
+<td>600 W</td>
+</tr>
+<tr>
+<td>L40S</td>
+<td>48 GB ECC GDDR6</td>
+<td>864 GB/s</td>
+<td>Not stated</td>
+<td>8.9</td>
+<td>—</td>
+<td>350 W</td>
+</tr>
+<tr>
+<td>A100 80 GB SXM</td>
+<td>80 GB HBM2e</td>
+<td>2.039 TB/s</td>
+<td>40 MB</td>
+<td>8.0</td>
+<td>19.5</td>
+<td>400 W standard</td>
+</tr>
+<tr>
+<td>H100 SXM</td>
+<td>80 GB HBM3</td>
+<td>3.35 TB/s</td>
+<td>50 MB</td>
+<td>9.0</td>
+<td>30</td>
+<td>Up to 700 W</td>
+</tr>
+<tr>
+<td>H200 SXM</td>
+<td>141 GB HBM3e</td>
+<td>4.8 TB/s</td>
+<td>50 MB</td>
+<td>9.0</td>
+<td>—</td>
+<td>Up to 700 W</td>
+</tr>
+<tr>
+<td>B200 SXM</td>
+<td>180 GB HBM3e</td>
+<td>Up to 8 TB/s</td>
+<td>126 MB</td>
+<td>10.0</td>
+<td>—</td>
+<td>Up to 1,000 W</td>
+</tr>
+</tbody>
+</table>
+<p>CC 12.0/10.0 compilation requires CUDA 12.8+. RTX 5090 memory correction is
+not the same enterprise reliability/support offering as RTX PRO or data-center
+ECC. L40S L2 is not stated on its product page; the full AD102/L40 figure
+must not be silently substituted.</p>
 <h3 id="primary-sources-for-the-table">Primary sources for the table<a class="headerlink" href="#primary-sources-for-the-table" title="Permanent link">¶</a></h3>
+<details>
+<summary>Open NVIDIA specification sources and qualifications</summary>
 <ul>
 <li>NVIDIA's <a href="https://developer.nvidia.com/cuda/gpus">CUDA GPU compute-capability list</a> maps RTX 5090 and RTX PRO 6000 Blackwell to CC 12.0, B200 to CC 10.0, H100/H200 to CC 9.0, RTX 4090/L40S to CC 8.9, and A100 to CC 8.0.</li>
 <li>NVIDIA's <a href="https://docs.nvidia.com/datacenter/tesla/drivers/cuda-toolkit-driver-and-architecture-matrix.html">CUDA architecture/toolkit matrix</a> lists first toolkit support and ongoing support; CUDA 12.8 added <code>sm_100</code>, <code>sm_101</code>, and <code>sm_120</code> compiler support.</li>
@@ -177,7 +194,12 @@ Status: initial hardware decision; validate with the benchmark gate below before
 <li>NVIDIA's <a href="https://docs.nvidia.com/enterprise-reference-architectures/hgx-ai-factory-h100-h200-b200/latest/components.html">HGX component table</a> specifies H100/H200/B200 capacity and bandwidth and a configurable limit up to 1 kW per GPU. The <a href="https://docs.nvidia.com/cuda/blackwell-tuning-guide/">Blackwell tuning guide</a> documents B200/GB200's 180 GB memory support and 126 MB L2.</li>
 <li>NVIDIA's <a href="https://docs.nvidia.com/deploy/a100-gpu-mem-error-mgmt/latest/595/overview.html">GPU memory-error management guide</a> documents HBM ECC correction and error-management behavior for Ampere, Hopper, and Blackwell data-center families.</li>
 </ul>
+</details>
 <h2 id="cost-and-availability-snapshot">Cost and availability snapshot<a class="headerlink" href="#cost-and-availability-snapshot" title="Permanent link">¶</a></h2>
+<p>Prices in the original assessment were regional, time-sensitive reference
+points. Compare the complete workstation or VM cost and measured work per hour.</p>
+<details>
+<summary>Read the historical pricing evidence</summary>
 <p>Prices are volatile, regional, and not directly comparable between a bare card and a complete cloud VM. The following are official reference points, not a purchasing quote:</p>
 <ul>
 <li>NVIDIA lists the RTX 5090 from <strong>$1,999</strong>. NVIDIA launched the RTX 4090 from <strong>$1,599</strong>, but its current official product page no longer provides a meaningful live purchase price. A used or already-owned 4090 can still be economical; a new project should not assume launch-price availability.</li>
@@ -186,105 +208,89 @@ Status: initial hardware decision; validate with the benchmark gate below before
 <li>AWS Capacity Blocks list examples of about <strong>$5.97 per H100-hour</strong> and <strong>$14.21–$14.80 per B200-hour</strong>, sold as eight-GPU blocks in the shown regions. These are suitable for bounded cross-GPU experiments, not evidence that either card is cost-effective for daily development. See <a href="https://aws.amazon.com/ec2/capacityblocks/pricing/">AWS Capacity Blocks pricing</a>.</li>
 </ul>
 <p><strong>Inference:</strong> local RTX 5090 ownership is the best development economics when the card remains well utilized. A cloud RTX PRO 6000 is an attractive way to validate the 96 GB path without buying a workstation card. H200/B200 rentals should be delayed until optimized kernels and a fixed benchmark harness exist, otherwise expensive time will mostly measure unfinished code.</p>
+</details>
 <h2 id="interpretation-for-this-project">Interpretation for this project<a class="headerlink" href="#interpretation-for-this-project" title="Permanent link">¶</a></h2>
-<h3 id="1-rtx-5090-versus-rtx-4090">1. RTX 5090 versus RTX 4090<a class="headerlink" href="#1-rtx-5090-versus-rtx-4090" title="Permanent link">¶</a></h3>
-<p><strong>Fact:</strong> RTX 5090 has 1.78 times the peak memory bandwidth, 33% more memory capacity, 33% more L2, and about 2.54 times the published peak non-Tensor INT32 rate.</p>
-<p><strong>Inference:</strong> it should be a materially better target for NTT, basis conversion, and key-switch kernels than RTX 4090. The actual speedup will be smaller or larger depending on whether the kernel is constrained by memory coalescing, extended-precision multiply chains, register pressure, or synchronization.</p>
-<p>The RTX 4090 remains useful as an Ada compatibility target and may be attractive if already owned. It should not be purchased as the project's primary new card without a major price advantage.</p>
-<h3 id="2-rtx-5090-versus-rtx-pro-6000-blackwell">2. RTX 5090 versus RTX PRO 6000 Blackwell<a class="headerlink" href="#2-rtx-5090-versus-rtx-pro-6000-blackwell" title="Permanent link">¶</a></h3>
-<p><strong>Fact:</strong> both have 1.792 TB/s peak memory bandwidth and CC 12.0. RTX PRO 6000 has 3 times the memory, 33% more L2, about 20% more published INT32 throughput, ECC positioning, and enterprise features.</p>
-<p><strong>Inference:</strong> for a kernel whose working set fits in 32 GB, the RTX PRO 6000 is unlikely to offer a performance increase proportional to its price. It becomes the better choice when evaluation-key caching, batching, or multiple contexts exceeds 32 GB, or when long-running production reliability/support matters more than acquisition cost.</p>
-<h3 id="3-rtx-5090-versus-a100h100h200b200">3. RTX 5090 versus A100/H100/H200/B200<a class="headerlink" href="#3-rtx-5090-versus-a100h100h200b200" title="Permanent link">¶</a></h3>
-<p><strong>Fact:</strong> the data-center GPUs offer larger ECC HBM and much more bandwidth: about 2.0 TB/s for A100, 3.35 TB/s for H100, 4.8 TB/s for H200, and up to 8 TB/s for B200. H100/H200/B200 also allow larger shared-memory allocations than CC 12.x RTX Blackwell: NVIDIA's <a href="https://docs.nvidia.com/cuda/blackwell-tuning-guide/#occupancy">Blackwell tuning guide</a> states 228 KB physical capacity and 227 KB maximum per block for CC 10.0, versus 128 KB physical capacity and 99 KB maximum per block for CC 12.0.</p>
-<p><strong>Fact:</strong> NVIDIA does not provide a current product-table value for native INT64 multiply throughput on any of them. Their headline FP8/FP16/INT8 Tensor performance does not measure our workload.</p>
-<p><strong>Inference:</strong> H200 or B200 may be best for a large-batch, memory-bandwidth-bound production service, especially when evaluation keys exceed 32/96 GB or multiple key sets must stay resident. Conversely, RTX 5090 can outperform older data-center GPUs in compute-bound <code>u32</code> work because its published non-Tensor INT32 peak is much higher. Only our modular-arithmetic microbenchmarks and end-to-end Hybrid key switching can settle the balance.</p>
-<h3 id="4-is-32-gb-enough">4. Is 32 GB enough?<a class="headerlink" href="#4-is-32-gb-enough" title="Permanent link">¶</a></h3>
-<p>For a single RNS polynomial, storage is approximately:</p>
-<pre><code class="language-text">bytes = ring_dimension * active_towers * 8
-</code></pre>
-<p>At <code>N = 65,536</code>, one polynomial with 40 towers is about 20 MiB. Ciphertext components alone therefore fit easily. Hybrid evaluation keys, QP temporaries, cached twiddle tables, concurrent ciphertexts, and model rotations can dominate the footprint.</p>
-<p><strong>Inference:</strong> 32 GB is likely sufficient for development and many single-request CKKS inference cases, but it must not be assumed sufficient for the final application. We should add peak device-memory measurement to the OpenFHE integration tests before deciding whether production needs 48, 80, 96, 141, or 180 GB.</p>
+<table>
+<thead>
+<tr>
+<th>Comparison</th>
+<th>Published difference</th>
+<th>What still needs measurement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5090 versus 4090</td>
+<td>1.78× bandwidth, 33% more VRAM/L2, about 2.54× INT32 peak</td>
+<td>Actual NTT and key-switch speedup</td>
+</tr>
+<tr>
+<td>PRO 6000 versus 5090</td>
+<td>Same bandwidth, 3× VRAM, 33% more L2, about 20% more INT32 peak</td>
+<td>Benefit from capacity, reliability, and batching</td>
+</tr>
+<tr>
+<td>H200/B200 versus RTX</td>
+<td>Larger HBM and higher bandwidth</td>
+<td>Modular arithmetic, cache behavior, and end-to-end cost</td>
+</tr>
+</tbody>
+</table>
+<p>At N=65536, a 40-tower polynomial uses <code>65536 × 40 × 8 = 20 MiB</code>.
+Evaluation keys, QP temporaries, twiddles, and concurrent ciphertexts can consume
+much more. Record peak memory with all keys resident before choosing capacity.</p>
 <h2 id="recommended-acquisition-strategy">Recommended acquisition strategy<a class="headerlink" href="#recommended-acquisition-strategy" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Primary local card:</strong> RTX 5090, if the machine can support its power and cooling requirements.</li>
-<li><strong>Compatibility card:</strong> retain or rent an RTX 4090/L40S to ensure <code>sm_89</code> remains correct and to quantify Blackwell-specific gains.</li>
-<li><strong>Production-capacity candidate:</strong> RTX PRO 6000 Blackwell if the measured resident set exceeds 28 GB or enterprise ECC/support is required.</li>
-<li><strong>Cloud benchmark candidates:</strong> one H200 and one B200 run after the optimized NTT and base-conversion kernels exist. A100/H100 are useful baselines but should not be assumed optimal for integer-heavy FHE.</li>
-<li><strong>Do not commit to a data-center platform</strong> until the same binaries, parameter set, and timing boundaries have been compared.</li>
+<li>Develop and tune on RTX 5090; check workstation power and cooling.</li>
+<li>Retain or rent RTX 4090 for cross-architecture correctness and timing.</li>
+<li>Evaluate RTX PRO 6000 if measured residency exceeds 28 GB or enterprise
+   reliability/support is required.</li>
+<li>Rent H200/B200 after the optimized kernels and fixed harness exist.</li>
 </ol>
 <h2 id="mandatory-cross-gpu-benchmark-gate">Mandatory cross-GPU benchmark gate<a class="headerlink" href="#mandatory-cross-gpu-benchmark-gate" title="Permanent link">¶</a></h2>
-<p>Run the same commit, CUDA version where possible, and fixed clocks/power policy. Record both median and p95 over enough iterations to remove startup effects.</p>
-<h3 id="arithmetic-microbenchmarks">Arithmetic microbenchmarks<a class="headerlink" href="#arithmetic-microbenchmarks" title="Permanent link">¶</a></h3>
-<ul>
-<li><code>u32</code> add/subtract and <code>mul.hi</code>/<code>mul.wide</code>;</li>
-<li><code>u64</code> add/subtract;</li>
-<li>64-by-64 low/high product using <code>__umul64hi</code>;</li>
-<li>Shoup multiplication for fixed twiddles;</li>
-<li>Barrett multiplication for variable operands;</li>
-<li>the current <code>__uint128_t % q</code> reference path;</li>
-<li>register count, spills, achieved occupancy, and instructions per result.</li>
-</ul>
-<h3 id="memory-and-ntt-tests">Memory and NTT tests<a class="headerlink" href="#memory-and-ntt-tests" title="Permanent link">¶</a></h3>
-<ul>
-<li>coalesced copy and strided gather bandwidth;</li>
-<li>L2-resident and DRAM-resident cases;</li>
-<li>shared-memory butterfly throughput;</li>
-<li>NTT forward/inverse for <code>N = 65,536</code>;</li>
-<li>active RNS tower counts representative of early and late CKKS levels;</li>
-<li>kernel-only latency and end-to-end latency separately.</li>
-</ul>
-<h3 id="base-conversion-and-hybrid-key-switching">Base conversion and Hybrid key switching<a class="headerlink" href="#base-conversion-and-hybrid-key-switching" title="Permanent link">¶</a></h3>
-<ul>
-<li>Q to QP and QP to Q conversion by level;</li>
-<li>digit decomposition;</li>
-<li>evaluation-key multiply-accumulate;</li>
-<li>relinearization and rotation;</li>
-<li>one request and increasing batch sizes;</li>
-<li>peak device memory with all required keys resident;</li>
-<li>exact equality against the pinned OpenFHE reference at every intermediate boundary.</li>
-</ul>
+<p>Run the same commit, parameters, and timing boundaries. Record toolkit, clocks,
+power policy, median, p95, and peak memory.</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Required cases</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Arithmetic</td>
+<td>u32/u64 add/subtract, high/low products, Shoup, Barrett, reference remainder; registers and spills</td>
+</tr>
+<tr>
+<td>Memory / NTT</td>
+<td>Coalesced copy, strided gather, L2/DRAM cases, forward/inverse at N=65536, realistic tower counts</td>
+</tr>
+<tr>
+<td>Hybrid</td>
+<td>ModUp, ModDown, decomposition, key MAC, relinearization, rotation; one request and batches</td>
+</tr>
+<tr>
+<td>Correctness</td>
+<td>Exact pinned-OpenFHE arrays at every intermediate boundary</td>
+</tr>
+</tbody>
+</table>
+<p>See the <a href="benchmark-tuning-plan.html">benchmark plan</a> for counters and result
+records. Keep kernel-only and transfer-inclusive timing separate.</p>
 <h3 id="selection-rule">Selection rule<a class="headerlink" href="#selection-rule" title="Permanent link">¶</a></h3>
-<ul>
-<li>If RTX 5090 fits the complete resident set and is within 15% of the fastest tested card end to end, keep it as the primary platform.</li>
-<li>If 32 GB is the only blocker, compare RTX PRO 6000 against H200 rental cost and deployment constraints.</li>
-<li>If H200/B200 gains track memory bandwidth, prioritize memory-layout and batching work before changing the arithmetic design.</li>
-<li>If gains track modular-multiply throughput, specialize arithmetic and dispatch by compute capability.</li>
-<li>Publish measured results; do not rank cards using FP8/FP16 Tensor TOPS.</li>
-</ul>
+<p>Keep RTX 5090 as primary if the complete resident set fits and its end-to-end
+latency is within 15% of the fastest tested card. If only capacity blocks it,
+compare RTX PRO 6000 with H200 rental and deployment costs. Use profiling to
+separate memory-layout limits from modular-multiply limits before redesigning
+arithmetic or selecting hardware.</p>
 <h2 id="bottom-line">Bottom line<a class="headerlink" href="#bottom-line" title="Permanent link">¶</a></h2>
-<p>Your teammate is correct that much of RTX 5090 marketing emphasizes FP4/FP8/FP16 AI. That does <strong>not</strong> make the card unsuitable for FHE. RTX 5090 also has a very large general-purpose CUDA engine, a published 104.8 non-Tensor INT32 TOPS peak, high GDDR7 bandwidth, and a large L2 cache. For this project's current development stage, it is the best-balanced target.</p>
-<p>The caveat is <code>u64</code>: NVIDIA does not publish enough information to declare any card the winner from specifications. We should choose RTX 5090 now, keep the arithmetic layer portable, and require the benchmark gate before selecting the production GPU.</p></article></div><aside class="site-on-this-page" aria-label="On this page"><p>On this page</p><div class="toc">
-<ul>
-<li><a href="#decision">Decision</a></li>
-<li><a href="#why-fp8-and-fp16-marketing-does-not-answer-our-question">Why FP8 and FP16 marketing does not answer our question</a></li>
-<li><a href="#official-specification-comparison">Official specification comparison</a><ul>
-<li><a href="#primary-sources-for-the-table">Primary sources for the table</a></li>
-</ul>
-</li>
-<li><a href="#cost-and-availability-snapshot">Cost and availability snapshot</a></li>
-<li><a href="#interpretation-for-this-project">Interpretation for this project</a><ul>
-<li><a href="#1-rtx-5090-versus-rtx-4090">1. RTX 5090 versus RTX 4090</a></li>
-<li><a href="#2-rtx-5090-versus-rtx-pro-6000-blackwell">2. RTX 5090 versus RTX PRO 6000 Blackwell</a></li>
-<li><a href="#3-rtx-5090-versus-a100h100h200b200">3. RTX 5090 versus A100/H100/H200/B200</a></li>
-<li><a href="#4-is-32-gb-enough">4. Is 32 GB enough?</a></li>
-</ul>
-</li>
-<li><a href="#recommended-acquisition-strategy">Recommended acquisition strategy</a></li>
-<li><a href="#mandatory-cross-gpu-benchmark-gate">Mandatory cross-GPU benchmark gate</a><ul>
-<li><a href="#arithmetic-microbenchmarks">Arithmetic microbenchmarks</a></li>
-<li><a href="#memory-and-ntt-tests">Memory and NTT tests</a></li>
-<li><a href="#base-conversion-and-hybrid-key-switching">Base conversion and Hybrid key switching</a></li>
-<li><a href="#selection-rule">Selection rule</a></li>
-</ul>
-</li>
-<li><a href="#bottom-line">Bottom line</a></li>
-</ul>
-</div>
-</aside>
+<p>RTX 5090 is the development choice. Production hardware remains an open,
+measured decision; FP8/FP16 Tensor figures do not settle it.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#decision">Decision</a></li><li><a href="#why-fp8-and-fp16-marketing-does-not-answer-our-question">Why FP8 and FP16 marketing does not answer our question</a></li><li><a href="#official-specification-comparison">Official specification comparison</a></li><li><a href="#cost-and-availability-snapshot">Cost and availability snapshot</a></li><li><a href="#interpretation-for-this-project">Interpretation for this project</a></li><li><a href="#recommended-acquisition-strategy">Recommended acquisition strategy</a></li><li><a href="#mandatory-cross-gpu-benchmark-gate">Mandatory cross-GPU benchmark gate</a></li><li><a href="#bottom-line">Bottom line</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a578e7ae32a4caf029fb93098a6e0514416efd99">a578e7a</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8">8aa94c3</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

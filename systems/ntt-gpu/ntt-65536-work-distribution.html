@@ -110,40 +110,41 @@
   <header class="site-topbar">
     <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
     <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Learn</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/docs/ntt-65536-work-distribution.html">View source ↗</a></div>
-    <div class="site-reading-layout site-wide">
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/docs/ntt-65536-work-distribution.html">View source ↗</a></div>
+    <div class="site-reading-layout">
       <div class="site-page-content"><div class="site-legacy">
 <div class="ntt-lesson" id="ntt65536-distribution">
   <header>
     <p class="eyebrow">CUDA execution · a worked example</p>
-    <h1>One polynomial.<br>Two passes. Many threads.</h1>
-    <p class="lede">See how our 65536-point forward NTT distributes data and butterflies. Start with what a block owns, then zoom into what a thread does.</p>
+    <h1>How 65,536 coefficients<br>map to GPU threads.</h1>
+    <p class="lede">One forward NTT uses two passes. Each block owns a column or row; each active thread computes a butterfly. Use the explorer to follow its indices and twiddles.</p>
     <div class="reading-path" aria-label="Execution hierarchy"><span>Polynomial</span><span>→</span><span>Pass</span><span>→</span><span>Block</span><span>→</span><span>Thread</span></div>
     <nav class="jump-links" aria-label="On this page"><a href="#whole-job">The whole job</a><a href="#two-passes">The two passes</a><a href="#larger-polynomial">Resources &amp; memory access</a><a href="#column-proof">Indices &amp; twiddle proof</a><a href="#explore">Explore a thread</a><a href="#synchronization">Synchronization &amp; RNS</a></nav>
   </header>
 
   <section id="whole-job">
-    <div class="section-title"><span class="section-number">01</span><h2>Start with the data</h2></div>
-    <p>Consider one polynomial modulo one prime: <code>a[0], a[1], …, a[65535]</code>. Each residue is an unsigned 64-bit integer. The flat array occupies 512 KiB.</p>
+    <div class="section-title"><span class="section-number">01</span><h2 id="start-with-the-data">Start with the data</h2></div>
+    <p>Consider one polynomial modulo one prime: <code>a[0], a[1], …, a[65535]</code>. Each residue uses 8 bytes, so one RNS limb occupies 512 KiB.</p>
     <div class="facts"><div><strong>65536</strong><span>coefficients per modulus</span></div><div><strong>16</strong><span>stages · 32768 butterflies each</span></div><div><strong>524,288</strong><span>butterflies · two kernel launches</span></div></div>
-    <p>Imagine the same array as <strong>256 rows × 256 columns</strong>. This is only a way to read the indices—we do not allocate a matrix or transpose the array.</p>
+    <p>Imagine the same array as <strong>256 rows × 256 columns</strong>. This is an index view; the stored array stays flat.</p>
     <div class="layout-rule"><code>global_index = row × 256 + column</code></div>
   </section>
 
   <section id="two-passes">
-    <div class="section-title"><span class="section-number">02</span><h2>Divide the work by distance</h2></div>
+    <div class="section-title"><span class="section-number">02</span><h2 id="divide-the-work-by-distance">Divide the work by distance</h2></div>
     <div class="pass-grid">
       <article class="pass"><div class="pass-label">Pass 1 · far stages</div><h3>One block owns one column</h3><span class="distances mono">32768 → 16384 → 8192 → 4096 → 2048 → 1024 → 512 → 256</span><p>These distances preserve the index modulo 256. Each block gathers 256 strided values into shared memory, executes eight stages, and scatters the results back.</p><p>256 blocks per modulus. Every block launches 256 threads: 256 load/store values; 128 compute butterflies at each stage.</p><small class="mono">256 values · 2 KiB shared memory / block</small></article>
       <article class="pass"><div class="pass-label">Pass 2 · near stages</div><h3>One block owns one row</h3><span class="distances mono">128 → 64 → 32 → 16 → 8 → 4 → 2 → 1</span><p>These butterflies stay inside an aligned 256-value row. Each block loads its contiguous row into shared memory, executes eight stages, and writes it back.</p><p>256 blocks per modulus. All 256 threads load/store values; 128 compute butterflies at each stage.</p><small class="mono">256 values · 2 KiB shared memory / block</small></article>
     </div>
-    <p class="note">These are stages of <strong>one 65536-point transform</strong>, using its twiddle factors—not independent smaller NTTs. This page shows our current baseline schedule, including its inactive threads.</p>
+    <p class="note">Both passes use twiddles from the <strong>same 65536-point transform</strong>. Threads 128–255 still load, store, and reach every barrier, even when they have no butterfly.</p>
   </section>
 
   <section id="larger-polynomial">
-    <div class="section-title"><span class="section-number">03</span><h2>Resources &amp; memory access</h2></div>
+    <div class="section-title"><span class="section-number">03</span><h2 id="resources-memory-access">Resources &amp; memory access</h2></div>
     <p>The split width is 256: <strong>256 rows × 256 columns</strong>. Each column and each row contains 256 values. The algorithm uses two launches, each handling eight stages.</p>
     <div class="matrix-scroll"><table><caption>Forward schedule per modulus · all blocks launch 256 threads</caption><thead><tr><th scope="col">Task / resource</th><th scope="col">N = 65536</th></tr></thead><tbody>
       <tr><th scope="row">Polynomial storage</th><td>512 KiB</td></tr>
@@ -161,11 +162,11 @@
     <h3 style="margin-top:24px">Read the memory access map</h3>
     <p>In pass 1, adjacent loading threads access global addresses <strong>2048 bytes apart</strong> (256 × 8 bytes), but write adjacent 8-byte entries in shared memory. The scatter reverses this mapping. In pass 2, adjacent threads read and write adjacent 8-byte global entries. Each block loads once, reuses shared memory across all its stages, and stores once.</p>
     <p class="note">Two reads and two writes of the value array give a logical minimum of 4 × N × 8 bytes per forward transform: 2 MiB at N=65536, excluding twiddle/modulus reads and host transfers. This is requested array traffic, <strong>not measured DRAM traffic</strong>. Strided accesses, caches, registers, and occupancy need real-GPU profiling; 128 active butterfly threads out of 256 is not a hardware occupancy measurement.</p>
-    <p class="note">Source map: <a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/src/cuda/ntt_kernels.cu">CUDA kernels and launchers</a> define the grid and gather/scatter; <a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/include/ntt/dev_core.hpp">stage helpers</a> map threads to pairs. For N=65536, the gather uses <code>r + 256 × local_index</code>; near-stage access uses <code>row × 256 + local_index</code>. Within each stage, every position belongs to exactly one butterfly.</p>
+    <p class="note">Source map: <a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/src/cuda/ntt_kernels.cu">CUDA kernels and launchers</a> define the grid and gather/scatter; <a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/include/ntt/dev_core.hpp">stage helpers</a> map threads to pairs. For N=65536, the gather uses <code>r + 256 × local_index</code>; near-stage access uses <code>row × 256 + local_index</code>. Within each stage, every position belongs to exactly one butterfly.</p>
   </section>
 
   <section id="column-proof">
-    <div class="section-title"><span class="section-number">04 · D2</span><h2>Why these inputs and twiddles?</h2></div>
+    <div class="section-title"><span class="section-number">04 · D2</span><h2 id="why-these-inputs-and-twiddles">Why these inputs and twiddles?</h2></div>
     <p>Our forward butterfly has <strong>two multipliers</strong>. Let ψ be the primitive 2N-th root modulo the current prime q. The ladder multiplier is <code>c = ψ^d</code>; the difference-leg multiplier is <code>w = ψ^E</code>. Both are powers from the global transform, not a smaller column NTT.</p>
     <pre class="derivation">a = values[U]; b = values[V]
 values[U] = a + c × b                 (mod q)
@@ -200,7 +201,7 @@ w = ψ^E</pre>
       <tr><td>65536</td><td>256 / 1</td><td>5</td><td>5 / 0</td><td>2563 ↔ 2819</td><td>3</td><td>768</td></tr>
     </tbody></table></div>
     <h3 style="margin-top:24px">5. An exhaustive executable check</h3>
-    <p><a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/tests/column_mapping_tests.cpp">column_mapping_tests.cpp</a> enumerates every CPU group/offset in every column stage at N=65536. It executes the actual <code>dev_dif_col_stage</code> body with synthetic tagged power tables. An upper-input probe reveals the selected w exponent; a lower-input probe checks the ladder and both destinations. Whole-column comparisons catch unintended writes. The test also checks unique coverage and every inactive thread.</p>
+    <p><a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/tests/column_mapping_tests.cpp">column_mapping_tests.cpp</a> enumerates every CPU group/offset in every column stage at N=65536. It executes the actual <code>dev_dif_col_stage</code> body with synthetic tagged power tables. An upper-input probe reveals the selected w exponent; a lower-input probe checks the ladder and both destinations. Whole-column comparisons catch unintended writes. The test also checks unique coverage and every inactive thread.</p>
     <p class="note">There are 262,144 column butterflies at N=65536: <strong>262,144 pairs and 524,288 active-pair probes</strong>. Tagged tables are diagnostic values, not valid root powers. The separate schedule gate checks real-root forward arrays, round trips, and multiplication. Both checks run on CPU; neither validates CUDA launch behavior or GPU races.</p>
     <pre class="derivation">cmake -S . -B build
 cmake --build build --target ntt_column_mapping_tests ntt_device_sim
@@ -208,7 +209,7 @@ ctest --test-dir build -R 'column_mapping_check|device_schedule_check' --output-
   </section>
 
   <section id="explore">
-    <div class="section-title"><span class="section-number">05</span><h2>Follow one thread</h2></div>
+    <div class="section-title"><span class="section-number">05</span><h2 id="follow-one-thread">Follow one thread</h2></div>
     <p>An active thread computes one butterfly per stage and writes both results to shared memory. <strong>Its pair changes with the stage.</strong> Loading a value and computing a butterfly are separate assignments; a thread does not permanently own one coefficient.</p>
     <p class="note">Keep block 3 and thread 5. Try distances 32768, 128, then 1. Try thread 200 to see the difference between load/store work and butterfly work.</p>
     <div class="explorer">
@@ -230,11 +231,11 @@ ctest --test-dir build -R 'column_mapping_check|device_schedule_check' --output-
   </section>
 
   <section id="synchronization">
-    <div class="section-title"><span class="section-number">06</span><h2>What keeps the work ordered?</h2></div>
+    <div class="section-title"><span class="section-number">06</span><h2 id="what-keeps-the-work-ordered">What keeps the work ordered?</h2></div>
     <div class="sync-list"><div><h3>Inside a block</h3><p>All 256 threads reach <code>__syncthreads()</code> after loading and after each stage—even threads without a butterfly. This barrier synchronizes only that block.</p></div><div><h3>Between the passes</h3><p>The kernels use the same CUDA stream, so pass 2 starts after pass 1 finishes. Blocks within a pass are independent; SM scheduling does not guarantee they all execute simultaneously.</p></div></div>
     <p>For CKKS with multiple RNS primes, repeat this arrangement per limb. Storage is limb-major: <code>values[limb × N + index]</code>. <code>blockIdx.y</code> selects the limb; <code>blockIdx.x</code> selects the column in pass 1 or the row in pass 2.</p>
   </section>
-  <p class="closing">The mental model: <strong>a block owns a data subset; a thread computes a butterfly within it at each stage.</strong></p>
+  <p class="closing"><strong>A block owns a row or column. A thread computes a different pair at each stage.</strong></p>
 </div>
 <script>
 (() => {
@@ -341,11 +342,11 @@ ctest --test-dir build -R 'column_mapping_check|device_schedule_check' --output-
   buildStages(); render();
 })();
 </script>
-</div></div>
+</div></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#start-with-the-data">Start with the data</a></li><li><a href="#divide-the-work-by-distance">Divide the work by distance</a></li><li><a href="#resources-memory-access">Resources &amp; memory access</a></li><li><a href="#why-these-inputs-and-twiddles">Why these inputs and twiddles?</a></li><li><a href="#follow-one-thread">Follow one thread</a></li><li><a href="#what-keeps-the-work-ordered">What keeps the work ordered?</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a578e7ae32a4caf029fb93098a6e0514416efd99">a578e7a</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8">8aa94c3</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
