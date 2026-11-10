@@ -22,7 +22,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
   <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-4096-work-distribution.html">4096 &amp; 65536: work distribution</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
 </aside>
@@ -42,6 +42,11 @@ Follow the project one entry at a time.</p></div>
 <div class="site-journal-explainer">Calendar entries track the work. Roadmap working days track deliverables.
 Entries reconstructed from history are labeled in their articles.</div>
 <div class="site-journal-list">
+<a class="site-entry-card" href="journal/2026-11-10.html">
+  <div class="site-entry-meta"><time datetime="2026-11-10">10 Nov 2026</time><span>P1 / D3</span></div>
+  <h3>Standardize the polynomial workload at 65536</h3><p>Remove the 4096 workload from the interactive lessons, defaults, and implementation gates.</p>
+  <span class="site-entry-link">Read the entry <span aria-hidden="true">↗</span></span>
+</a>
 <a class="site-entry-card" href="journal/2026-11-09.html">
   <div class="site-entry-meta"><time datetime="2026-11-09">09 Nov 2026</time><span>P1 / D1 → D3</span></div>
   <h3>Make the 4096-point CUDA schedule tangible</h3><p>Added an interactive explanation of polynomial layout and block/thread ownership.</p>
@@ -70,7 +75,7 @@ Entries reconstructed from history are labeled in their articles.</div>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/405b73328cdc63b590ba19895bac07f67c22371f">405b733</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a578e7ae32a4caf029fb93098a6e0514416efd99">a578e7a</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

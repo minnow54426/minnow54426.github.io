@@ -22,7 +22,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
   <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-4096-work-distribution.html">4096 &amp; 65536: work distribution</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html" aria-current="page">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html" aria-current="page">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
 </aside>
@@ -33,11 +33,11 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/405b73328cdc63b590ba19895bac07f67c22371f/docs/gpu-ntt-survey.md">View source ↗</a></div>
+    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/docs/gpu-ntt-survey.md">View source ↗</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="gpu-ntt-survey-for-ckks-hybrid-key-switching-openfhe-and-rtx-5090">GPU NTT survey for CKKS, Hybrid key switching, OpenFHE, and RTX 5090<a class="headerlink" href="#gpu-ntt-survey-for-ckks-hybrid-key-switching-openfhe-and-rtx-5090" title="Permanent link">¶</a></h1>
 <p><strong>Date:</strong> 2026-11-05<br>
-<strong>Project target:</strong> CKKS, OpenFHE 1.6.1, Hybrid RNS key switching, NVIDIA RTX 5090 (<code>sm_120</code>), ring dimensions <code>4096..65536</code><br>
+<strong>Project target:</strong> CKKS, OpenFHE 1.6.1, Hybrid RNS key switching, NVIDIA RTX 5090 (<code>sm_120</code>), ring dimension <code>65536</code><br>
 <strong>Current repository revision inspected:</strong> <code>363f972</code><br>
 <strong>Evidence policy:</strong> implementation facts below come only from author papers, official repositories/source code, or NVIDIA documentation. Recommendations and inferences are explicitly labelled.</p>
 <h2 id="executive-conclusions">Executive conclusions<a class="headerlink" href="#executive-conclusions" title="Permanent link">¶</a></h2>
@@ -64,7 +64,7 @@
 <li>Device multiplication is currently <code>(__uint128_t(a) * b) % q</code>.</li>
 <li>CPU simulation shares the exact stage bodies with CUDA, and CUDA tests compare exact arrays to a CPU reference and Python big-integer oracle.</li>
 </ul>
-<p>Primary code: <a href="https://github.com/minnow54426/ntt-gpu/blob/405b73328cdc63b590ba19895bac07f67c22371f/src/cuda/ntt_kernels.cu"><code>ntt_kernels.cu</code></a>, <a href="https://github.com/minnow54426/ntt-gpu/blob/405b73328cdc63b590ba19895bac07f67c22371f/include/ntt/dev_core.hpp"><code>dev_core.hpp</code></a>, <a href="https://github.com/minnow54426/ntt-gpu/blob/405b73328cdc63b590ba19895bac07f67c22371f/include/ntt/mod_arith.hpp"><code>mod_arith.hpp</code></a>, and <a href="https://github.com/minnow54426/ntt-gpu/blob/405b73328cdc63b590ba19895bac07f67c22371f/include/ntt/cuda_ntt.hpp"><code>cuda_ntt.hpp</code></a>.</p>
+<p>Primary code: <a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/src/cuda/ntt_kernels.cu"><code>ntt_kernels.cu</code></a>, <a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/include/ntt/dev_core.hpp"><code>dev_core.hpp</code></a>, <a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/include/ntt/mod_arith.hpp"><code>mod_arith.hpp</code></a>, and <a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/include/ntt/cuda_ntt.hpp"><code>cuda_ntt.hpp</code></a>.</p>
 <h3 id="12-strengths-worth-retaining">1.2 Strengths worth retaining<a class="headerlink" href="#12-strengths-worth-retaining" title="Permanent link">¶</a></h3>
 <p><strong>Recommendation/inference:</strong> keep these properties through optimization:</p>
 <ul>
@@ -82,7 +82,7 @@
 <p><strong>Repository fact:</strong> the tile and column kernels fetch twiddles from a full global table inside each stage, and synchronize the whole block after every radix-2 stage.</p>
 <p><strong>Recommendation/inference:</strong> stage-major twiddle packing, precomputed Shoup quotients, register-held radix-4/8 work, warp shuffles for the smallest distances, and padded shared-memory exchange are the highest-value inner-kernel experiments.</p>
 <p><strong>Repository fact:</strong> every transform uses 256 threads and a 256-way split, independent of <code>N</code>, modulus count, register pressure, shared-memory use, and GPU architecture.</p>
-<p><strong>Recommendation/inference:</strong> replace the single hard-coded shape with a small, benchmarked dispatch table for <code>N = 2^12..2^16</code> and for low/high tower counts. Compile-time specialization for five supported sizes is reasonable and permits unrolling and constant launch geometry.</p>
+<p><strong>Recommendation/inference:</strong> replace the single hard-coded shape with a small, benchmarked dispatch table for <code>N = 2^16</code> and for low/high tower counts. Compile-time specialization for the target size is reasonable and permits unrolling and constant launch geometry.</p>
 <p><strong>Repository fact:</strong> the public interface accepts host <code>std::vector</code> objects and uses synchronous <code>cudaMemcpy</code>; it has no stream, device-buffer, external allocator, or graph-capture contract.</p>
 <p><strong>Recommendation/inference:</strong> retain this API as a convenience/reference facade, but add a device-resident API before OpenFHE integration. Otherwise host transfers and forced synchronization will erase key-switch gains.</p>
 <h2 id="2-representative-implementations-and-transferable-techniques">2. Representative implementations and transferable techniques<a class="headerlink" href="#2-representative-implementations-and-transferable-techniques" title="Permanent link">¶</a></h2>
@@ -254,7 +254,7 @@
 <ol>
 <li>Arithmetic primitive versus <code>__uint128_t % q</code>, including adversarial bounds and every OpenFHE modulus.</li>
 <li>Butterfly and single-stage exact tests for CT/DIF and GS/DIT, including lazy-range invariants.</li>
-<li>Complete forward/inverse exact equality against the existing CPU and Python oracle for every <code>N</code> in <code>{4096, 8192, 16384, 32768, 65536}</code>.</li>
+<li>Complete forward/inverse exact equality against the existing CPU and Python oracle for every <code>N</code> in <code>{65536}</code>.</li>
 <li>RNS batches across realistic CKKS tower counts, not only three limbs.</li>
 <li>Negacyclic polynomial multiplication exact equality.</li>
 <li>Basis conversion exact equality to the pinned OpenFHE 1.6.1 implementation.</li>
@@ -293,7 +293,7 @@
 </ul>
 <h3 id="p1-first-competitive-ntt">P1: first competitive NTT<a class="headerlink" href="#p1-first-competitive-ntt" title="Permanent link">¶</a></h3>
 <ul>
-<li>Implement per-size compile-time dispatch for <code>2^12..2^16</code>.</li>
+<li>Implement per-size compile-time dispatch for <code>2^16</code>.</li>
 <li>Implement radix-4/8 register staging with padded shared memory.</li>
 <li>Pack stage-major twiddle and Shoup tables.</li>
 <li>Prototype a coalesced transpose/Four-Step alternative to the strided column pass.</li>
@@ -413,7 +413,7 @@ acceptance gates are defined in
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/405b73328cdc63b590ba19895bac07f67c22371f">405b733</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a578e7ae32a4caf029fb93098a6e0514416efd99">a578e7a</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

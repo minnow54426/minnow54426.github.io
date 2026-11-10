@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Remove the 4096 workload from the interactive lessons, defaults, and implementation gates.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal/2026-11-10.html">
+<title>Standardize the polynomial workload at 65536 · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="../vendor/katex/katex.min.css">
+<script defer src="../vendor/katex/katex.min.js"></script>
+<script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="../math-rendering.js"></script>
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../search-index.js"></script>
+<script defer src="../assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="../search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
+  <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="../index.html">Notebook</a><span>/</span>Daily journal</div>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/a578e7ae32a4caf029fb93098a6e0514416efd99/docs/journal/2026-11-10.md">View source ↗</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-10">2026-11-10</time><span>P1 / D3</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="standardize-the-polynomial-workload-at-65536">Standardize the polynomial workload at 65536<a class="headerlink" href="#standardize-the-polynomial-workload-at-65536" title="Permanent link">¶</a></h1>
+<h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
+<p>The project workload is now N=65536. The work-distribution lesson has one
+fixed size, with 256 rows and columns, 16 stages, 524,288 butterflies, and
+512 KiB per limb. Both passes launch 256 blocks per limb and use 2 KiB
+of shared memory per block. Requested value-array traffic is 2 MiB per forward.</p>
+<h2 id="reasoning">Reasoning<a class="headerlink" href="#reasoning" title="Permanent link">¶</a></h2>
+<p>The user requested removal of the 4096 polynomial and consistent 65536 examples
+across HTML and implementations. Small teaching examples and the N=64/1024
+correctness fixtures remain: the latter exercise boundary schedules and keep
+the independent quadratic Python oracle and schoolbook product practical.
+The general transform APIs still accept power-of-two lengths.
+Historical notebook observations and cited research ranges remain historical.</p>
+<h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
+<ul>
+<li>Renamed the <a href="../ntt-65536-work-distribution.html">work-distribution lesson</a>,
+  updated links and navigation, removed the size selector and comparison column,
+  and corrected the memory, launch, and column-proof counts.</li>
+<li>Aligned the butterfly and GPU explainers, site shell, current project scope,
+  benchmark plan, and integration plan to N=65536.</li>
+<li>Removed the 4096 CTest fixture. CUDA comparisons and verification now use the
+  65536 fixture. The column mapping and optional OpenFHE compatibility gates
+  target 65536. Vector generation defaults to 65536; CMake explicitly requests
+  1024 for the quadratic oracle.</li>
+<li>CUDA CLI and AutoDL benchmarks default to exponent 16 only. Explicit benchmark
+  arguments can still explore other lengths.</li>
+</ul>
+<h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
+<ul>
+<li>Release C++ build with GCC 14.2 and warnings as errors: all 8 portable CTest
+  checks passed, including the N=65536 schedule and column-mapping checks.</li>
+<li>Documentation: all 15 Python unit tests passed; <code>build_docs.py --check</code>
+  built 18 pages and validated local links and fragments.</li>
+<li>Explorer: all 3 Node tests passed, covering all 16 stages, boundary selections,
+  inactive threads, twiddle exponents, and exhaustive per-stage index coverage.</li>
+<li>Default vector generation produced N=65536, byte-identical to the explicitly
+  sized deterministic fixture. AutoDL shell syntax validation passed.</li>
+<li>Chromium/Playwright checked all three interactive HTML lessons at 1440px and
+  375px. No horizontal page overflow or JavaScript errors occurred. The explorer
+  selected 1283/34051 initially, 773/901 at distance 128, and 65534/65535 at
+  the final row/stage. The cost widget initialized at 65,536 and 4,294,967,296
+  direct products. Desktop/mobile explorer screenshots were visually inspected.</li>
+<li>No CUDA compiler or OpenFHE installation was present. Those native gates were
+  not run; all implementation execution reported above was on CPU.</li>
+</ul>
+<h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">¶</a></h2>
+<p>Native CUDA and OpenFHE checks depend on their respective toolkit and library.
+CPU simulation does not establish GPU launch or synchronization correctness.</p>
+<h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
+<p>Continue the inverse-column correspondence proof at N=65536; no roadmap gate
+advances solely because the workload scope changed.</p></article></div><aside class="site-on-this-page" aria-label="On this page"><p>On this page</p><div class="toc">
+<ul>
+<li><a href="#outcome">Outcome</a></li>
+<li><a href="#reasoning">Reasoning</a></li>
+<li><a href="#changes">Changes</a></li>
+<li><a href="#verification">Verification</a></li>
+<li><a href="#open-questions">Open questions</a></li>
+<li><a href="#next-step">Next step</a></li>
+</ul>
+</div>
+</aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a578e7ae32a4caf029fb93098a6e0514416efd99">a578e7a</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>
