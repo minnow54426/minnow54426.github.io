@@ -70,7 +70,17 @@ Edit NTT-GPU source documents rather than the generated website copy.
 
 ## Deployment
 
-The site is automatically deployed to GitHub Pages when changes are pushed to the `main` branch.
+The `Deploy to GitHub Pages` workflow publishes pushes to `main` and can also
+be started manually from Actions.
+
+In **Settings → Pages → Build and deployment**, set **Source → GitHub Actions**.
+Branch-based publishing must be disabled: running the legacy branch publisher
+alongside this workflow creates competing Pages deployments. The workflow
+checks this setting before uploading and gives an actionable error if it drifts.
+
+The workflow uses Node 24 actions, uploads the complete static website, and
+deploys the resulting artifact. Publishing is complete only after the deployment
+succeeds and the public page shows the new revision.
 
 ```bash
 # Make changes locally
@@ -81,7 +91,7 @@ git add .
 git commit -m "Description of changes"
 git push origin main
 
-# Site updates in 1-2 minutes at https://minnow54426.github.io/
+# Check the Deploy to GitHub Pages run, then verify https://minnow54426.github.io/
 ```
 
 ## License
