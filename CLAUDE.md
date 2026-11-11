@@ -16,9 +16,9 @@ historical theme and gallery descriptions below:
   Legacy jQuery/Poptrox assets are retained on disk but no longer loaded.
 - Painting folder headers are real disclosure buttons with aria-expanded and
   inert collapsed content. Preserve the IDs used by the existing video script.
-- The 22 NTT pages are generated from `/workspace/ntt-gpu` source. Change the
+- The 23 NTT pages are generated from `/workspace/ntt-gpu` source. Change the
   source articles and `docs/site-assets`, then export; do not edit generated HTML.
-- Review all 41 pages at desktop and phone widths. The publication workflow
+- Review all 42 pages at desktop and phone widths. The publication workflow
   and existing media assets remain in place.
 
 ---

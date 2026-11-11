@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="D8: exact digit extension, Q/P tower addressing, key MAC, ModDown, delayed operations, and full-size OpenFHE checks.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/openfhe-hybrid-operation-graph.html">
+<title>Hybrid operation graph · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html" aria-current="page">Hybrid operation graph</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Learn</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/12ce1e1ed49d9bca10dd0ca65b46b08f97758c5b/docs/openfhe-hybrid-operation-graph.md">View source</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><article class="site-article"><h1 id="openfhe-hybrid-key-switching-the-exact-operation-graph">OpenFHE Hybrid key switching: the exact operation graph<a class="headerlink" href="#openfhe-hybrid-key-switching-the-exact-operation-graph" title="Permanent link">¶</a></h1>
+<p>D8 traces <strong>OpenFHE 1.6.1</strong>, commit
+<code>b59e1f291965f14fbee5172cd83a20f5b856204f</code>, with <strong>N=65536</strong> and the
+64-bit NativeInteger backend. It fixes the sequence of representation changes,
+CRT representatives, key addressing, accumulation, and reduction that a future
+backend must preserve. Read the <a href="openfhe-representation-contract.html">D7 representation contract</a>
+for the NTT's exact array order.</p>
+<p>The executable evidence is <a href="https://github.com/minnow54426/ntt-gpu/blob/12ce1e1ed49d9bca10dd0ca65b46b08f97758c5b/tests/openfhe_hybrid_tests.cpp">openfhe_hybrid_tests.cpp</a>.
+It calls the actual OpenFHE PKE library and compares complete arrays with an
+independent unreduced-CRT formula and scalar arithmetic. These are CPU results.</p>
+<h2 id="1-read-the-complete-path">1. Read the complete path<a class="headerlink" href="#1-read-the-complete-path" title="Permanent link">¶</a></h2>
+<p>The ordinary path starts at <code>KeySwitchCore(c,key)</code>. Its output is two
+<strong>contributions</strong> in the active Q basis, ordered <strong>B first, A second</strong>.
+The ciphertext wrapper decides how to combine them with existing components.</p>
+<ol class="site-plan">
+<li><strong>Split the active Q towers</strong><span>Contiguous groups of up to α towers form the digits. Keep their original evaluation arrays.</span></li>
+<li><strong>Convert each digit to coefficients</strong><span>Inverse NTT only the towers in that digit.</span></li>
+<li><strong>Extend to its complement</strong><span>Approximate CRT produces coefficients in every other active Q tower and every P tower.</span></li>
+<li><strong>Return the complement to evaluations</strong><span>Forward NTT those new towers, then stitch them around the saved original digit towers.</span></li>
+<li><strong>Multiply and accumulate in QlP</strong><span>All digits contribute to two evaluation arrays, using the B and A key vectors.</span></li>
+<li><strong>Reduce each accumulated result</strong><span>Inverse NTT its P towers, approximate-switch P to active Q, forward NTT the correction, subtract, and multiply by the inverse of P.</span></li>
+<li><strong>Update the ciphertext</strong><span>Add the first contribution to c0; add or replace c1 according to the caller.</span></li>
+</ol>
+
+<p>The implementation has no general coefficient-domain round trip of all QlP
+towers. It preserves the original digit evaluations during extension and
+leaves Q evaluations intact during ModDown.</p>
+<h2 id="2-names-levels-and-tower-order">2. Names, levels, and tower order<a class="headerlink" href="#2-names-levels-and-tower-order" title="Permanent link">¶</a></h2>
+<p>Let M be the full context's Q-tower count, L the current ciphertext's active
+Q-tower count, K the P-tower count, and D the configured large-digit count.
+The active basis is an ordered prefix of Q:</p>
+<p><span class="site-math">\[
+Q_\ell=\prod_{i=0}^{L-1}q_i,\qquad
+P=\prod_{j=0}^{K-1}p_j,\qquad
+\alpha=\left\lceil\frac{M}{D}\right\rceil,\qquad
+\beta_\ell=\left\lceil\frac{L}{\alpha}\right\rceil.
+\]</span></p>
+<p>The source also caps the active digit count at the configured partition count.
+For valid active prefixes this does not alter the formula above. <strong>α belongs
+to the full context; do not recompute it from L.</strong> The last active digit may
+be shorter than α, including when only part of the first digit remains.</p>
+<table>
+<thead>
+<tr>
+<th>Object</th>
+<th>Tower order</th>
+<th>Representation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input component</td>
+<td>q₀ … qₗ₋₁</td>
+<td>Evaluation, bit-reversed within each tower</td>
+</tr>
+<tr>
+<td>Digit d's source</td>
+<td>q at indices dα … min((d+1)α,L)−1</td>
+<td>Evaluation, then coefficient</td>
+</tr>
+<tr>
+<td>Digit d's complement</td>
+<td>Other active Q towers in order, then p₀ … pₖ₋₁</td>
+<td>Coefficient, then evaluation</td>
+</tr>
+<tr>
+<td>Assembled digit</td>
+<td>Active Q prefix, then all P</td>
+<td>Evaluation</td>
+</tr>
+<tr>
+<td>Stored key pair for digit d</td>
+<td>Full Q, then all P</td>
+<td>Evaluation</td>
+</tr>
+<tr>
+<td>Each MAC output</td>
+<td>Active Q prefix, then all P</td>
+<td>Evaluation</td>
+</tr>
+<tr>
+<td>Each ModDown output</td>
+<td>Active Q prefix</td>
+<td>Evaluation</td>
+</tr>
+</tbody>
+</table>
+<p>Here L is a <strong>tower count</strong>, not the ciphertext's public <code>GetLevel()</code> value.
+Derive it from the actual element parameters; D9 must keep these metadata
+consistent. Every tower retains its exact OpenFHE modulus and root.</p>
+<h2 id="3-why-approximate-crt-must-keep-the-unreduced-sum">3. Why approximate CRT must keep the unreduced sum<a class="headerlink" href="#3-why-approximate-crt-must-keep-the-unreduced-sum" title="Permanent link">¶</a></h2>
+<p>For a digit's actual source basis <span class="site-math">\(B=\prod_i b_i\)</span>, define
+<span class="site-math">\(\widehat B_i=B/b_i\)</span>. At coefficient index r, the implementation computes:</p>
+<p><span class="site-math">\[
+t_i=[x_i\widehat B_i^{-1}]_{b_i},\qquad
+S=\sum_i t_i\widehat B_i,\qquad
+\widetilde x_m=[S]_m.
+\]</span></p>
+<p>Brackets mean the canonical residue in the indicated modulus. The final
+modulus m is a complement tower. <strong>There is no reduction of S modulo B</strong>
+before reducing it modulo m. In general:</p>
+<p><span class="site-math">\[
+S=x+\kappa B,\qquad 0\le x&lt;B,\qquad
+[S]_m\ne[x]_m.
+\]</span></p>
+<p><code>ApproxSwitchCRTBasis</code> implements this sum using the precomputed hat inverses,
+hat residues, and modular multiplication/accumulation. Our test independently
+forms the full unreduced sum with arbitrary-precision <code>BigInteger</code> arithmetic;
+it does not read those conversion tables to compute its expected answer.</p>
+<p>The digit is converted to coefficient format <strong>before</strong> this operation. Its
+complement is then transformed using each destination tower's own root. The
+digit's original evaluation towers are copied directly into their slots.
+Applying the CRT formula to evaluation coordinates would change the result.</p>
+<p>This contract uses <strong>WITH_REDUCED_NOISE=OFF</strong>. The centered-conversion branch
+selected by that build option is different and is outside this fixture matrix.</p>
+<h2 id="4-a-reduced-level-changes-key-addresses">4. A reduced level changes key addresses<a class="headerlink" href="#4-a-reduced-level-changes-key-addresses" title="Permanent link">¶</a></h2>
+<p>A key keeps all M Q towers followed by K P towers. A ciphertext digit contains
+only L Q towers followed by those same K P towers. For active-array index i:</p>
+<p><span class="site-math">\[
+\operatorname{keyIndex}(i)=
+\begin{cases}
+i,&amp;i&lt;L,\\
+i+(M-L),&amp;i\ge L.
+\end{cases}
+\]</span></p>
+<p>For the fixture <strong>M=5, α=3, K=3</strong>, reducing to L=4 gives:</p>
+<table>
+<thead>
+<tr>
+<th>Array</th>
+<th>Tower positions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Active digit</td>
+<td>q₀, q₁, q₂, q₃, p₀, p₁, p₂</td>
+</tr>
+<tr>
+<td>Full key indices used</td>
+<td>0, 1, 2, 3, 5, 6, 7</td>
+</tr>
+<tr>
+<td>Full key index skipped</td>
+<td>4, the dropped q₄</td>
+</tr>
+</tbody>
+</table>
+<p>Index 4 in the active digit is p₀, while index 4 in the key is q₄.
+Using the same flat index for both silently reads the wrong key tower when
+unchecked multiplication is used. The diagnostic key gives every digit,
+tower, and evaluation position a distinct deterministic value to expose this.</p>
+<div data-hybrid-explorer>
+<label for="hybrid-level"><strong>Explore the active level</strong></label>
+<p>Choose the number of remaining Q towers in the executable fixture.</p>
+<select id="hybrid-level" aria-label="Active Q tower count"><option value="5">5 Q towers</option><option value="4">4 Q towers</option><option value="3">3 Q towers</option><option value="2">2 Q towers</option><option value="1">1 Q tower</option></select>
+<div data-hybrid-layout aria-live="polite"></div>
+</div>
+<script defer src="assets/hybrid-graph.js"></script>
+
+<h2 id="5-two-macs-then-two-moddowns">5. Two MACs, then two ModDowns<a class="headerlink" href="#5-two-macs-then-two-moddowns" title="Permanent link">¶</a></h2>
+<p>For digit evaluation array d and key arrays A and B, each active tower m and
+bit-reversed evaluation coordinate k compute:</p>
+<p><span class="site-math">\[
+Z_{0,m,k}=\left[\sum_d D_{d,m,k}B_{d,\operatorname{keyIndex}(m),k}\right]_m,
+\]</span>
+<span class="site-math">\[
+Z_{1,m,k}=\left[\sum_d D_{d,m,k}A_{d,\operatorname{keyIndex}(m),k}\right]_m.
+\]</span></p>
+<p><code>EvalFastKeySwitchCoreExt</code> returns these two QlP arrays. The multiplication is
+pointwise; there is no NTT inside the MAC loop. All products and sums remain
+canonical residues. The evaluation key already supplies the gadget scaling:
+in private-to-private generation, its old-secret term is P times the old
+secret on that digit's Q towers, and zero on its other towers. Do not add an
+extra global twist or a guessed CRT/gadget multiplier to the digits.</p>
+<p>For each accumulated array Z, extract and inverse-transform its P towers:</p>
+<p><span class="site-math">\[
+u_j=\operatorname{INTT}_{p_j}(Z_{p_j}),\qquad
+\widehat P_j=P/p_j,
+\]</span>
+<span class="site-math">\[
+R_i=\left[\sum_j [u_j\widehat P_j^{-1}]_{p_j}\widehat P_j\right]_{q_i},
+\]</span>
+<span class="site-math">\[
+Y_{q_i}=\left[(Z_{q_i}-\operatorname{NTT}_{q_i}(R_i))
+[P^{-1}]_{q_i}\right]_{q_i}.
+\]</span></p>
+<p>This is the <strong>exact implementation order</strong> for the pinned CKKS path. Its
+noise scale is 1, so the source passes t=0 and skips the BGV-specific t factors.
+There is no floating-point rounding operation in these steps. Calling this
+“division by P” does not authorize replacing its approximate representative
+with a canonical or centered CRT representative, or with a generic rounding rule.</p>
+<p><strong>Accumulate before ModDown.</strong> Moving ModDown inside the digit sum changes
+carry/correction terms. A simple scalar illustration with q=97 and P=17 is
+<span class="site-math">\(\operatorname{Down}(16)=0\)</span>, <span class="site-math">\(\operatorname{Down}(1)=0\)</span>, but
+<span class="site-math">\(\operatorname{Down}(17)=1\)</span>. This is a modular-arithmetic example, not a
+small polynomial fixture. The full-size test also explicitly checks that the
+wrong per-digit reduction order produces different arrays.</p>
+<h2 id="6-which-wrapper-calls-which-graph">6. Which wrapper calls which graph?<a class="headerlink" href="#6-which-wrapper-calls-which-graph" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Entry point</th>
+<th>Result and caller obligation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EvalKeySwitchPrecomputeCore</code></td>
+<td>β active digit arrays in QlP; reusable for hoisted operations with compatible parameters</td>
+</tr>
+<tr>
+<td><code>EvalFastKeySwitchCoreExt</code></td>
+<td>Two QlP MAC arrays; reduction is deferred</td>
+</tr>
+<tr>
+<td><code>EvalFastKeySwitchCore</code></td>
+<td>Extended MAC followed by ModDown of both arrays</td>
+</tr>
+<tr>
+<td><code>KeySwitchCore</code></td>
+<td>Precompute followed by the fast core; two Q contributions</td>
+</tr>
+<tr>
+<td><code>KeySwitchInPlace</code> with two components</td>
+<td>Add B contribution to c₀; <strong>replace</strong> c₁ with the A contribution</td>
+</tr>
+<tr>
+<td><code>KeySwitchInPlace</code> with three components</td>
+<td>Add B to c₀ and A to c₁; discard c₂</td>
+</tr>
+<tr>
+<td>Relinearization</td>
+<td>Switch each component from index 2 using the corresponding evaluation key, accumulate into c₀/c₁, then resize to two</td>
+</tr>
+</tbody>
+</table>
+<p>For the in-place wrapper:</p>
+<p><span class="site-math">\[
+c&#x27;_0=c_0+Y_0,\qquad
+c&#x27;_1=\begin{cases}Y_1,&amp;\text{two-component input},\\c_1+Y_1,&amp;\text{three-component input}.\end{cases}
+\]</span></p>
+<p>D8 executes the two- and three-component wrapper cases. The source trace also
+records the general relinearization loop; higher ciphertext degrees and their
+full key families remain a later integration test.</p>
+<h3 id="delayed-qp-operations-are-distinct-from-digit-extension">Delayed QP operations are distinct from digit extension<a class="headerlink" href="#delayed-qp-operations-are-distinct-from-digit-extension" title="Permanent link">¶</a></h3>
+<p><code>KeySwitchExt(ciphertext,addFirst)</code> multiplies the retained Q evaluations by P
+and appends <strong>zero P towers</strong>. It does not approximate-lift the original
+ciphertext into P. If <code>addFirst=false</code>, its entire first component is zero.
+<code>KeySwitchDown</code> reduces both accumulated QP components; <code>KeySwitchDownFirstElement</code>
+reduces only the first. The test checks both addFirst settings and delayed
+addition of a QP MAC result before reduction.</p>
+<p>The pinned CKKS <code>EvalFastRotationExt</code> has another ordering requirement: it
+computes the extended MAC, optionally adds P times c₀ on the Q towers, then
+applies the automorphism to <strong>both QP components</strong>. Reduction is deferred.
+The automorphism map and full rotation API are source-traced here; their exact
+end-to-end arrays remain P6/P7 work. Do not move the permutation across the
+selected rotation key without a separate equivalence proof.</p>
+<h2 id="7-full-size-fixture-and-evidence">7. Full-size fixture and evidence<a class="headerlink" href="#7-full-size-fixture-and-evidence" title="Permanent link">¶</a></h2>
+<p>The deterministic fixture uses FIXEDMANUAL CKKS with multiplicative depth 4,
+first modulus size 60, scaling modulus size 50, two large digits, and the fixed
+ring dimension. It produces <strong>five Q towers and three P towers</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Tower</th>
+<th style="text-align: right;">Modulus</th>
+<th style="text-align: right;">Primitive root</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>q₀</td>
+<td style="text-align: right;">1152921504606584833</td>
+<td style="text-align: right;">18043022392882</td>
+</tr>
+<tr>
+<td>q₁</td>
+<td style="text-align: right;">1125899902124033</td>
+<td style="text-align: right;">15995550378</td>
+</tr>
+<tr>
+<td>q₂</td>
+<td style="text-align: right;">1125899911168001</td>
+<td style="text-align: right;">21670117260</td>
+</tr>
+<tr>
+<td>q₃</td>
+<td style="text-align: right;">1125899903827969</td>
+<td style="text-align: right;">938640682</td>
+</tr>
+<tr>
+<td>q₄</td>
+<td style="text-align: right;">1125899908022273</td>
+<td style="text-align: right;">6511788946</td>
+</tr>
+<tr>
+<td>p₀</td>
+<td style="text-align: right;">1152921504598720513</td>
+<td style="text-align: right;">800790938143</td>
+</tr>
+<tr>
+<td>p₁</td>
+<td style="text-align: right;">1152921504597016577</td>
+<td style="text-align: right;">17749908910371</td>
+</tr>
+<tr>
+<td>p₂</td>
+<td style="text-align: right;">1152921504595968001</td>
+<td style="text-align: right;">11469071954203</td>
+</tr>
+</tbody>
+</table>
+<p>The configuration requests 50 scaling bits, but q₂ and q₄ are 51-bit primes
+just above the power-of-two boundary; q₁ and q₃ are 50-bit. All P towers and
+q₀ are 60-bit. Use the exact table rather than inferring widths from the knob.</p>
+<p>These exact parameters are asserted in the executable. Pattern generation and
+diagnostic key generation use fixed integer formulas in that source file.
+The diagnostic key is <strong>not a cryptographic evaluation key</strong>. A separate pair
+of actual generated secret keys supplies a real key-switching key; its fixed
+arrays are shared by all comparisons in that run. Random key generation is
+not compared across separate runs.</p>
+<table>
+<thead>
+<tr>
+<th>Cases</th>
+<th>Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L=5,4,3,1 × four input patterns</td>
+<td>Full level, partial last digit, exact digit boundary, partial first digit</td>
+</tr>
+<tr>
+<td>Zero, all q−1, monomial x¹⁷, deterministic dense residues</td>
+<td>Zero path, bounds, closed-form coefficient structure, tower-distinct data</td>
+</tr>
+<tr>
+<td>Actual generated key at L=5 and L=4</td>
+<td>Same exact graph with real cryptographic key arrays</td>
+</tr>
+<tr>
+<td>Intermediate states</td>
+<td>Digit INTT, complement CRT and NTT, digit assembly, both MACs, P INTT, correction CRT and NTT, final scale</td>
+</tr>
+<tr>
+<td>Composition and wrappers</td>
+<td>Fast/full core equality, input immutability, two/three-component update, delayed QP path</td>
+</tr>
+<tr>
+<td>Negative alternatives</td>
+<td>Canonical-lift substitution, missing P-key offset, per-digit ModDown</td>
+</tr>
+</tbody>
+</table>
+<p>Observed on Linux x86_64 with GCC 14.2, Release, NativeInteger 64, and OpenMP
+off: <strong>18 cases and 117,571,584 residue comparisons passed</strong>. All <strong>15 CTests</strong>
+in the OpenFHE-enabled build passed. The deterministic reduced-level fixture
+found 524,288 residues that distinguish the wrong per-digit reduction order.</p>
+<p>Every comparison checks all 65536 entries of every involved tower, plus
+modulus/root order and outer/child format. Intermediate conversion states are
+observed by calling the same public primitive separately; the tests do not
+instrument or modify OpenFHE's implementation. Full-core equality checks the
+composition against the independent formulas.</p>
+<p>Run the opt-in gate after <a href="https://github.com/minnow54426/ntt-gpu/blob/12ce1e1ed49d9bca10dd0ca65b46b08f97758c5b/scripts/openfhe_setup.sh">installing pinned OpenFHE</a>:</p>
+<pre><code class="language-sh">cmake -S . -B build/openfhe-compat/ntt-build \
+  -DCMAKE_BUILD_TYPE=Release -DNTT_ENABLE_OPENFHE_COMPAT=ON \
+  -DCMAKE_PREFIX_PATH=&quot;$PWD/build/openfhe-compat/install&quot;
+cmake --build build/openfhe-compat/ntt-build -j
+ctest --test-dir build/openfhe-compat/ntt-build \
+  -R 'openfhe_' --output-on-failure
+</code></pre>
+<p>The Hybrid gate links OpenFHE PKE in addition to core. The standalone build
+still has no OpenFHE dependency. The setup script already builds all modules.</p>
+<h2 id="8-work-counts-and-the-next-boundary">8. Work counts and the next boundary<a class="headerlink" href="#8-work-counts-and-the-next-boundary" title="Permanent link">¶</a></h2>
+<p>For one core call, counting transforms per tower rather than per launch:</p>
+<p><span class="site-math">\[
+\begin{aligned}
+\text{Digit INTTs}&amp;=L,\\
+\text{Complement NTTs}&amp;=\beta_\ell(L+K)-L,\\
+\text{ModDown INTTs}&amp;=2K,\\
+\text{ModDown NTTs}&amp;=2L.
+\end{aligned}
+\]</span></p>
+<p>At M=L=5, K=3, α=3, β=2, this is <strong>11 inverse and 21 forward NTTs</strong>.
+At L=4 it is 10 inverse and 18 forward. These are logical counts from the
+source graph, not GPU launch counts or measured performance.</p>
+<p>With 8-byte residues and N=65536, the assembled digits request
+<span class="site-math">\(8N\beta_\ell(L+K)\)</span> bytes and the two QP accumulators request
+<span class="site-math">\(16N(L+K)\)</span> bytes. Each is <strong>8 MiB</strong> at full fixture level. Keys, temporary
+coefficient buffers, parameters, allocator overhead, and simultaneous lifetime
+choices are additional. D9 must specify these lifetimes before treating this
+as a peak-memory bound.</p>
+<p>D8 freezes this source graph and the exercised array boundary. P1 stays open
+for D9's device/buffer/stream/cache proposal and D10's architecture decision.
+P4/P6 must broaden base-conversion and cryptographic fixtures across the
+production parameter/level/key matrix. This is not a GPU implementation,
+performance result, or complete CKKS encryption/decryption integration gate.</p>
+<h2 id="pinned-source-references">Pinned source references<a class="headerlink" href="#pinned-source-references" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/pke/lib/keyswitch/keyswitch-hybrid.cpp#L205">Hybrid key generation and ordinary/delayed core</a>.</li>
+<li><a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/dcrtpoly-impl.h#L938">ApproxSwitchCRTBasis and ApproxModDown</a>.</li>
+<li><a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/pke/lib/schemerns/rns-cryptoparameters.cpp#L98">Partition construction and level-specific conversion tables</a>.</li>
+<li><a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/pke/lib/schemebase/base-leveledshe.cpp#L313">Relinearization and ciphertext component accumulation</a>.</li>
+<li><a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/pke/lib/scheme/ckksrns/ckksrns-leveledshe.cpp#L595">CKKS extended fast rotation ordering</a>.</li>
+</ul></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#1-read-the-complete-path">1. Read the complete path</a></li><li><a href="#2-names-levels-and-tower-order">2. Names, levels, and tower order</a></li><li><a href="#3-why-approximate-crt-must-keep-the-unreduced-sum">3. Why approximate CRT must keep the unreduced sum</a></li><li><a href="#4-a-reduced-level-changes-key-addresses">4. A reduced level changes key addresses</a></li><li><a href="#5-two-macs-then-two-moddowns">5. Two MACs, then two ModDowns</a></li><li><a href="#6-which-wrapper-calls-which-graph">6. Which wrapper calls which graph?</a></li><li><a href="#7-full-size-fixture-and-evidence">7. Full-size fixture and evidence</a></li><li><a href="#8-work-counts-and-the-next-boundary">8. Work counts and the next boundary</a></li><li><a href="#pinned-source-references">Pinned source references</a></li></ol></nav></aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/12ce1e1ed49d9bca10dd0ca65b46b08f97758c5b">12ce1e1</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

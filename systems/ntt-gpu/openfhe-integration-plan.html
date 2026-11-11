@@ -22,7 +22,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html" aria-current="page">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html" aria-current="page">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/b048c52caa206ea25d779f5f66e9e08f579583dc/docs/openfhe-integration-plan.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/12ce1e1ed49d9bca10dd0ca65b46b08f97758c5b/docs/openfhe-integration-plan.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="ckks-gpu-to-openfhe-integration-plan">CKKS GPU-to-OpenFHE integration plan<a class="headerlink" href="#ckks-gpu-to-openfhe-integration-plan" title="Permanent link">¶</a></h1>
 <p><strong>Target:</strong> OpenFHE 1.6.1 CKKS with Hybrid key switching<br>
@@ -57,7 +57,7 @@ Update this tracker only when a deliverable passes its gate.</p>
 <tbody>
 <tr>
 <td>Working day</td>
-<td><strong>D8</strong></td>
+<td><strong>D9</strong></td>
 </tr>
 <tr>
 <td>Active phase</td>
@@ -65,7 +65,7 @@ Update this tracker only when a deliverable passes its gate.</p>
 </tr>
 <tr>
 <td>Active task</td>
-<td>Trace OpenFHE Hybrid key switching and freeze the exact Q → QP → MAC → Q operation graph (D1–D7 complete)</td>
+<td>Design device buffer views, stream/cache ownership, and the backend integration seam (D1–D8 complete)</td>
 </tr>
 <tr>
 <td>Next gate</td>
@@ -285,11 +285,21 @@ ordered tower packing/import, and active-prefix behavior. A new opt-in core-only
 gate checks full-size formulas and three-tower operations with 50/55/60-bit
 primes against OpenFHE 1.6.1. The OpenFHE-enabled Release suite passes 14 tests
 on this Linux CPU environment. No CUDA execution or Hybrid rounding graph is
-claimed. D8 is next; the P1 architecture gate remains open.</p>
+claimed by that D7 result. D8 is documented below; the P1 architecture gate remains open.</p>
+<p>D8 complete: the <a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a>
+traces digit splitting, partial partitions, coefficient/evaluation transitions,
+noncanonical approximate CRT, full-key P offsets at reduced levels, B/A MAC
+ordering, exact CKKS ModDown, wrapper updates, and delayed QP operations.
+<code>openfhe_hybrid_graph</code> checks 18 full-size cases and 117,571,584 residue
+comparisons against independent unreduced-CRT and scalar formulas, including
+real generated keys and negative alternatives. The opt-in Release suite now
+has 15 CPU tests. Rotation automorphisms and higher-degree relinearization are
+source-traced but remain later end-to-end gates; production matrix coverage,
+GPU execution and performance are not claimed. D9 is next.</p>
 <p>P1 exit gate:</p>
 <ul>
-<li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> NTT/DCRT representation and ordering transitions are explicit (D7); Hybrid transitions remain D8 work.</li>
-<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> The exact OpenFHE rounding/reduction order is identified.</li>
+<li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> NTT/DCRT (D7) and Hybrid (D8) representation, ordering, and active-tower transitions are explicit.</li>
+<li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> The exact pinned CKKS approximate-CRT and reduction order is identified (D8); broader production fixtures remain P4/P6 work.</li>
 <li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Buffer views record ring size, Q/P towers, level, representation,
   ordering, device, stream, and event ownership.</li>
 <li class="site-task"><input type="checkbox" disabled aria-label="Task status"> The first integration seam and CPU fallback behavior are frozen.</li>
@@ -788,7 +798,7 @@ rotations, graph scheduling, accuracy, and end-to-end latency.</p>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/b048c52caa206ea25d779f5f66e9e08f579583dc">b048c52</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/12ce1e1ed49d9bca10dd0ca65b46b08f97758c5b">12ce1e1</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
