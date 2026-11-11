@@ -22,7 +22,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
   <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
 </aside>
@@ -43,9 +43,14 @@ Follow the project one entry at a time.</p></div>
 <section><h2 id="how-to-read-the-journal">How to read the journal</h2><p class="site-journal-explainer">Dates record when work was documented. Roadmap days track deliverables.
 Reconstructed history is labeled; CPU checks and GPU execution are recorded separately.</p></section>
 <section><h2 id="entries">Entries</h2><div class="site-journal-list">
+<a class="site-entry-card" href="journal/2026-11-11.html">
+  <div class="site-entry-meta"><time datetime="2026-11-11">11 Nov 2026</time><span>P1 / D7 → D8</span></div>
+  <h3>Freeze the OpenFHE NTT and DCRT representation contract</h3><p>Completed D7 with full-size OpenFHE representation checks and prepared the accumulated D3–D7 notebook for publication.</p>
+  <span class="site-entry-link">Read the entry <span aria-hidden="true">↗</span></span>
+</a>
 <a class="site-entry-card" href="journal/2026-11-10.html">
-  <div class="site-entry-meta"><time datetime="2026-11-10">10 Nov 2026</time><span>P1 / D3</span></div>
-  <h3>Standardize the polynomial workload at 65536</h3><p>Remove the 4096 workload from the interactive lessons, defaults, and implementation gates.</p>
+  <div class="site-entry-meta"><time datetime="2026-11-10">10 Nov 2026</time><span>P1 / D3 → D7</span></div>
+  <h3>Prove inverse correspondence and complete stage coverage</h3><p>Completed D3–D6: inverse/stage proofs, CUDA dataflow, arithmetic bounds, and independent adversarial checks.</p>
   <span class="site-entry-link">Read the entry <span aria-hidden="true">↗</span></span>
 </a>
 <a class="site-entry-card" href="journal/2026-11-09.html">
@@ -76,7 +81,7 @@ Reconstructed history is labeled; CPU checks and GPU execution are recorded sepa
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8">8aa94c3</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/55e052a340c3d423941d1bff09b1bd20df7a9d87">55e052a</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

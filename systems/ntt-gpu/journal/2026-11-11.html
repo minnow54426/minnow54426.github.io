@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Completed D7 with full-size OpenFHE representation checks and prepared the accumulated D3–D7 notebook for publication.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal/2026-11-11.html">
+<title>Freeze the OpenFHE NTT and DCRT representation contract · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="../vendor/katex/katex.min.css">
+<script defer src="../vendor/katex/katex.min.js"></script>
+<script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="../math-rendering.js"></script>
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../search-index.js"></script>
+<script defer src="../assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="../search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
+  <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="../index.html">Notebook</a><span>/</span>Daily journal</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/55e052a340c3d423941d1bff09b1bd20df7a9d87/docs/journal/2026-11-11.md">View source ↗</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-11">2026-11-11</time><span>P1 / D7 → D8</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="freeze-the-openfhe-ntt-and-dcrt-representation-contract">Freeze the OpenFHE NTT and DCRT representation contract<a class="headerlink" href="#freeze-the-openfhe-ntt-and-dcrt-representation-contract" title="Permanent link">¶</a></h1><p class="site-journal-summary">Completed D7 with full-size OpenFHE representation checks and prepared the accumulated D3–D7 notebook for publication.</p>
+<h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
+<p>D7's NTT/DCRT boundary is documented against pinned OpenFHE 1.6.1. The tracker
+advances to D8, the Hybrid operation graph; P1's architecture gate stays open.
+The website export includes the previously unpublished D3–D6 work and this D7
+contract, with the shared section navigation retained.</p>
+<h2 id="reasoning">Reasoning<a class="headerlink" href="#reasoning" title="Permanent link">¶</a></h2>
+<p>A round trip alone can conceal a matching forward/inverse permutation or scale
+error. D7 checks every evaluation address against closed-form monomials and
+independent inverse basis vectors. A real three-tower DCRT object verifies
+parameter order and packing without assuming a contiguous OpenFHE allocation.</p>
+<p>The pinned source distinguishes SetFormat (conditional conversion), SwitchFormat
+(always conversion), SetValues (data plus label), and OverrideFormat (label only).
+DCRT OverrideFormat changes only the outer label. RootOfUnity selects the minimum
+primitive root, but the FTT cache lookup does not compare roots on a cache hit;
+consistent imported roots are part of this contract.</p>
+<h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
+<ul>
+<li>Added <a href="../openfhe-representation-contract.html">the D7 representation contract</a>,
+  including exact formulas, parameter/root requirements, format APIs, ordered
+  tower packing, active-level behavior, and pinned source references.</li>
+<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/55e052a340c3d423941d1bff09b1bd20df7a9d87/tests/openfhe_representation_tests.cpp">openfhe_representation_tests.cpp</a>
+  and the opt-in <code>openfhe_representation_contract</code> CTest gate.</li>
+<li>At N=65536, checked four monomials and four independent inverse slots at each
+  of three exact-width primes (50/55/60 bits), minimum roots, canonical values,
+  and format API behavior against actual OpenFHE NativePoly operations.</li>
+<li>Checked a deliberately unsorted 55/50/60-bit tower list, BigInteger
+  coefficients Q-1 and 2^64+17, CRT reconstruction, flat evaluation-array
+  import, pointwise multiplication by x with negative wrap, and tower dropping.</li>
+<li>Clarified that FirstPrime(50, m) searches above 2^50: the original gate
+  uses a 51-bit prime there. D7 uses LastPrime for exact-width fixtures.</li>
+<li>Corrected reference-header comments that conflated mathematical and stored
+  evaluation order or described individual ladder twiddles as odd powers.
+  The NTT algorithm is unchanged.</li>
+<li>Reused stage-coverage storage across stages in the tile test. This removes
+  the observed GCC 14 Release vector-teardown build failure without suppressing
+  warnings or removing coverage.</li>
+<li>Registered the article, updated build/test instructions, and advanced the
+  <a href="../openfhe-integration-plan.html">roadmap</a> to D8.</li>
+</ul>
+<h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
+<p>Built OpenFHE from commit <code>b59e1f291965f14fbee5172cd83a20f5b856204f</code> locally on
+Linux x86_64 with GCC 14.2, static libraries, NativeInteger 64, and OpenMP off.
+The initial OpenFHE-enabled Release build passed all 14 CTests, including the
+original exact compatibility gate and the new representation gate. The tile
+coverage target also compiles in the normal GCC Release configuration.</p>
+<p>Final verification:</p>
+<ul>
+<li>All 14 OpenFHE-enabled Release CTests passed after the complete test changes.</li>
+<li>All 23 documentation unit tests and all 4 explorer tests passed.</li>
+<li>The build generated 22 pages with seven journal entries and validated links,
+  fragments, assets, and catalog coverage.</li>
+<li>Chromium followed every section link on all 22 pages at 1440, 1280, 1024,
+  and 375px: 88 page/width checks passed without JavaScript errors or page-wide
+  horizontal overflow. Search, menu, sections, and the forward explorer worked.</li>
+<li>Focused desktop/mobile checks confirmed D7 math without KaTeX errors, the
+  D7→D8 progress row inside its table, and inverse explorer stage order,
+  reciprocal twiddles, and pass labels. Screenshots of the D5–D7 articles
+  were inspected at 1440 and 375px.</li>
+</ul>
+<p>Publication exports all current source pages, including D3/D4 proofs, D5/D6
+articles, and this D7 entry, to the existing personal website repository. Live
+verification follows the website deployment. These are CPU/OpenFHE and browser
+checks; no CUDA compiler or real GPU was available, and no GPU performance
+result is implied.</p>
+<h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">¶</a></h2>
+<p>D8 must trace the exact Hybrid decomposition, Q/QP transitions, key MAC,
+rounding, and ModDown sequence. D9 still needs explicit buffer/stream ownership,
+RAII constructor-failure cleanup, and the integration seam. Arbitrary custom-root
+contexts sharing a modulus are outside the D7 test matrix because of the pinned
+OpenFHE cache behavior.</p>
+<h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
+<p>Trace OpenFHE 1.6.1 Hybrid key switching and freeze the exact operation graph
+with intermediate-state fixtures. Preserve bit equality rather than replacing
+it with approximate CKKS decryption agreement.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li></ol></nav></aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/55e052a340c3d423941d1bff09b1bd20df7a9d87">55e052a</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

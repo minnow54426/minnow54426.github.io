@@ -22,7 +22,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
   <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html" aria-current="page">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html" aria-current="page">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
 </aside>
@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Contribute</span><a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/docs/README.md">View source ↗</a></div>
+    <div class="site-page-meta"><span>Contribute</span><a href="https://github.com/minnow54426/ntt-gpu/blob/55e052a340c3d423941d1bff09b1bd20df7a9d87/docs/README.md">View source ↗</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="writing-and-publishing-the-project-notebook">Writing and publishing the project notebook<a class="headerlink" href="#writing-and-publishing-the-project-notebook" title="Permanent link">¶</a></h1>
 <p>Edit Markdown and the three interactive HTML lessons in <code>docs/</code>. Build the site
@@ -113,15 +113,48 @@ locally. Put long reference material in <code>&lt;details markdown="1"&gt;</code
 .venv/bin/python scripts/build_docs.py --check
 node tests/docs/work_distribution.test.cjs
 </code></pre>
-<p>The builder checks local links, fragments, catalog coverage, and journal metadata.
-Browser-check changed pages at desktop and mobile widths, including section
-navigation, search, tables, and interactive examples.</p>
+<p>The build validates catalog coverage, journal metadata, and local links,
+assets, and heading fragments. The site supports project subpaths.
+The Node test runs the work-distribution page's actual inline script using a
+small DOM stub and checks N=65536 in both directions, stage controls, boundary selections,
+and complete per-stage index coverage. It requires Node.js and no packages;
+it does not replace browser inspection or CUDA execution.</p>
 <p>The separate C++ column proof executes the production stage helper on CPU:</p>
 <pre><code class="language-sh">cmake -S . -B build
 cmake --build build --target ntt_column_mapping_tests ntt_device_sim
-ctest --test-dir build -R 'column_mapping_check|device_schedule_check' --output-on-failure
+ctest --test-dir build -R 'column_mapping_check|inverse_column_check|device_schedule_check' --output-on-failure
 </code></pre>
-<p>It checks pairs and twiddles at N=65536; CPU results do not validate GPU races.</p>
+<p>The column check executes the real shared stage helper with tagged power
+tables at N=65536. It probes the input pair, ladder multiplier,
+and twiddle selection for every column butterfly. This is CPU verification,
+not a native CUDA build or a GPU race check.
+The inverse gate additionally checks reciprocal-table selection, the factor
+of two from one forward/inverse stage pair, and full N-inverse normalization
+with valid roots for two primes at N=65536.</p>
+<p>For D4, run:</p>
+<pre><code class="language-sh">cmake --build build --target ntt_tile_mapping_tests
+ctest --test-dir build -R tile_mapping_check --output-on-failure
+</code></pre>
+<p>It probes every row butterfly at
+N=65536 in both directions and checks the two-pass stage lists
+and global endpoint coverage at N=65536 and small-size
+boundaries. Run a full build and <code>ctest --test-dir build --output-on-failure</code>
+to include the D3 and D4 gates together.</p>
+<p>The Python documentation suite also includes D5 source-contract checks for
+the allocation/copy/API map. These inspect C++ source text and pin byte-count
+arithmetic; they do not compile CUDA, inject failures, or validate runtime
+resource cleanup. See <a href="cuda-buffer-dataflow.html">CUDA buffers and dataflow</a>.</p>
+<p>The D6 <a href="modular-arithmetic-contract.html">arithmetic contract</a> has two CPU gates:</p>
+<pre><code class="language-sh">cmake --build build --target ntt_arithmetic_contract_tests
+ctest --test-dir build -R 'arithmetic_' --output-on-failure
+</code></pre>
+<p>They check compiled primitives against Python big integers and run full-size
+50/55/60-bit transform patterns. They are not native CUDA tests.</p>
+<h3 id="openfhe-representation-gate">OpenFHE representation gate<a class="headerlink" href="#openfhe-representation-gate" title="Permanent link">¶</a></h3>
+<p>The optional OpenFHE build registers both <code>openfhe_exact_compat</code> and
+<code>openfhe_representation_contract</code>. The <a href="openfhe-representation-contract.html">D7 contract</a>
+explains the pinned source, exact array convention, and test command. These are
+CPU tests against OpenFHE 1.6.1; GPU execution remains a separate gate.</p>
 <h2 id="publish-with-github-pages">Publish with GitHub Pages<a class="headerlink" href="#publish-with-github-pages" title="Permanent link">¶</a></h2>
 <h3 id="add-the-notebook-to-the-personal-website">Add the notebook to the personal website<a class="headerlink" href="#add-the-notebook-to-the-personal-website" title="Permanent link">¶</a></h3>
 <p>From this repository:</p>
@@ -141,7 +174,7 @@ with <code>deploy_standalone</code> enabled. Its URL is
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8">8aa94c3</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/55e052a340c3d423941d1bff09b1bd20df7a9d87">55e052a</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

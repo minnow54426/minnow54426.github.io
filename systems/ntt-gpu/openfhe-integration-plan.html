@@ -22,7 +22,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
   <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html" aria-current="page">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html" aria-current="page">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
 </aside>
@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8/docs/openfhe-integration-plan.md">View source ↗</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/55e052a340c3d423941d1bff09b1bd20df7a9d87/docs/openfhe-integration-plan.md">View source ↗</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="ckks-gpu-to-openfhe-integration-plan">CKKS GPU-to-OpenFHE integration plan<a class="headerlink" href="#ckks-gpu-to-openfhe-integration-plan" title="Permanent link">¶</a></h1>
 <p><strong>Target:</strong> OpenFHE 1.6.1 CKKS with Hybrid key switching<br>
@@ -42,7 +42,7 @@
 <code>uint32_t</code> indexing/control paths where safe<br>
 <strong>Ring dimension:</strong> <code>65536</code><br>
 <strong>Estimate:</strong> 95 planned working days + 15 risk-reserve days<br>
-<strong>Last updated:</strong> 2026-11-10 (Asia/Shanghai)</p>
+<strong>Last updated:</strong> 2026-11-11 (Asia/Shanghai)</p>
 <p>Follow the live tracker, then open the phase you need from the section sidebar.
 The sequence is NTT → base conversion → Hybrid key switching → OpenFHE.
 Update this tracker only when a deliverable passes its gate.</p>
@@ -57,7 +57,7 @@ Update this tracker only when a deliverable passes its gate.</p>
 <tbody>
 <tr>
 <td>Working day</td>
-<td><strong>D3</strong></td>
+<td><strong>D8</strong></td>
 </tr>
 <tr>
 <td>Active phase</td>
@@ -65,7 +65,7 @@ Update this tracker only when a deliverable passes its gate.</p>
 </tr>
 <tr>
 <td>Active task</td>
-<td>Read inverse column kernel and DIT arithmetic; establish forward/inverse correspondence (D1–D2 complete)</td>
+<td>Trace OpenFHE Hybrid key switching and freeze the exact Q → QP → MAC → Q operation graph (D1–D7 complete)</td>
 </tr>
 <tr>
 <td>Next gate</td>
@@ -248,9 +248,47 @@ and three worked examples. <code>column_mapping_check</code> runs the production
 body with two tagged-table probes for every column butterfly at N=65536;
 the separate schedule gate checks real-root arrays. Real-GPU validation is
 still a P2 deliverable.</p>
+<p>D3 complete: the <a href="ntt-65536-work-distribution.html#inverse-proof">inverse proof</a>
+derives the factor of 2 per butterfly and final N-inverse normalization,
+documents row→column→scale ordering, and provides worked examples.
+<code>inverse_column_check</code> probes every inverse column pair and inactive thread
+at N=65536, then checks real-root stage composition and full normalization
+for two 46-bit primes. These are CPU-side checks of shared helpers,
+not actual GPU execution.</p>
+<p>D4 complete: the <a href="ntt-65536-work-distribution.html#tile-proof">row-kernel and coverage proof</a>
+derives tile-local/global group equivalence and global twiddle exponents,
+proves the far/near stage partition and legal block-local stage fusion, and
+provides worked examples. <code>tile_mapping_check</code> probes every near-stage pair
+in both directions at N=65536 and checks stage/endpoint coverage
+for N=65536 plus N=2,64,256,512. Hardware races and CUDA
+launch behavior remain P2 work.</p>
+<p>D5 complete: <a href="cuda-buffer-dataflow.html">CUDA buffers and dataflow</a> maps the
+constructor, all six device allocations, normal destruction, per-method
+copies, launch composition, representation ownership and missing integration
+contracts. Static source checks pin this map and byte-count arithmetic; they
+are not CUDA-runtime tests. Constructor exception cleanup is an open gap:
+the raw <code>Impl*</code> can leak host state and partially allocated device buffers.
+RAII/failure-path verification and device/stream ownership must be addressed
+before the production API is accepted; no cleanup fix is claimed here.</p>
+<p>D6 complete: <a href="modular-arithmetic-contract.html">Arithmetic bounds and tests</a>
+records canonical-range induction, integer-width bounds, parameter preconditions,
+the exactness ladder and deferred adversarial cases. Two CPU gates compare
+14,956 primitive results against Python big integers and exercise six patterns
+in both transform directions plus a closed-form negacyclic product at N=65536
+with 50/55/60-bit primes. The multiplication-count comment is corrected;
+arithmetic algorithms are unchanged. Native GPU and invalid-input hardening
+remain explicit later gates, not evidence claimed by this review.</p>
+<p>D7 complete: the <a href="openfhe-representation-contract.html">OpenFHE representation contract</a>
+traces pinned NativePoly/DCRTPoly format conversion, exact odd-root evaluation
+indices, minimum-root selection and its cache constraint, canonical residues,
+ordered tower packing/import, and active-prefix behavior. A new opt-in core-only
+gate checks full-size formulas and three-tower operations with 50/55/60-bit
+primes against OpenFHE 1.6.1. The OpenFHE-enabled Release suite passes 14 tests
+on this Linux CPU environment. No CUDA execution or Hybrid rounding graph is
+claimed. D8 is next; the P1 architecture gate remains open.</p>
 <p>P1 exit gate:</p>
 <ul>
-<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Representation and ordering transitions are explicit.</li>
+<li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> NTT/DCRT representation and ordering transitions are explicit (D7); Hybrid transitions remain D8 work.</li>
 <li class="site-task"><input type="checkbox" disabled aria-label="Task status"> The exact OpenFHE rounding/reduction order is identified.</li>
 <li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Buffer views record ring size, Q/P towers, level, representation,
   ordering, device, stream, and event ownership.</li>
@@ -715,12 +753,42 @@ rotations, graph scheduling, accuracy, and end-to-end latency.</p>
 <td>Completed the column-pair/twiddle proof and six worked examples; exhaustive CPU execution of the real stage helper checked 270,336 pairs using 540,672 probes. Next: inverse-column correspondence. P1 exit gate remains open.</td>
 <td><a href="ntt-65536-work-distribution.html#column-proof">Column proof</a>; <code>column_mapping_check</code>; <code>device_schedule_check</code></td>
 </tr>
+<tr>
+<td>2026-11-10</td>
+<td style="text-align: right;">D3 → D4</td>
+<td>Completed inverse-column correspondence, factor-2/factor-N checks and normalization, plus inverse-mode explorer and worked examples. Next: contiguous kernels and exact stage coverage. P1 exit gate remains open.</td>
+<td><a href="ntt-65536-work-distribution.html#inverse-proof">Inverse proof</a>; <code>inverse_column_check</code>; <a href="journal/2026-11-10.html">daily entry</a></td>
+</tr>
+<tr>
+<td>2026-11-10</td>
+<td style="text-align: right;">D4 → D5</td>
+<td>Completed row-kernel pair/twiddle equivalence and exact stage coverage. Added exhaustive CPU execution of both row-stage helpers plus all-size stage-list and endpoint checks. Next: constructor/buffer/API dataflow. P1 exit gate remains open.</td>
+<td><a href="ntt-65536-work-distribution.html#tile-proof">Row proof</a>; <code>tile_mapping_check</code>; all 11 CTests passed</td>
+</tr>
+<tr>
+<td>2026-11-10</td>
+<td style="text-align: right;">D5 → D6</td>
+<td>Completed constructor/allocation/transfer/API map and six static source-contract checks. Recorded constructor exception cleanup and device/stream ownership gaps. Next: modular arithmetic bounds and adversarial tests. P1 exit gate remains open.</td>
+<td><a href="cuda-buffer-dataflow.html">D5 map</a>; <code>tests/docs/test_cuda_dataflow.py</code>; <a href="journal/2026-11-10.html">daily entry</a></td>
+</tr>
+<tr>
+<td>2026-11-10</td>
+<td style="text-align: right;">D6 → D7</td>
+<td>Completed arithmetic bounds, canonical-range proof and adversarial-test inventory; added independent bigint and full-size 50/55/60-bit CPU gates. Next: OpenFHE representation/tower contract. P1 remains open.</td>
+<td><a href="modular-arithmetic-contract.html">D6 contract</a>; <code>arithmetic_bigint_check</code>; <code>arithmetic_transform_check</code>; <a href="journal/2026-11-10.html">daily entry</a></td>
+</tr>
+<tr>
+<td>2026-11-11</td>
+<td style="text-align: right;">D7 → D8</td>
+<td>Frozen the pinned OpenFHE NTT/DCRT array contract; full-size formula, format API, root, and three-tower checks pass. P1 remains open.</td>
+<td><a href="openfhe-representation-contract.html">D7 contract</a>; <a href="journal/2026-11-11.html">daily entry</a>; <code>openfhe_representation_contract</code></td>
+</tr>
 </tbody>
 </table></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#live-tracker">Live tracker</a></li><li><a href="#definition-of-exact-compatibility">Definition of exact compatibility</a></li><li><a href="#p0-pre-plan-baseline-done">P0 — pre-plan baseline (DONE)</a></li><li><a href="#p1-contract-and-architecture-freeze-d1d10">P1 — contract and architecture freeze (D1–D10)</a></li><li><a href="#p2-first-real-gpu-baseline-d11d15">P2 — first real GPU baseline (D11–D15)</a></li><li><a href="#p3-production-gpu-ntt-d16d40">P3 — production GPU NTT (D16–D40)</a></li><li><a href="#p4-exact-base-conversion-model-d41d49">P4 — exact base-conversion model (D41–D49)</a></li><li><a href="#p5-gpu-base-conversion-d50d61">P5 — GPU base conversion (D50–D61)</a></li><li><a href="#p6-hybrid-key-switch-contract-d62d68">P6 — Hybrid key-switch contract (D62–D68)</a></li><li><a href="#p7-gpu-hybrid-key-switching-d69d85">P7 — GPU Hybrid key switching (D69–D85)</a></li><li><a href="#p8-openfhe-integration-d86d95">P8 — OpenFHE integration (D86–D95)</a></li><li><a href="#p9-risk-reserve-d96d110">P9 — risk reserve (D96–D110)</a></li><li><a href="#progress-log">Progress log</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/8aa94c3c8fec2b5f13320e1f7efdfc62dc98fff8">8aa94c3</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/55e052a340c3d423941d1bff09b1bd20df7a9d87">55e052a</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
