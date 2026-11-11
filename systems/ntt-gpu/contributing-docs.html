@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Contribute</span><a href="https://github.com/minnow54426/ntt-gpu/blob/55e052a340c3d423941d1bff09b1bd20df7a9d87/docs/README.md">View source ↗</a></div>
+    <div class="site-page-meta"><span>Contribute</span><a href="https://github.com/minnow54426/ntt-gpu/blob/5f82cc97ab42693443d0f8628ae2eed67677919f/docs/README.md">View source ↗</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="writing-and-publishing-the-project-notebook">Writing and publishing the project notebook<a class="headerlink" href="#writing-and-publishing-the-project-notebook" title="Permanent link">¶</a></h1>
 <p>Edit Markdown and the three interactive HTML lessons in <code>docs/</code>. Build the site
@@ -111,14 +111,16 @@ locally. Put long reference material in <code>&lt;details markdown="1"&gt;</code
 <h2 id="validate-before-publishing">Validate before publishing<a class="headerlink" href="#validate-before-publishing" title="Permanent link">¶</a></h2>
 <pre><code class="language-sh">.venv/bin/python -m unittest discover -s tests/docs -v
 .venv/bin/python scripts/build_docs.py --check
-node tests/docs/work_distribution.test.cjs
+node --test tests/docs/*.test.cjs
 </code></pre>
 <p>The build validates catalog coverage, journal metadata, and local links,
 assets, and heading fragments. The site supports project subpaths.
-The Node test runs the work-distribution page's actual inline script using a
-small DOM stub and checks N=65536 in both directions, stage controls, boundary selections,
-and complete per-stage index coverage. It requires Node.js and no packages;
-it does not replace browser inspection or CUDA execution.</p>
+The Node checks run the pages' actual inline scripts. The work-distribution
+checks cover N=65536 in both directions, stage controls, boundary selections,
+and complete per-stage index coverage. The handwritten-derivation checks compare
+DIT and negacyclic DIF butterfly results with independent direct NTT sums and
+check full-size twiddle/index boundaries. Node.js 22+ is required; no packages
+are needed. These checks do not replace browser inspection or CUDA execution.</p>
 <p>The separate C++ column proof executes the production stage helper on CPU:</p>
 <pre><code class="language-sh">cmake -S . -B build
 cmake --build build --target ntt_column_mapping_tests ntt_device_sim
@@ -174,7 +176,7 @@ with <code>deploy_standalone</code> enabled. Its URL is
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/55e052a340c3d423941d1bff09b1bd20df7a9d87">55e052a</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/5f82cc97ab42693443d0f8628ae2eed67677919f">5f82cc9</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
