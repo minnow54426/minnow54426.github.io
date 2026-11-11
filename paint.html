@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paint — wonderonpathlesspath</title>
     <meta name="description" content="Watercolor studies and creative pieces — watch the painting unfold, stroke by stroke." />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/fontawesome-all.min.css">
     <link rel="stylesheet" href="assets/css/theme.css">
 
@@ -221,22 +217,29 @@
             .folder-header { padding: 0.9rem 1.1rem; }
             .video-controls { padding: 35px 12px 10px; }
         }
+
+        .folder-heading{margin:0}.folder-header{width:100%;font:inherit;text-align:left;margin:0 0 22px;border-radius:4px;background:transparent;padding:22px 0;border:0;border-top:1px solid var(--rule)}
+        .folder-header:hover{transform:none;background:transparent}.folder-title{text-transform:none;font:400 30px var(--font-display);gap:12px}.folder-title i{display:none}.item-count{text-transform:none;letter-spacing:0;border:0;font-size:15px;color:var(--muted)}
+        .content-gallery{grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:28px}.video-item,.video-item:hover{box-shadow:none;transform:none;transition:none;border-radius:4px}.content-gallery:hover .video-item:not(:hover){opacity:1}
+        .video-title{position:static;background:white;color:var(--cream);font-size:17px;padding:15px 17px}.video-controls{opacity:1;padding-top:25px}.video-wrapper{height:300px}.play-overlay{border:0;background:var(--accent);width:52px;height:52px}.play-overlay:focus-visible{opacity:1}.video-item.paused:hover .play-overlay{transform:translate(-50%,-50%)}
+        .control-btn{min-width:30px;min-height:38px}.control-btn.active{color:#aacfe9}.time-display{font-size:12px}.progress-filled{background:#95bdd9}.progress-filled::after{box-shadow:none;background:#95bdd9}
+        @media(max-width:600px){.folder-title{font-size:26px}.folder-header{gap:10px}.video-wrapper{height:280px}.controls-left,.controls-right{gap:4px}.controls-row{gap:4px}}
+        @media(prefers-reduced-motion:reduce){.gallery-content,.gallery-content.open{transition:none}}
     </style>
 </head>
 
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
     <div class="grain" aria-hidden="true"></div>
 
     <header class="topbar">
-        <a href="/" class="topbar__mark">wonderon<span>·</span>pathlesspath</a>
-        <nav class="topbar__nav">
-            <a href="photo-gallery.html">Photography</a>
-            <a href="paint.html">Paint</a>
-            <a href="music.html">Music</a>
-        </nav>
+        <a href="/" class="topbar__mark">wonder on<span> / </span>pathless path</a>
+        <nav class="topbar__nav" aria-label="Main navigation">
+      <a href="photo-gallery.html">Photography</a><a href="systems/ntt-gpu/index.html">Research</a><a href="paint.html" aria-current="page">Paint</a><a href="music.html">Music</a>
+    </nav>
     </header>
 
-    <main class="page">
+    <main class="page" id="main-content">
         <section class="page-hero">
             <div class="shell">
                 <a href="/" class="back-link">
@@ -244,7 +247,7 @@
                     Back to home
                 </a>
                 <p class="eyebrow reveal">Creative · Paint · 27 videos</p>
-                <h1 class="page-hero__title reveal" data-delay="1">Paint,<br />in motion.</h1>
+                <h1 class="page-hero__title reveal" data-delay="1">Paint, in motion.</h1>
                 <p class="page-hero__lede reveal" data-delay="2">
                     Watercolor studies and creative pieces. Open a folder below and
                     watch the painting unfold, stroke by stroke — hover a video to
@@ -255,44 +258,35 @@
 
         <section class="page-body">
             <div class="shell">
-                <!-- Water Color -->
+                <!-- Watercolor -->
                 <div class="gallery-container">
-                    <div class="folder-header" onclick="toggleFolder('water-color')">
-                        <h2 class="folder-title">
-                            <span class="folder-arrow" id="water-color-arrow">▶</span>
-                            <i class="fas fa-brush"></i> Water Color
-                        </h2>
-                        <span class="item-count" id="water-color-count">12 videos</span>
-                    </div>
-                    <div class="gallery-content" id="water-color-content">
+                    <h2 class="folder-heading"><button type="button" class="folder-header" onclick="toggleFolder('water-color')" aria-expanded="false" aria-controls="water-color-content"><span class="folder-title">
+                            <span class="folder-arrow" id="water-color-arrow"><svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M5 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>
+                            <i class="fas fa-brush"></i> Watercolor
+                        </span><span class="item-count" id="water-color-count">12 videos</span></button></h2>
+                    <div class="gallery-content" inert id="water-color-content">
                         <div class="content-gallery" id="water-color-gallery"></div>
                     </div>
                 </div>
 
                 <!-- Learning -->
                 <div class="gallery-container">
-                    <div class="folder-header" onclick="toggleFolder('learning')">
-                        <h2 class="folder-title">
-                            <span class="folder-arrow" id="learning-arrow">▶</span>
+                    <h2 class="folder-heading"><button type="button" class="folder-header" onclick="toggleFolder('learning')" aria-expanded="false" aria-controls="learning-content"><span class="folder-title">
+                            <span class="folder-arrow" id="learning-arrow"><svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M5 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>
                             <i class="fas fa-graduation-cap"></i> Learning
-                        </h2>
-                        <span class="item-count" id="learning-count">9 videos</span>
-                    </div>
-                    <div class="gallery-content" id="learning-content">
+                        </span><span class="item-count" id="learning-count">9 videos</span></button></h2>
+                    <div class="gallery-content" inert id="learning-content">
                         <div class="content-gallery" id="learning-gallery"></div>
                     </div>
                 </div>
 
                 <!-- Creative -->
                 <div class="gallery-container">
-                    <div class="folder-header" onclick="toggleFolder('creat')">
-                        <h2 class="folder-title">
-                            <span class="folder-arrow" id="creat-arrow">▶</span>
+                    <h2 class="folder-heading"><button type="button" class="folder-header" onclick="toggleFolder('creat')" aria-expanded="false" aria-controls="creat-content"><span class="folder-title">
+                            <span class="folder-arrow" id="creat-arrow"><svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M5 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>
                             <i class="fas fa-star"></i> Creative
-                        </h2>
-                        <span class="item-count" id="creat-count">6 videos</span>
-                    </div>
-                    <div class="gallery-content" id="creat-content">
+                        </span><span class="item-count" id="creat-count">6 videos</span></button></h2>
+                    <div class="gallery-content" inert id="creat-content">
                         <div class="content-gallery" id="creat-gallery"></div>
                     </div>
                 </div>
@@ -303,8 +297,8 @@
     <footer class="footer">
         <div class="shell">
             <div class="footer__copy">
-                <a href="/" class="topbar__mark">wonderon<span>·</span>pathlesspath</a>
-                <span>© 2025 · 27 watercolor videos</span>
+                <a href="/" class="topbar__mark">wonder on<span> / </span>pathless path</a>
+                <span>© 2026 · 27 watercolor videos</span>
             </div>
         </div>
     </footer>
@@ -317,12 +311,15 @@
         const arrow = document.getElementById(folderId + '-arrow');
         const gallery = document.getElementById(folderId + '-gallery');
 
+        const button = document.querySelector('[aria-controls="'+folderId+'-content"]');
+        const opening = !content.classList.contains('open');
+        button.setAttribute('aria-expanded', String(opening)); content.inert = !opening;
         if (content.classList.contains('open')) {
           content.classList.remove('open');
           arrow.classList.remove('open');
           // Hide videos immediately when closing
           const videos = gallery.querySelectorAll('.video-item');
-          videos.forEach(v => v.classList.remove('visible'));
+          videos.forEach(v => {v.classList.remove('visible');v.querySelector('video').pause();});
         } else {
           content.classList.add('open');
           arrow.classList.add('open');
@@ -331,7 +328,7 @@
           videos.forEach((video, index) => {
             setTimeout(() => {
               video.classList.add('visible');
-            }, index * 80); // 80ms delay between each video
+            }, 0); // 80ms delay between each video
           });
         }
       }
@@ -359,6 +356,7 @@
 
           const video = document.createElement('video');
           video.preload = 'metadata';
+          video.setAttribute('aria-label', title);
           video.playsInline = true;
           video.dataset.src = src;
           video.dataset.index = index;
@@ -370,6 +368,8 @@
           // Progress bar
           const progressBar = document.createElement('div');
           progressBar.className = 'progress-bar';
+          progressBar.tabIndex=0;progressBar.setAttribute('role','slider');progressBar.setAttribute('aria-label','Seek '+title);progressBar.setAttribute('aria-valuemin','0');progressBar.setAttribute('aria-valuemax','100');progressBar.setAttribute('aria-valuenow','0');
+          progressBar.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();if(Number.isFinite(video.duration))video.currentTime=Math.max(0,Math.min(video.duration,video.currentTime+(e.key==='ArrowRight'?5:-5)));}});
 
           const progressFilled = document.createElement('div');
           progressFilled.className = 'progress-filled';
@@ -386,12 +386,14 @@
           // Play/Pause button
           const playBtn = document.createElement('button');
           playBtn.className = 'control-btn';
+          playBtn.setAttribute('aria-label', 'Play or pause '+title);
           playBtn.innerHTML = '<i class="fas fa-play"></i>';
 
           // Speed control
           const speedBtn = document.createElement('button');
           speedBtn.className = 'control-btn speed-control';
           speedBtn.textContent = '1x';
+          speedBtn.setAttribute('aria-label', 'Playback speed');
           let currentSpeedIndex = 1; // Default to 1x
 
           // Time display
@@ -436,8 +438,9 @@
           controls.appendChild(controlsRow);
 
           // Play overlay
-          const playOverlay = document.createElement('div');
+          const playOverlay = document.createElement('button');
           playOverlay.className = 'play-overlay';
+          playOverlay.type='button';playOverlay.setAttribute('aria-label','Play or pause '+title);
 
           // Video title
           const titleDiv = document.createElement('div');
@@ -519,6 +522,7 @@
           video.addEventListener('timeupdate', () => {
             const progress = (video.currentTime / video.duration) * 100;
             progressFilled.style.width = `${progress}%`;
+            progressBar.setAttribute('aria-valuenow',String(Math.round(progress)));
             timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
           });
 
@@ -586,7 +590,7 @@
               { src: 'paint/water_color/mountain.mp4', title: 'Mountain' },
               { src: 'paint/water_color/leaf_on_water.mp4', title: 'Leaf on Water' },
               { src: 'paint/water_color/flower.mp4', title: 'Flower' },
-              { src: 'paint/water_color/autumn_leave.mp4', title: 'Autumn Leave' },
+              { src: 'paint/water_color/autumn_leave.mp4', title: 'Autumn Leaf' },
               { src: 'paint/water_color/rose.mp4', title: 'Rose' },
               { src: 'paint/water_color/peach.mp4', title: 'Peach' },
               { src: 'paint/water_color/cherry_blossoms.mp4', title: 'Cherry Blossoms' },

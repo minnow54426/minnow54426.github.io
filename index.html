@@ -6,42 +6,33 @@
   <title>wonder on pathless path</title>
   <meta name="description" content="A journey through photography, code, and cryptography — captured, built, and explored along a pathless path." />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
-
   <link rel="stylesheet" href="assets/css/fontawesome-all.min.css" />
   <link rel="stylesheet" href="assets/css/theme.css" />
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="grain" aria-hidden="true"></div>
 
   <!-- Topbar -->
   <header class="topbar">
-    <a href="#top" class="topbar__mark">wonderon<span>·</span>pathlesspath</a>
-    <nav class="topbar__nav">
+    <a href="#top" class="topbar__mark">wonder on<span> / </span>pathless path</a>
+    <nav class="topbar__nav" aria-label="Main navigation">
       <a href="#photography">Photography</a>
-      <a href="#code">Code</a>
+      <a href="#code">Research</a>
       <a href="#paint">Paint</a>
       <a href="#music">Music</a>
     </nav>
   </header>
 
-  <!-- Hero -->
+  <main id="main-content">
   <section class="hero" id="top">
-    <h1 class="mask wordmark"
-        style="--mask-img: url('/photos/shang hai/2024-08-17-006.jpg'); --mask-pos: center 30%;">
-      <span class="wm-1">WONDER ON</span>
-      <span class="wm-2">PATHLESS PATH</span>
-    </h1>
-
-    <div class="hero__foot">
-      <p class="hero__tagline">
-        A journey through photography, code, and cryptography —
-        captured, built, and explored along a pathless path.
-      </p>
-      <a href="#manifesto" class="scrollcue">Scroll</a>
+    <div>
+      <p class="eyebrow">Photographs, studies, and systems</p>
+      <h1>Wonder on a pathless path.</h1>
+      <p class="hero__tagline">A personal collection of places seen, things made, and ideas worked through.</p>
+      <div class="hero__foot"><a class="link-arrow" href="photo-gallery.html">Explore the photographs</a><a class="scrollcue" href="#code">Read the research</a></div>
     </div>
+    <figure class="hero__photo"><img src="photos/shang hai/2024-08-17-006.jpg" alt="Yellow flowers photographed in Shanghai" width="900" height="1080" fetchpriority="high"><figcaption>Shanghai, August 2024. From the photography collection.</figcaption></figure>
   </section>
 
   <!-- Manifesto -->
@@ -49,9 +40,7 @@
     <div class="shell">
       <p class="eyebrow reveal">A field notebook</p>
       <h2 class="manifesto__text reveal" data-delay="1">
-        Capturing moments.<br />
-        Building systems.<br />
-        Exploring <em>cryptography.</em>
+        Looking closely. Making things. Following a question wherever it leads.
       </h2>
     </div>
   </section>
@@ -62,18 +51,17 @@
       <div class="plate__grid">
         <div class="plate__art reveal">
           <span class="plate__index">01</span>
-          <h2 class="mask plate__mark"
-              style="--mask-img: url('/photos/jiu zhai gou/2024-09-21-003.jpg'); --mask-pos: center 40%;">PHOTO</h2>
+          <img src="photos/jiu zhai gou/2024-09-21-003.jpg" alt="A landscape from the Jiuzhaigou photography collection" loading="lazy" width="800" height="650">
         </div>
         <div class="plate__body reveal" data-delay="1">
           <div class="plate__meta">
             <span class="num">01</span>
             <span class="eyebrow">Photography</span>
           </div>
-          <h3 class="plate__title">Light,<br />collected.</h3>
+          <h3 class="plate__title">Light, collected.</h3>
           <p class="plate__desc">
-            Visual stories through the lens — frames gathered across twelve
-            places, from Shanghai neon to the turquoise water of Jiu Zhai Gou.
+            Visual stories through the lens — frames gathered across fifteen
+            collections, from Shanghai neon to the turquoise water of Jiu Zhai Gou.
           </p>
           <ul class="plate__list">
             <li><span class="k">98</span><span class="v">Shanghai <small>bund · streets · skyline</small></span></li>
@@ -96,15 +84,14 @@
       <div class="plate__grid">
         <div class="plate__art reveal">
           <span class="plate__index">02</span>
-          <h2 class="mask plate__mark"
-              style="--mask-img: url('/photos/ao men/2025-10-09-004.jpg'); --mask-pos: center 35%;">CODE</h2>
+          <figure class="research-figure"><svg viewBox="0 0 520 330" role="img" aria-label="Four inputs connected through two levels of a butterfly network"><g stroke="#6f8ba4" stroke-width="1.5" fill="none"><path d="M60 80H160L300 80H440M60 240H160L300 80M60 80H160L300 240H440M60 240H160L300 240M60 130H160L300 130H440M60 290H160L300 130M60 130H160L300 290H440M60 290H160L300 290M330 80L440 130M330 130L440 80M330 240L440 290M330 290L440 240"/></g><g fill="#355a7a" font-family="Georgia,serif" font-size="23"><text x="30" y="86">a₀</text><text x="30" y="136">a₁</text><text x="30" y="246">a₂</text><text x="30" y="296">a₃</text><text x="450" y="86">A₀</text><text x="450" y="136">A₁</text><text x="450" y="246">A₂</text><text x="450" y="296">A₃</text><text x="60" y="35">From coefficients to evaluations</text></g></svg><figcaption>One small network. The starting point for an NTT.</figcaption></figure>
         </div>
         <div class="plate__body reveal" data-delay="1">
           <div class="plate__meta">
             <span class="num">02</span>
-            <span class="eyebrow">Code · Cryptography</span>
+            <span class="eyebrow">Cryptography and systems</span>
           </div>
-          <h3 class="plate__title">Systems<br />from scratch.</h3>
+          <h3 class="plate__title">Systems from scratch.</h3>
           <p class="plate__desc">
             Building cryptographic systems from first principles — from
             hashes, blocks, and consensus in Rust to GPU-accelerated CKKS.
@@ -140,7 +127,7 @@
             <span class="num">03</span>
             <span class="eyebrow">Creative · Paint</span>
           </div>
-          <h3 class="plate__title">Paint,<br />in motion.</h3>
+          <h3 class="plate__title">Paint, in motion.</h3>
           <p class="plate__desc">
             Watercolor studies and creative pieces — watch the painting unfold,
             stroke by stroke, in twenty-seven short process videos.
@@ -165,15 +152,14 @@
       <div class="plate__grid">
         <div class="plate__art reveal">
           <span class="plate__index">04</span>
-          <h2 class="mask plate__mark"
-              style="--mask-img: url('/photos/hu pao gong yuan/2024-09-01-007.jpg'); --mask-pos: center 45%;">MUSIC</h2>
+          <img src="photos/hu pao gong yuan/2024-09-01-007.jpg" alt="A photograph from the Hu Pao Park collection" loading="lazy" width="800" height="650">
         </div>
         <div class="plate__body reveal" data-delay="1">
           <div class="plate__meta">
             <span class="num">04</span>
             <span class="eyebrow">Creative · Music</span>
           </div>
-          <h3 class="plate__title">Sound,<br />soon.</h3>
+          <h3 class="plate__title">Sound, soon.</h3>
           <p class="plate__desc">
             Original compositions, collaborative projects, and audio experiments
             are currently in the studio — a space being prepared.
@@ -194,13 +180,11 @@
   </section>
 
   <!-- Footer -->
+  </main>
   <footer class="footer">
     <div class="shell">
       <div class="footer__grid">
-        <div class="footer__mark mask"
-             style="--mask-img: url('/photos/nan xun gu zhen/2025-03-08-007.jpg'); --mask-pos: center 45%;">
-          WP
-        </div>
+        <div class="footer__mark">Wonder on a pathless path.</div>
         <div class="footer__links">
           <a href="photo-gallery.html">Photography</a>
           <a href="paint.html">Paint</a>
@@ -208,7 +192,7 @@
         </div>
       </div>
       <div class="footer__copy">
-        <span>© 2025 wonderonpathlesspath</span>
+        <span>© 2026 wonderonpathlesspath</span>
         <span>Built along a pathless path</span>
       </div>
     </div>

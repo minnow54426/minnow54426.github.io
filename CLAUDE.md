@@ -1,3 +1,28 @@
+# Current design notes
+
+The active design was updated in November 2026. These notes supersede the
+historical theme and gallery descriptions below:
+
+- All public text, titles, and accessible labels must be English.
+- `assets/css/theme.css` uses a blue/white palette: #f5f7fa background,
+  #26384b ink, #355a7a accent, #617183 secondary text, #d7dfe7 rules.
+- Local Newsreader headings and Source Sans 3 body fonts live in `assets/fonts/`
+  with OFL licenses. Avoid adding remote font requests.
+- The home page uses a photograph beside a plain serif title. No grain,
+  masked display words, or automatic content reveals are active.
+- All 15 photography pages use the native dialog viewer in `photos/gallery.js`.
+  Keep original image links as the no-JavaScript fallback; preserve Escape,
+  arrow keys, focus trapping, focus restoration, and English accessible names.
+  Legacy jQuery/Poptrox assets are retained on disk but no longer loaded.
+- Painting folder headers are real disclosure buttons with aria-expanded and
+  inert collapsed content. Preserve the IDs used by the existing video script.
+- The 22 NTT pages are generated from `/workspace/ntt-gpu` source. Change the
+  source articles and `docs/site-assets`, then export; do not edit generated HTML.
+- Review all 41 pages at desktop and phone widths. The publication workflow
+  and existing media assets remain in place.
+
+---
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.

@@ -231,3 +231,24 @@ body.modal-active { overflow: hidden; }
   .poptrox-popup .nav-next { right: 0.5rem; }
   .poptrox-popup .nav-previous { left: 0.5rem; }
 }
+
+/* The collection has its own quiet introduction; the photographs do the work. */
+header{background:rgba(245,247,250,.97);height:72px;border-color:var(--rule)}
+header h1{font-family:var(--font-body);font-size:16px;text-transform:none;letter-spacing:0}
+header .back-link{font-size:15px;letter-spacing:0;text-transform:none;margin:0;padding:10px 0}
+.gallery-intro{padding:120px var(--pad-x) 38px;max-width:1440px;margin:auto}
+.gallery-intro h2{font:400 clamp(44px,6vw,74px)/1.1 var(--font-display);letter-spacing:-1.5px;margin:14px 0 22px}
+.gallery-intro p{margin:0;font-size:17px;color:var(--muted)}
+#main{max-width:1440px;margin:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;padding:0 var(--pad-x) 80px}
+#main .thumb{width:auto;height:auto;min-height:0;aspect-ratio:4/3;transition:none;border-radius:3px}
+#main .thumb .image img{transition:none}#main .thumb:hover .image img{transform:none}#main .thumb:hover::after{box-shadow:none}
+.photo-viewer{width:calc(100vw - 40px);max-width:1440px;height:calc(100dvh - 40px);max-height:100dvh;margin:auto;border:0;border-radius:5px;background:#fff;color:var(--cream);padding:16px 24px}
+.photo-viewer[open]{display:flex;flex-direction:column}.photo-viewer::backdrop{background:rgba(27,43,60,.82)}
+.photo-viewer__bar,.photo-viewer__navigation{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-shrink:0}
+.photo-viewer__bar p{font-size:16px;margin:0}.photo-viewer button{min-height:44px;padding:8px 18px;border:1px solid var(--rule);background:#f4f7fa;color:var(--cream);border-radius:4px;font:16px var(--font-body)}
+.photo-viewer__picture{flex:1;min-height:0;display:flex;justify-content:center;padding:16px 0}.photo-viewer__picture img{object-fit:contain;width:100%;height:100%}
+.photo-viewer__navigation span{font-size:14px;color:var(--muted)}body.modal-active{overflow:hidden}
+@media(max-width:1000px){#main{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}}
+@media(max-width:540px){#main{grid-template-columns:1fr;gap:20px}.gallery-intro{padding-top:106px}.photo-viewer{width:100vw;height:100dvh;max-width:none;border-radius:0;padding:12px}.photo-viewer__navigation span{display:none}}
+@media(prefers-reduced-motion:reduce){#main .thumb,#main .thumb .image img{transition:none}}
+#main .thumb:focus-within{outline:3px solid #457fa5;outline-offset:5px}

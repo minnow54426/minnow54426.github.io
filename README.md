@@ -4,7 +4,7 @@ A personal portfolio website hosted on GitHub Pages, featuring photography, bloc
 
 ## Features
 
-- **Photography Gallery**: 14 curated photo categories with 230+ images from travels across China
+- **Photography Gallery**: 15 photo collections with 247 images from travels across China
 - **Code & Cryptography**: [blockchain_from_scratch](https://github.com/minnow54426/blockchain_from_scratch) — a blockchain built in Rust from first principles
 - **Creative Works**: Music projects and watercolor video gallery
 - **NTT-GPU**: [CKKS From Scratch](systems/ntt-gpu/index.html) — interactive
@@ -55,7 +55,7 @@ Edit NTT-GPU source documents rather than the generated website copy.
 ├── paint.html              # Watercolor video gallery
 ├── music.html              # Music projects
 ├── assets/                 # CSS and JavaScript assets
-├── photos/                 # Photography collection (14 categories)
+├── photos/                 # Photography collection (15 categories)
 └── paint/                  # Art and video collection
 ```
 
@@ -63,10 +63,21 @@ Edit NTT-GPU source documents rather than the generated website copy.
 
 ### Frontend
 - HTML5/CSS3
-- Sunlit Paper custom design system (`assets/css/theme.css`)
-- jQuery & jQuery Poptrox
+- Shared blue/white design system (`assets/css/theme.css`)
+- Locally hosted Newsreader and Source Sans 3 (licenses in `assets/fonts/`)
+- Native dialog photo viewer with arrow-key navigation and focus restoration
+- Keyboard-accessible painting folders and playback controls
 - Font Awesome
 - GitHub Pages
+
+## Design and language
+
+All published text and accessible labels use English. The portfolio and
+research notebook share a restrained blue/white palette, serif headings,
+and a readable sans-serif body. Photography, mathematical diagrams, and
+painting studies supply the visual content. Navigation stays visible on phones.
+The current website has 41 HTML pages: 19 portfolio/collection pages and
+22 generated notebook pages. Browser review covers 1440, 1024, 375, and 320px.
 
 ## Deployment
 

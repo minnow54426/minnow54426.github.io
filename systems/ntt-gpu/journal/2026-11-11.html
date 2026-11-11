@@ -20,11 +20,11 @@
 <a class="site-skip" href="#site-main">Skip to content</a>
 <aside class="site-sidebar" id="site-sidebar">
   <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
-    <span>ntt-gpu<small>THE ENGINEERING NOTEBOOK</small></span></a>
-  <div class="site-nav-label">DOCUMENTATION <span>INDEX</span></div>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
   <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
-    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository ↗</a></div>
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
 <div class="site-workspace">
   <header class="site-topbar">
@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/17a8274183c230559c39e2da2f96c19cff28073b/docs/journal/2026-11-11.md">View source ↗</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/69ed7347e9d812331c37f82fe90b4c3c9be82038/docs/journal/2026-11-11.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-11">2026-11-11</time><span>P1 / D7 → D8</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="freeze-the-openfhe-ntt-and-dcrt-representation-contract">Freeze the OpenFHE NTT and DCRT representation contract<a class="headerlink" href="#freeze-the-openfhe-ntt-and-dcrt-representation-contract" title="Permanent link">¶</a></h1><p class="site-journal-summary">Completed D7 with full-size OpenFHE representation checks and prepared the accumulated D3–D7 notebook for publication.</p>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
@@ -57,7 +57,7 @@ consistent imported roots are part of this contract.</p>
 <li>Added <a href="../openfhe-representation-contract.html">the D7 representation contract</a>,
   including exact formulas, parameter/root requirements, format APIs, ordered
   tower packing, active-level behavior, and pinned source references.</li>
-<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/17a8274183c230559c39e2da2f96c19cff28073b/tests/openfhe_representation_tests.cpp">openfhe_representation_tests.cpp</a>
+<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/69ed7347e9d812331c37f82fe90b4c3c9be82038/tests/openfhe_representation_tests.cpp">openfhe_representation_tests.cpp</a>
   and the opt-in <code>openfhe_representation_contract</code> CTest gate.</li>
 <li>At N=65536, checked four monomials and four independent inverse slots at each
   of three exact-width primes (50/55/60 bits), minimum roots, canonical values,
@@ -111,61 +111,98 @@ OpenFHE cache behavior.</p>
 <p>Trace OpenFHE 1.6.1 Hybrid key switching and freeze the exact operation graph
 with intermediate-state fixtures. Preserve bit equality rather than replacing
 it with approximate CKKS decryption agreement.</p>
-<h2 id="_1">手稿补充：从递归拆分到每层旋转因子<a class="headerlink" href="#_1" title="Permanent link">¶</a></h2>
-<p>按用户提供的手写图片，将推导整理到
-<a href="../butterfly-explained.html#handwritten-derivation">NTT 与蝶形页面</a>：</p>
+<h2 id="manuscript-supplement-recursion-and-stage-twiddles">Manuscript supplement: recursion and stage twiddles<a class="headerlink" href="#manuscript-supplement-recursion-and-stage-twiddles" title="Permanent link">¶</a></h2>
+<p>The user's handwritten derivation was added to the
+<a href="../butterfly-explained.html#handwritten-derivation">NTT and butterfly lesson</a>:</p>
 <ul>
-<li>从原始求和式拆分偶数/奇数项，推导共用乘法的加减输出对。</li>
-<li>继续拆成 a₄ᵣ、a₄ᵣ₊₂ 等子序列，说明子变换根为何逐层平方。</li>
-<li>完整展开四点变换，并重绘 P/R/Q/S 到 b₀/b₂/b₁/b₃ 的可访问 SVG 连线图。</li>
-<li>对自底向上的 cyclic DIT，明确零起始 stage、组长和局部下标，得到
-  <code>w(s,j) = omega_N^(j*N/2^(s+1))</code>。</li>
-<li>将手稿的 8；4,12；2,10,6,14 等数字作为四位位逆序根表的一种解释，
-  不把它们误作通用 cyclic DIT 乘子列表。</li>
-<li>对照仓库的 negacyclic DIF：阶段方向相反，额外包含 <code>c=psi^d</code>，
-  并且 <code>w=omega_N^(N*J/(2d))=psi^(N*J/d)</code>。</li>
-<li>新增 N=4/8/16/65536 的旋转因子交互计算器，显示配对位置、距离、
-  omega/psi 指数和两种调度约定。保留现有数值互动和 CPU 实现。</li>
+<li>Split the original sum into even and odd inputs and derive the shared
+  multiplication used by the two outputs.</li>
+<li>Recurse into the a₄ᵣ and a₄ᵣ₊₂ subsequences and explain why roots square.</li>
+<li>Expand all four outputs and draw an accessible P/R/Q/S-to-b₀/b₂/b₁/b₃ SVG.</li>
+<li>Specify zero-based cyclic DIT stages, group lengths, and local offsets:
+  <code>w(s,j) = omega_N^(j*N/2^(s+1))</code>.</li>
+<li>Interpret 8; 4,12; 2,10,6,14 as one four-bit reversed root-table convention,
+  rather than a universal list of cyclic DIT factors.</li>
+<li>Map this to the repository's reverse-stage negacyclic DIF, including
+  <code>c=psi^d</code> and <code>w=omega_N^(N*J/(2d))=psi^(N*J/d)</code>.</li>
+<li>Add an N=4/8/16/65536 exponent calculator with indices, distances, both root
+  conventions, and stage direction. Preserve the existing numerical examples.</li>
 </ul>
-<p>新增 Node 测试读取页面的实际脚本，用独立直接求和检查每个蝶形生成的
-cyclic DIT 与 negacyclic DIF 结果；同时验证 65536 的边界阶段、下标和
-输入范围。文档 CI 现在运行两组交互数学测试。</p>
-<p>本次属于推导和文档补充，不推进 D8 或 P1 架构 gate，也不构成 GPU 运行结果。
-验证结果：23 项文档单元测试与 8 项交互数学测试均通过，22 页文档的本地
-链接和片段检查通过。独立 HTML 与生成网页在 1440、375、320px 下均通过
-浏览器检查：无 KaTeX 错误、无整页横向溢出，计算器的 65536 边界例子、
-中文章节导航与搜索正常；原有四点数值验证和 N=8 网络控件仍可运行。
-已查看蝶形图和手机计算器截图。网页发布后继续核对线上版本。</p>
-<h2 id="_2">按第二份手稿修订教学页面<a class="headerlink" href="#_2" title="Permanent link">¶</a></h2>
-<p>本次逐项处理页面审阅意见，不推进 D8 或 P1 gate：</p>
+<p>New Node tests execute the actual calculator script and compare cyclic DIT
+and negacyclic DIF with independent direct sums. They check target-size stage
+boundaries, indices, and control limits. Documentation CI runs both groups of
+interactive mathematical checks.</p>
+<p>This documentation supplement did not advance D8 or P1 and did not add a GPU
+result. At publication, 23 documentation tests and eight interactive tests
+passed; all 22 generated pages passed local link and fragment validation.
+Standalone and generated lessons passed browser checks at 1440/375/320px:
+no KaTeX errors or page overflow; the target-size calculator, section links,
+search, four-point verification, and N=8 controls worked. Desktop/mobile
+network and calculator screenshots were inspected. The original record
+included Chinese navigation, which is translated in the English review below.</p>
+<h2 id="teaching-revisions-from-the-second-manuscript">Teaching revisions from the second manuscript<a class="headerlink" href="#teaching-revisions-from-the-second-manuscript" title="Permanent link">¶</a></h2>
+<p>The page review addressed each handwritten item without advancing D8 or P1:</p>
 <ul>
-<li>合并直接求值成本与节省工作量两节，保留滑块、图表和旧 s8 入口；
-  区分乘法数与蝶形数，并修正倍增比例及 log–log 曲线说明。</li>
-<li>明确 cyclic DIT 每层的组长、距离、输入/输出依赖；补上 negacyclic
-  从奇次根求值、第一层拆分到逐层折叠的证明。局部对角 twist 的不变量
-  说明为何每层均使用 c=ψ^d，而最后一层仍有 c=ψ。</li>
-<li>NTT 推导和 CPU→CUDA 页共用新的 16 点互动示例（q=97、ψ=19）：
-  四层、32 个蝶形、所有中间数值、逐对乘子和算式、可编辑输入。
-  列 3 的前两层与行 3 的后两层直接读取同一完整计算轨迹。</li>
-<li>65536 分工页增加乘法所在分支的图形，解释最后两层；将列、行、
-  逆变换证明的数学段落排版成公式，保留可执行命令。</li>
-<li>D5 以 N=65536/K=3 为主例，用响应式主机/GPU 流程图展示 1.5 MiB
-  操作数、六块缓冲区、常量上传、八次调用和 4.5 MiB 传输。</li>
-<li>D7 的环、求值位置、探针、根表、塔打包和负号回卷统一排版；同时
-  整理 D6 的数学范围与不变量，修复源 HTML 小屏表格的横向溢出。</li>
+<li>Merge direct-evaluation cost and savings, retaining the slider, chart, and
+  old s8 anchor. Distinguish multiplication counts from butterfly counts and
+  correct the doubling ratio and log–log curve description.</li>
+<li>State the cyclic DIT stage lengths, distances, and dependencies. Derive the
+  negacyclic odd-root split and prove the folded factors using the remaining
+  local diagonal twist. Every stage has c=ψᵈ; the final stage still has c=ψ.</li>
+<li>Share one editable 16-point example between the NTT and CPU-to-CUDA pages:
+  q=97, ψ=19, all four stages, 32 pairs, factors and intermediate values.
+  Column 3's first two stages and row 3's last two stages read the full trace.</li>
+<li>Add a weighted-butterfly diagram and final-stage explanation to the 65536
+  schedule page; typeset the column, row, and inverse proofs.</li>
+<li>Use N=65536/K=3 in the D5 host/GPU flow diagram: 1.5 MiB operands, six
+  buffers, constant uploads, eight launches, and 4.5 MiB operand transfers.</li>
+<li>Typeset D7's ring, evaluation positions, probes, root tables, tower packing,
+  and negative wrap. Refine D6 ranges and invariants and fix narrow-screen
+  table overflow in the standalone HTML.</li>
 </ul>
-<p>验证：23 项 Python 文档测试、12 项 Node 交互数学测试通过。新增数值模型
-对所有 16 个基向量、边界和带符号输入与独立奇次根求值完全相等；前后
-两层分组与完整计算一致，且每层满足与预扭曲 cyclic DIF 的对角关系。
-22 页生成与本地链接/片段检查通过。五个修改页面在 1440/375/320px 下
-通过公式、交互与溢出检查，三个独立 HTML 也通过检查；已查看桌面和
-手机的完整网络及数据流截图。全站还检查了 1440/1280/1024/375px 的
-章节导航和公式；中文 URL 片段需先解码再比较，检查工具已据此修正。
-本次仅修改教学文档和示例，没有修改生产 NTT 算法，也不声称 GPU 实测。</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li><li><a href="#_1">手稿补充：从递归拆分到每层旋转因子</a></li><li><a href="#_2">按第二份手稿修订教学页面</a></li></ol></nav></aside>
+<p>At publication, 23 Python tests and 12 Node tests passed. All 16 basis vectors,
+boundary and signed inputs matched independent odd-root evaluation. Both
+pair groupings matched the full transform; every intermediate stage satisfied
+the diagonal relation with pre-twisted cyclic DIF. All 22 pages built with
+valid links/fragments. Five revised pages passed 1440/375/320px interaction,
+math, and overflow checks; three standalone lessons also passed. Desktop and
+phone screenshots were inspected. Site-wide navigation and formulas were
+checked at 1440/1280/1024/375px; the checker was corrected to decode Chinese
+URL fragments before comparison. Production NTT algorithms were unchanged.
+No GPU execution result was claimed.</p>
+<h2 id="english-edition-and-website-design-review">English edition and website design review<a class="headerlink" href="#english-edition-and-website-design-review" title="Permanent link">¶</a></h2>
+<p>Applied the public <a href="https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md">frontend-design skill</a>
+to the personal portfolio and notebook. The design uses porcelain, blue, and
+white surfaces, locally hosted Newsreader headings and Source Sans 3 body text,
+clear reading widths, and less decorative chrome. The portfolio leads with an
+existing photograph; the notebook keeps its page outline, search, and exact
+interactive examples.</p>
+<p>Translated the manuscript derivation, calculator, 16-point example, and prior
+journal additions into English while retaining their technical observations.
+The old Chinese fragment remains an invisible compatibility anchor. Photo
+collection titles and labels are also English. Published search text and
+accessible labels are checked for remaining Chinese characters.</p>
+<p>The review covers all 41 HTML pages: four portfolio hubs, 15 photo collections,
+and 22 notebook pages. The personal site now has visible phone navigation,
+a keyboard-accessible native photo viewer with arrow keys and focus restoration,
+and real painting disclosure buttons with inert collapsed content. Existing
+image and video files are retained. Local font files include their OFL licenses.</p>
+<p>Observed browser verification: 164 page/width checks passed at
+1440/1024/375/320px, with no JavaScript errors, failed HTTP responses, formula
+errors, duplicate IDs, or page-wide overflow. The first pass found one 320px
+notebook-heading overflow; allowing the heading row to wrap resolved it.
+Local links, fragments, and referenced assets were validated across all 41
+pages. Desktop and phone interaction checks passed for photo browsing, Escape
+and focus return, painting playback/pause/speed/folder controls, the 65536
+calculator, 16-point input validation, original arithmetic widgets, and search.
+Screenshots of each page were captured; representative portfolio, collection,
+notebook, and phone layouts were inspected. Documentation and mathematical
+checks remain the separate CPU/browser gates; this design work does not
+advance D8 or imply a GPU result.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li><li><a href="#manuscript-supplement-recursion-and-stage-twiddles">Manuscript supplement: recursion and stage twiddles</a></li><li><a href="#teaching-revisions-from-the-second-manuscript">Teaching revisions from the second manuscript</a></li><li><a href="#english-edition-and-website-design-review">English edition and website design review</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/17a8274183c230559c39e2da2f96c19cff28073b">17a8274</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/69ed7347e9d812331c37f82fe90b4c3c9be82038">69ed734</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

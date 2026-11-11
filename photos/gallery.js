@@ -1,60 +1,32 @@
-/*
-Gallery Initialization for HTML5 UP Multiverse Template
-Uses direct <img> display instead of background-image technique
-*/
-
-(function($) {
-
-	'use strict';
-
-	// Wait for DOM to be ready
-	$(function() {
-		var $main = $('#main');
-		var $body = $('body');
-
-		// Poptrox: Modal popup configuration (images only)
-		$main.poptrox({
-			baseZIndex: 20000,
-			caption: function($a) {
-				return ''; // No captions - images only
-			},
-			fadeSpeed: 300,
-			onPopupClose: function() {
-				$body.removeClass('modal-active');
-			},
-			onPopupOpen: function() {
-				$body.addClass('modal-active');
-			},
-			overlayOpacity: 0.78,
-			popupCloserText: '',
-			popupHeight: 150,
-			popupLoaderText: '',
-			popupSpeed: 300,
-			popupWidth: 150,
-			selector: '.thumb > a.image',
-			usePopupCaption: false,    // No captions
-			usePopupCloser: true,      // Show close button
-			usePopupDefaultStyling: false,
-			usePopupForceClose: true,  // Click outside to close
-			usePopupLoader: true,      // Show loading spinner
-			usePopupNav: true,         // Next/Prev navigation arrows
-			windowMargin: 50           // Margin around modal
-		});
-
-		// Adjust window margin for mobile
-		if (breakpoints) {
-			breakpoints.on('<=xsmall', function() {
-				if ($main[0]._poptrox) {
-					$main[0]._poptrox.windowMargin = 0;
-				}
-			});
-
-			breakpoints.on('>xsmall', function() {
-				if ($main[0]._poptrox) {
-					$main[0]._poptrox.windowMargin = 50;
-				}
-			});
-		}
-	});
-
-})(jQuery);
+/* Image links remain usable without JavaScript; the dialog adds keyboard browsing. */
+(function () {
+  'use strict';
+  const links = [...document.querySelectorAll('#main .thumb a.image')];
+  if (!links.length || typeof HTMLDialogElement === 'undefined') return;
+  const dialog = document.createElement('dialog');
+  dialog.className = 'photo-viewer';
+  dialog.setAttribute('aria-label', 'Photograph viewer');
+  dialog.innerHTML = '<div class="photo-viewer__bar"><p aria-live="polite"></p><button type="button" data-close aria-label="Close photograph">Close</button></div><div class="photo-viewer__picture"><img alt=""></div><div class="photo-viewer__navigation"><button type="button" data-previous>Previous</button><span>Use ← and → to browse</span><button type="button" data-next>Next</button></div>';
+  document.body.appendChild(dialog);
+  const image = dialog.querySelector('img'), caption = dialog.querySelector('p');
+  let current = 0, opener;
+  function show(index) {
+    current = (index + links.length) % links.length;
+    const thumb = links[current].querySelector('img');
+    image.src = links[current].href; image.alt = thumb.alt;
+    caption.textContent = document.querySelector('.gallery-intro h2').textContent + ' — ' + (current+1) + ' of ' + links.length;
+  }
+  links.forEach((link,index) => link.addEventListener('click', event => {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();opener=link;show(index);dialog.showModal();document.body.classList.add('modal-active');
+  }));
+  dialog.querySelector('[data-close]').addEventListener('click', () => dialog.close());
+  dialog.querySelector('[data-previous]').addEventListener('click', () => show(current-1));
+  dialog.querySelector('[data-next]').addEventListener('click', () => show(current+1));
+  dialog.addEventListener('keydown', event => {
+    if(event.key==='ArrowLeft'){event.preventDefault();show(current-1);}
+    if(event.key==='ArrowRight'){event.preventDefault();show(current+1);}
+  });
+  dialog.addEventListener('click', event => {if(event.target===dialog)dialog.close();});
+  dialog.addEventListener('close', () => {document.body.classList.remove('modal-active');if(opener)opener.focus();});
+})();
