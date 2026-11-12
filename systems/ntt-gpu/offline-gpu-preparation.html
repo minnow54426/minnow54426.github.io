@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Completed compiler-only preparation, baseline safety fixes, tested session reporting and the first real-GPU handoff.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/offline-gpu-preparation.html">
+<title>Before renting a GPU · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html" aria-current="page">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Plans</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/docs/offline-gpu-preparation.md">View source</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><article class="site-article"><h1 id="before-renting-a-gpu">Before renting a GPU<a class="headerlink" href="#before-renting-a-gpu" title="Permanent link">¶</a></h1>
+<p><strong>D11 preparation complete · hardware verification still pending · N=65536</strong></p>
+<p>The compiler, host checks and first-session collection path can be prepared
+without paying for a GPU. That preparation is now complete on this Linux
+workspace. D11 itself remains open because its final deliverable includes an
+actual GPU/driver environment record.</p>
+<p>Rent or borrow a GPU when ready to verify that environment and run the prepared
+native checks. The <a href="openfhe-integration-plan.html">roadmap</a> working-day numbers
+are engineering milestones, not continuous rental days.</p>
+<h2 id="1-what-is-ready">1. What is ready<a class="headerlink" href="#1-what-is-ready" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Work</th>
+<th>Observed result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CUDA build</td>
+<td>Stock CUDA 13.0.88 compiler builds and links sm_89 and sm_120 targets without a driver</td>
+</tr>
+<tr>
+<td>Host tests</td>
+<td>19 host CTests pass; four registered GPU tests are explicitly excluded</td>
+</tr>
+<tr>
+<td>CPU build</td>
+<td>All 15 CTests pass with CUDA disabled</td>
+</tr>
+<tr>
+<td>Reports</td>
+<td>Eleven control-flow tests cover false success, missing coverage, stage failures and record preservation</td>
+</tr>
+<tr>
+<td>GPU tests</td>
+<td>Compiled against real OpenFHE, with full-size 50/55/60-bit and D8 level/tower fixtures; not executed on a GPU</td>
+</tr>
+<tr>
+<td>GPU probe</td>
+<td>Correctly refuses this driverless environment; no GPU arithmetic result is claimed</td>
+</tr>
+</tbody>
+</table>
+<p>The local preparation report is <code>bench-results-offline-final/report.json</code>,
+with status <code>OFFLINE_READY</code> and GPU execution <code>NOT_RUN</code>. Generated toolchains,
+binaries and reports stay in ignored directories; source and instructions are
+published. CI also compiles CUDA without a GPU and runs only the host gates.</p>
+<h2 id="2-reproduce-the-offline-preparation">2. Reproduce the offline preparation<a class="headerlink" href="#2-reproduce-the-offline-preparation" title="Permanent link">¶</a></h2>
+<p>Use Linux x86_64, Python 3.12+, CMake 3.24+ and a compatible C++20 host compiler.
+The pinned installer downloads NVIDIA's compiler/runtime/header components,
+verifies each SHA-256, retains component notices and installs under <code>build/</code>.
+It installs no driver and changes no system packages or shell configuration.</p>
+<p>From the repository root, with <code>cmake</code>/<code>ctest</code> on PATH:</p>
+<pre><code class="language-sh">bash scripts/openfhe_setup.sh
+python3 scripts/install_cuda_toolkit.py
+python3 scripts/gpu_session.py --mode offline \
+  --cuda-root build/toolchains/cuda-13.0.2 \
+  --openfhe-prefix build/openfhe-compat/install
+</code></pre>
+<p>The OpenFHE helper pins commit
+<code>b59e1f291965f14fbee5172cd83a20f5b856204f</code>, NativeInteger 64 and reduced-noise off,
+and deliberately builds CPU reference tests with CUDA disabled. Its parallelism
+defaults to two jobs; set <code>NTT_BUILD_JOBS</code> if the machine supports more.
+The session runner selects project-local CMake/CTest from <code>.venv/bin</code> when present.</p>
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/scripts/cuda-toolkit-lock.json">toolkit lock</a> records exact upstream
+components from NVIDIA's CUDA 13.0.2 redistributable manifest. The compiler's
+component version is 13.0.88. Existing matching installs are reused; conflicting
+or incomplete destinations and checksum mismatches fail visibly.</p>
+<p>On this host, CUDA 12.8.93 failed its compiler-identification build because its
+math headers conflict with glibc 2.41's <code>sinpi</code>/<code>cospi</code> declarations. Stock CUDA
+13.0 compiles successfully here; no vendor-header patch was applied. A rental
+image may use a different supported OS/toolkit combination. Match its driver,
+CUDA toolkit and host compiler rather than assuming that this compiler-only
+installation establishes driver compatibility.</p>
+<p>OpenFHE libraries and build directories are not universally portable between
+machines. Reuse binaries only with compatible OS, glibc, architecture and
+compiler settings; otherwise build the pinned dependency on a matching CPU
+machine/image before the paid session, or rebuild it on the GPU machine.</p>
+<h2 id="3-fixes-made-before-rental">3. Fixes made before rental<a class="headerlink" href="#3-fixes-made-before-rental" title="Permanent link">¶</a></h2>
+<p>The first real nvcc compilation exposed a missing closing namespace in the CUDA
+source. The launch helpers also named a private nested implementation type from
+free functions; they now deduce that internal type without exposing it publicly.
+The shared schedule and modular arithmetic algorithms are unchanged.</p>
+<p>The synchronous wrapper now:</p>
+<ul>
+<li>owns <code>Impl</code> through <code>unique_ptr</code>, so constructor exceptions destroy partial state;</li>
+<li>captures the owning device and selects/restores it around operations and cleanup;</li>
+<li>checks prime moduli below 2⁶³, canonical primitive roots, checked buffer sizes,
+  nonempty matching tower lists and power-of-two N in [2,65536] before CUDA calls;</li>
+<li>rejects wrong-length or noncanonical operands before upload;</li>
+<li>rejects unsafe benchmark exponents/counts before shifting or allocating;</li>
+<li>reports device information through <code>ntt_cuda_cli info</code> when a usable GPU exists.</li>
+</ul>
+<p>The <a href="cuda-buffer-dataflow.html">D5 map</a> reflects the updated ownership. Host tests
+exercise validation, including three invalid constructors linked against the
+real CUDA-compiled wrapper. They do not allocate device memory. Device selection,
+partial allocation/upload failures, launch errors and cleanup under a failed
+context still need native fault-injection tests. Cleanup selection/free errors
+cannot be reported by the nonthrowing destructor; this remains a production
+lifecycle limitation, not an accepted asynchronous backend implementation.</p>
+<p>The compiler-only checks do not implement the <a href="device-backend-contract.html">D9 backend</a>,
+its caches, or the transactional OpenFHE host adapter.</p>
+<h2 id="4-prepared-native-exactness-matrix">4. Prepared native exactness matrix<a class="headerlink" href="#4-prepared-native-exactness-matrix" title="Permanent link">¶</a></h2>
+<p><code>cuda_openfhe_exact</code> compares the CUDA wrapper with the independent CPU reference
+and actual OpenFHE NativePoly transforms/products at N=65536. Its prepared cases
+include:</p>
+<ul>
+<li>deliberately unsorted 55/50/60-bit primes with actual OpenFHE minimum roots;</li>
+<li>the exact D8 Q/P moduli and roots, with Q and QlP bases at L=5,4,3,1;</li>
+<li>zero, one, q−1, alternating bounds, x¹⁷, xᴺ⁻¹ and deterministic dense residues;</li>
+<li>forward, inverse from independent evaluation arrays, round trip, pointwise
+  multiplication followed by inverse, and the complete negacyclic product;</li>
+<li>exact complete-array comparisons and unchanged host inputs.</li>
+</ul>
+<p>The <code>--smoke</code> option limits that executable to the three-width context with zero
+and dense patterns for the four Compute Sanitizer tools. This is a bounded smoke
+scope, not the complete production sanitizer/parameter matrix. All GPU cases are
+compiled but <strong>unrun</strong> in this workspace.</p>
+<p>The existing <code>cuda_oracle_crosscheck</code>, <code>cuda_matches_ref</code> and <code>cuda_verify</code> gates
+remain. All four native tests carry the <code>gpu</code> CTest label. The wrapper-constructor
+preflight is a separate host test and is safe without a driver.</p>
+<h2 id="5-first-session-on-real-hardware">5. First session on real hardware<a class="headerlink" href="#5-first-session-on-real-hardware" title="Permanent link">¶</a></h2>
+<p>Choose an RTX 5090 image for the primary target. An RTX 4090 can establish the
+control run; label it accordingly and leave primary-device evidence open.
+Use an image with a matching NVIDIA driver, CUDA compiler, Compute Sanitizer,
+and Nsight tools for later profiling. Native architecture mode needs CMake 3.24+.</p>
+<p>Use the intended clean source checkout and the pinned OpenFHE install. First
+check the image, then run the collector:</p>
+<pre><code class="language-sh">nvidia-smi
+nvcc --version
+compute-sanitizer --version
+NTT_CUDA_ROOT=/usr/local/cuda \
+NTT_OPENFHE_PREFIX=&quot;$PWD/build/openfhe-compat/install&quot; \
+  bash scripts/autodl_setup.sh
+</code></pre>
+<p>The helper no longer performs an implicit git pull or package installation.
+It records the selected commit, hardware/driver/clocks/power data and toolchain,
+requires a native CUDA build plus all OpenFHE/GPU tests, probes the actual device,
+runs the exact suite and four sanitizer smoke tools, then collects the existing
+46-bit transfer-inclusive baseline benchmark. GPU mode rejects dirty source
+unless explicitly marked exploratory with <code>--allow-dirty</code>.</p>
+<p>For full control, call the Python collector directly:</p>
+<pre><code class="language-sh">python3 scripts/gpu_session.py --mode gpu \
+  --cuda-root /usr/local/cuda \
+  --openfhe-prefix &quot;$PWD/build/openfhe-compat/install&quot; \
+  --architectures native --benchmark
+</code></pre>
+<p><code>--skip-sanitizers</code> is available for an explicitly limited diagnostic run;
+its report says <code>EXPLICITLY_SKIPPED</code>. Such a run cannot satisfy sanitizer gates.
+Missing tools, missing GPU/OpenFHE tests, build/test/sanitizer/benchmark failures
+all produce a nonzero exit and a failed report. An existing report directory is
+never overwritten. Open <code>report.json</code> and the named stage logs after every run.</p>
+<p>The basic benchmark still uses 46-bit primes and wall time around public calls,
+including transfers, host validation and device guards. It is not a 50–60-bit
+production performance report, CUDA-event timing, or a completed D14 profile.</p>
+<h2 id="6-when-to-stop-the-rental">6. When to stop the rental<a class="headerlink" href="#6-when-to-stop-the-rental" title="Permanent link">¶</a></h2>
+<p>Use the first GPU session to establish D11 hardware facts, execute D12 smoke and
+B02 failure-path work, run D13 exactness, and collect the D14 measurements that
+are ready. Export all raw records before stopping the machine. Analyze and
+publish results offline for D15.</p>
+<p>The collector returning <code>GPU_CHECKS_PASSED</code> still leaves native failure injection,
+full production coverage, kernel-only raw timing and Nsight profiling as explicit
+remaining gates. Completing this offline checklist does not automatically close
+D11, B02, B03, D14 or P2. The <a href="implementation-backlog.html">backlog</a> controls those
+acceptance criteria.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#1-what-is-ready">1. What is ready</a></li><li><a href="#2-reproduce-the-offline-preparation">2. Reproduce the offline preparation</a></li><li><a href="#3-fixes-made-before-rental">3. Fixes made before rental</a></li><li><a href="#4-prepared-native-exactness-matrix">4. Prepared native exactness matrix</a></li><li><a href="#5-first-session-on-real-hardware">5. First session on real hardware</a></li><li><a href="#6-when-to-stop-the-rental">6. When to stop the rental</a></li></ol></nav></aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f11c8195cd8b377bfc79831929c09270b5f2f5e6">f11c819</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="D9 defines checked backend metadata; D10 accepts the architecture and implementation backlog, closing P1.">
+<meta name="description" content="D9 and D10 close P1; compiler-only CUDA preparation is ready while D11 hardware verification remains open.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal/2026-11-12.html">
 <title>Define and accept the device backend architecture · ntt-gpu</title>
 
@@ -22,7 +22,7 @@
   <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../offline-gpu-preparation.html">Before renting a GPU</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -34,9 +34,9 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/docs/journal/2026-11-12.md">View source</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/docs/journal/2026-11-12.md">View source</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-12">2026-11-12</time><span>P1 / D9 → D11</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="define-and-accept-the-device-backend-architecture">Define and accept the device backend architecture<a class="headerlink" href="#define-and-accept-the-device-backend-architecture" title="Permanent link">¶</a></h1><p class="site-journal-summary">D9 defines checked backend metadata; D10 accepts the architecture and implementation backlog, closing P1.</p>
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-12">2026-11-12</time><span>P1 complete / P2 D11 preparation</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="define-and-accept-the-device-backend-architecture">Define and accept the device backend architecture<a class="headerlink" href="#define-and-accept-the-device-backend-architecture" title="Permanent link">¶</a></h1><p class="site-journal-summary">D9 and D10 close P1; compiler-only CUDA preparation is ready while D11 hardware verification remains open.</p>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
 <p>Completed the <a href="../device-backend-contract.html">D9 backend proposal</a>. The
 <a href="../openfhe-integration-plan.html">roadmap</a> advances to D10's architecture decision
@@ -55,15 +55,15 @@ are errors. Immutable public inputs and fresh outputs simplify initial alias
 and concurrency rules, with possible device-to-device copies counted as a cost.</p>
 <h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
 <ul>
-<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/include/ntt/backend_contract.hpp">backend_contract.hpp</a>: immutable
+<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/include/ntt/backend_contract.hpp">backend_contract.hpp</a>: immutable
   parameters, canonical layouts, checked extents, allocation generations,
   operation layouts, dependencies, cache identities, retirement and hoist rules.</li>
-<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/include/ntt/backend_api.hpp">backend_api.hpp</a>: proposed stream,
+<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/include/ntt/backend_api.hpp">backend_api.hpp</a>: proposed stream,
   completion, immutable polynomial, owned download, cache-budget and backend APIs.
   There is no runtime implementation or factory.</li>
-<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/tests/backend_contract_tests.cpp">backend_contract_tests.cpp</a>
+<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/tests/backend_contract_tests.cpp">backend_contract_tests.cpp</a>
   as the normal-build <code>backend_contract_check</code> CTest.</li>
-<li>Extended <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/tests/openfhe_hybrid_tests.cpp">the Hybrid gate</a> to import real
+<li>Extended <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/tests/openfhe_hybrid_tests.cpp">the Hybrid gate</a> to import real
   OpenFHE context parameters and compare active QP metadata/key offsets with
   actual Hybrid output and key towers at L=5,4,3,1.</li>
 <li>Documented staging ownership, event waits, single-upload cache entries,
@@ -180,11 +180,88 @@ failure handling remain implementation acceptance gates.</p>
 <p>D11 / B01: record the provided GPU, driver, toolkit, compiler, source revisions,
 OpenFHE build and native architecture configuration. Then run B02's native build
 and baseline-safety work before B03 exactness and B04 profiling. P2 is ready to
-start, not completed by the D10 review.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li><li><a href="#d10-accept-architecture-and-close-p1">D10: accept architecture and close P1</a></li></ol></nav></aside>
+start, not completed by the D10 review.</p>
+<h2 id="offline-preparation-before-gpu-rental">Offline preparation before GPU rental<a class="headerlink" href="#offline-preparation-before-gpu-rental" title="Permanent link">¶</a></h2>
+<h3 id="outcome_2">Outcome<a class="headerlink" href="#outcome_2" title="Permanent link">¶</a></h3>
+<p>Completed the <a href="../offline-gpu-preparation.html">offline preparation</a> for the first
+native session. Real nvcc builds and links both sm_89 and sm_120 targets, including
+a new direct CUDA/OpenFHE exactness program. The collector returns <code>OFFLINE_READY</code>
+after 19 host/OpenFHE tests and explicitly leaves four GPU tests unrun.
+D11 remains the current working day: its actual hardware/driver record cannot
+be completed in this driverless workspace. P2 preparation is now IN PROGRESS.</p>
+<h3 id="reasoning_2">Reasoning<a class="headerlink" href="#reasoning_2" title="Permanent link">¶</a></h3>
+<p>The user asked to finish work that can be done before renting. Compiler-only
+validation finds expensive setup failures without charging GPU time. CUDA
+12.8.93 failed compiler identification on this host's glibc 2.41 because of
+math-header exception-specification conflicts. A stock CUDA 13.0.88 compiler
+from the 13.0.2 redistributable release works here; vendor headers were not patched.</p>
+<p>The first nvcc build exposed the existing CUDA file's missing namespace closure.
+Free launch helpers now deduce the private implementation type without exposing
+it publicly. The original raw-Impl construction path also needed unique ownership,
+while default CMake detection and the old benchmark pipeline could misclassify
+incomplete/failed work as success. The changes address those offline blockers
+without claiming native execution or performance.</p>
+<h3 id="changes_2">Changes<a class="headerlink" href="#changes_2" title="Permanent link">¶</a></h3>
+<ul>
+<li>Added a SHA-256-locked local NVIDIA compiler/runtime/header installer, preserving
+  licenses and leaving drivers/system packages unchanged.</li>
+<li>Added explicit CMake CUDA enable/require controls, a shared CUDA backend library,
+  GPU labels, host validation/constructor targets, and compiler-only CI.</li>
+<li>Changed the synchronous wrapper to unique Impl ownership and owning-device
+  guards. Added checked dimensions/counts, prime/root bounds and canonical input
+  rejection; preserved the six-buffer dataflow and arithmetic stage bodies.</li>
+<li>Added the N=65536 direct CUDA/CPU/OpenFHE comparison program: exact-width
+  55/50/60-bit primes, D8 Q/QlP bases at L=5,4,3,1, seven coefficient patterns,
+  independent inverse input, round trip, pointwise/inverse and ring product.
+  It is compiled but not run on a GPU.</li>
+<li>Replaced the AutoDL helper's implicit pull/install and fragile verdict with
+  explicit session collection, immutable report directories and stage logs.
+  Missing coverage or failed build/test/sanitizer/benchmark stages return nonzero.</li>
+<li>The pinned OpenFHE helper now explicitly selects its 64-bit/no-reduced-noise
+  CPU build and bounded parallelism, so offline preparation cannot accidentally
+  execute newly detected GPU tests.</li>
+<li>Updated the D5 map, roadmap/backlog, source guidance and website catalog.</li>
+</ul>
+<h3 id="verification_2">Verification<a class="headerlink" href="#verification_2" title="Permanent link">¶</a></h3>
+<p>Observed on Linux x86_64, glibc 2.41, GCC 14.2 and stock CUDA compiler 13.0.88:</p>
+<ul>
+<li>Both architecture targets and all CUDA executables compile and link.</li>
+<li>The offline collector passed 19 host/OpenFHE CTests. These include 17 standalone
+  host-preflight assertions and 20 assertions in the CUDA-linked constructor
+  executable; the latter rejects three invalid constructors before device access.</li>
+<li>The separate CUDA-disabled build passed all 15 CTests.</li>
+<li>Eleven mocked-process reporting tests passed, including benchmark/sanitizer
+  failure propagation, missing GPU labels/tests and preservation of prior records.
+  They test collection control flow, not GPU arithmetic or CUDA allocation failure.</li>
+<li>Actual <code>ntt_cuda_cli info</code> returned a visible insufficient-driver error here.
+  An explicit CUDA-required/CUDA-disabled configuration also failed as intended.</li>
+<li>All 23 documentation unit tests and 14 Node interaction/math tests passed.
+  The build generates 28 pages, including eight journal entries, with valid
+  routes, fragments and assets. Chromium passed 112 page/width checks at
+  1440/1024/375/320px: English content, rendered math, no page-wide overflow or
+  script/HTTP errors. The preparation guide's section links/search and current
+  P1/D11/P2 state passed; focused text contrast and desktop/phone screenshots
+  were reviewed. Source CI and public deployment are checked after publication.</li>
+</ul>
+<p>Reports remain under ignored <code>bench-results-*</code>; local development reports record
+that the tested source working tree was dirty before its publication commit.
+No GPU was rented, no driver was installed, and no native kernel, sanitizer,
+performance or peak-device-memory result is claimed.</p>
+<h3 id="open-questions_2">Open questions<a class="headerlink" href="#open-questions_2" title="Permanent link">¶</a></h3>
+<p>D11 still needs an actual GPU/driver environment record. B02 requires native
+allocation/upload fault injection, wrong-device and cleanup-failure evidence.
+The collector's sanitizer scope is a smoke subset; full production cases and
+kernel-only/raw/Nsight profiling remain later gates. CUDA 13's successful offline
+compilation does not establish compatibility with a rental machine's driver.</p>
+<h3 id="next-step_2">Next step<a class="headerlink" href="#next-step_2" title="Permanent link">¶</a></h3>
+<p>Use the prepared clean checkout on the chosen compatible GPU image, record the
+hardware, and run the native collection command. Export raw records before
+stopping rental; analyze them offline. Keep D11/B02/B03/P2 open until their
+specific native acceptance criteria pass.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li><li><a href="#d10-accept-architecture-and-close-p1">D10: accept architecture and close P1</a></li><li><a href="#offline-preparation-before-gpu-rental">Offline preparation before GPU rental</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/10bcdb81668aa06311e252da3dc2522c42680ba5">10bcdb8</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f11c8195cd8b377bfc79831929c09270b5f2f5e6">f11c819</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

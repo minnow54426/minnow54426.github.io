@@ -22,7 +22,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html" aria-current="page">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html" aria-current="page">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -34,30 +34,34 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Start here</span><a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/README.md">View source</a></div>
+    <div class="site-page-meta"><span>Start here</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/README.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="ntt-gpu">ntt-gpu<a class="headerlink" href="#ntt-gpu" title="Permanent link">¶</a></h1>
 <p>Exact GPU kernels for CKKS: NTT first, then base conversion, Hybrid key
 switching, and OpenFHE integration. The target workload is N=65,536 on RTX 5090,
 with RTX 4090 as the compatibility control.</p>
 <p><strong>Current state:</strong> the CPU reference, Python oracle, portable GPU-schedule
-simulator, and OpenFHE transform/representation/Hybrid graph gates are implemented. CUDA source is ready;
+simulator, and OpenFHE transform/representation/Hybrid graph gates are implemented.
+CUDA binaries compile for <code>sm_89</code> and <code>sm_120</code> with a compiler-only toolkit;
 execution on a real GPU remains the next hardware gate. CPU simulation does
 not validate GPU barriers or launch behavior.</p>
 <h2 id="build-test">Build &amp; test<a class="headerlink" href="#build-test" title="Permanent link">¶</a></h2>
 <p>Requires CMake, a C++20 compiler, and Python 3. CUDA is optional and detected
 automatically.</p>
-<pre><code class="language-sh">cmake -S . -B build
+<pre><code class="language-sh">cmake -S . -B build -DNTT_ENABLE_CUDA=OFF
 cmake --build build -j
 ctest --test-dir build --output-on-failure
 </code></pre>
-<p>The twelve portable checks cover vector generation at N=64/1024/65536, unit
+<p>The fifteen portable checks cover vector generation at N=64/1024/65536, unit
 tests, the independent Python oracle, the shared device schedule, column and
 tile index/twiddle proofs in both directions, arithmetic exactness and
-full-size adversarial transforms, and the N=8 debug example. Small fixtures keep the
+full-size adversarial transforms, backend metadata, host CUDA preflight, session
+failure reporting, and the N=8 debug example. Small fixtures keep the
 quadratic oracle and schoolbook multiplication practical.</p>
-<p>With nvcc, three more gates compare CUDA with the same oracle and CPU
-reference. Array ordering, forward/inverse results, round trips, and polynomial
+<p>With nvcc, three GPU gates compare CUDA with the same oracle and CPU
+reference. Enabling OpenFHE adds a fourth direct CUDA/OpenFHE gate. A separate
+compiled-wrapper constructor check requires no GPU. Array ordering,
+forward/inverse results, round trips, and polynomial
 multiplication must agree exactly. See <a href="vscode-debugging.html">run and debug</a>
 to step through the N=8 example.</p>
 <h3 id="exact-openfhe-compatibility">Exact OpenFHE compatibility<a class="headerlink" href="#exact-openfhe-compatibility" title="Permanent link">¶</a></h3>
@@ -91,12 +95,18 @@ the next task is D11's GPU environment record, not a claimed CUDA result.</p>
 and set <code>CMAKE_PREFIX_PATH</code> to its install prefix. OpenFHE is not required
 for the standalone build.</p>
 <h3 id="first-session-on-a-rented-gpu">First session on a rented GPU<a class="headerlink" href="#first-session-on-a-rented-gpu" title="Permanent link">¶</a></h3>
+<p>Finish the <a href="offline-gpu-preparation.html">offline preparation</a> first. On the
+GPU image, use the selected clean checkout and an existing pinned OpenFHE prefix:</p>
 <pre><code class="language-sh">bash scripts/autodl_setup.sh
 </code></pre>
-<p>The script finds nvcc, updates source, builds, runs the gates, benchmarks N=65536,
-and writes hardware details and results to <code>VERDICT.txt</code>. Override the checkout,
-architecture, or benchmark arguments with <code>NTT_REPO_DIR</code>, <code>NTT_CUDA_ARCH</code>, and
-<code>NTT_BENCH_ARGS</code>.</p>
+<p>The script records hardware/toolchain details, requires CUDA and OpenFHE test
+registration, builds, runs exact tests and sanitizer smoke checks, and collects
+the 46-bit transfer-inclusive baseline benchmark. Each session writes logs and
+<code>report.json</code> under an ignored <code>bench-results-*</code> directory. Any failed stage
+returns nonzero. It does not update source, install packages or change drivers.
+Select paths with <code>NTT_REPO_DIR</code>, <code>NTT_CUDA_ROOT</code>, and <code>NTT_OPENFHE_PREFIX</code>;
+<code>NTT_CUDA_ARCH</code> defaults to <code>native</code>. See the preparation guide for full commands
+and the remaining P2 gates.</p>
 <p>The default build targets <code>sm_89</code> and, with CUDA 12.8+, <code>sm_120</code>. For one known
 GPU, use <code>-DCMAKE_CUDA_ARCHITECTURES=native</code> (CMake 3.24+).</p>
 <h2 id="design">Design<a class="headerlink" href="#design" title="Permanent link">¶</a></h2>
@@ -109,7 +119,7 @@ input: natural coefficient order; output: bit-reversed evaluation order
 loads 256 contiguous rows. At N=65536, each pass handles eight stages in shared
 memory. One forward uses two launches and four logical array movements.
 The strided pass is uncoalesced, so logical bytes are not measured DRAM traffic.</p>
-<p>Stage bodies in <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/include/ntt/dev_core.hpp"><code>dev_core.hpp</code></a> are compiled for
+<p>Stage bodies in <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/include/ntt/dev_core.hpp"><code>dev_core.hpp</code></a> are compiled for
 both CPU simulation and CUDA. The current <code>__uint128_t</code> remainder arithmetic
 is a correctness baseline. Shoup/Barrett reduction, coalesced layouts, and
 register staging are planned optimizations, subject to exact checks and profiling.</p>
@@ -170,7 +180,7 @@ or present employers. Development history is recorded in git.</p>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/10bcdb81668aa06311e252da3dc2522c42680ba5">10bcdb8</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f11c8195cd8b377bfc79831929c09270b5f2f5e6">f11c819</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

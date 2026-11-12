@@ -22,7 +22,7 @@
   <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../offline-gpu-preparation.html">Before renting a GPU</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/docs/journal/2026-11-10.md">View source</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/docs/journal/2026-11-10.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-10">2026-11-10</time><span>P1 / D3 → D7</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="prove-inverse-correspondence-and-complete-stage-coverage">Prove inverse correspondence and complete stage coverage<a class="headerlink" href="#prove-inverse-correspondence-and-complete-stage-coverage" title="Permanent link">¶</a></h1><p class="site-journal-summary">Completed D3–D6: inverse/stage proofs, CUDA dataflow, arithmetic bounds, and independent adversarial checks.</p>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
@@ -64,7 +64,7 @@ neither direction needs a separate bit-reversal pass.</p>
 <li>Extended the explorer with forward/inverse direction selection, ascending
   inverse distances, reciprocal twiddle display, pass order, and scale note.
   The panel DOM order follows execution order for keyboard navigation too.</li>
-<li>Extended <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/tests/column_mapping_tests.cpp">column mapping checks</a>
+<li>Extended <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/tests/column_mapping_tests.cpp">column mapping checks</a>
   with <code>--inverse</code>, registered as <code>inverse_column_check</code> in CTest.</li>
 <li>Tagged-table probes cover all 270,336 inverse column pairs (540,672 active
   probes), and inactive threads, at N=4096 and N=65536. Valid-root checks for
@@ -77,7 +77,7 @@ neither direction needs a separate bit-reversal pass.</p>
   Since 2d divides the tile length, row-local groups are aligned CPU groups
   and J=j; E=(N/d)j still uses the global transform length. Far and near
   distances are disjoint and concatenate to the full CPU distance sequence.</li>
-<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/tests/tile_mapping_tests.cpp">tile_mapping_tests.cpp</a> and
+<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/tests/tile_mapping_tests.cpp">tile_mapping_tests.cpp</a> and
   <code>tile_mapping_check</code>. Tagged-table probes execute the actual contiguous
   helpers in both directions, not just duplicated index formulas. Separate
   stage-list and global endpoint coverage checks exercise all five target
@@ -88,7 +88,7 @@ neither direction needs a separate bit-reversal pass.</p>
   launches, transfer payloads, and fused multiplication. Clarified two public
   header comments without changing runtime behavior.</li>
 <li>Added six static source-contract checks in
-  <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/tests/docs/test_cuda_dataflow.py">test_cuda_dataflow.py</a>. These pin
+  <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/tests/docs/test_cuda_dataflow.py">test_cuda_dataflow.py</a>. These pin
   allocation sizes/frees, constructor copies, public length guards and copies,
   fused launch ordering, getters/interface shape, and endpoint byte arithmetic.</li>
 <li>Recorded source-inspected constructor exception leaks and missing
@@ -329,8 +329,8 @@ the CPU loop uses three including twiddle advance; shared device helpers use
 two with table lookup. Corrected the comment and made q&gt;0 explicit.</p>
 <h3 id="changes_2">Changes<a class="headerlink" href="#changes_2" title="Permanent link">¶</a></h3>
 <ul>
-<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/tests/arithmetic_contract_tests.cpp">a compiled arithmetic probe and full-size tests</a>.</li>
-<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/tests/oracle/test_arithmetic.py">Python arbitrary-precision comparisons</a>
+<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/tests/arithmetic_contract_tests.cpp">a compiled arithmetic probe and full-size tests</a>.</li>
+<li>Added <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/tests/oracle/test_arithmetic.py">Python arbitrary-precision comparisons</a>
   for 14,956 primitive results, including boundary moduli/operands, full-width
   products, large exponents and valid/zero-input inverse behavior.</li>
 <li>Added N=65536 two-sided roundtrips and canonical-range checks for six
@@ -365,7 +365,7 @@ from this repository commit and was not requested for D6.</p></article></div><as
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/10bcdb81668aa06311e252da3dc2522c42680ba5">10bcdb8</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f11c8195cd8b377bfc79831929c09270b5f2f5e6">f11c819</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
