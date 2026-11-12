@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Start here</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/README.md">View source</a></div>
+    <div class="site-page-meta"><span>Start here</span><a href="https://github.com/minnow54426/ntt-gpu/blob/d43a74411b312227a3bcc0a9c9a38b56ecc41c64/README.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="ntt-gpu">ntt-gpu<a class="headerlink" href="#ntt-gpu" title="Permanent link">¶</a></h1>
 <p>Exact GPU kernels for CKKS: NTT first, then base conversion, Hybrid key
@@ -66,12 +66,12 @@ multiplication must agree exactly. See <a href="vscode-debugging.html">run and d
 to step through the N=8 example.</p>
 <h3 id="exact-openfhe-compatibility">Exact OpenFHE compatibility<a class="headerlink" href="#exact-openfhe-compatibility" title="Permanent link">¶</a></h3>
 <p>The optional gate pins OpenFHE 1.6.1 at
-<code>b59e1f291965f14fbee5172cd83a20f5b856204f</code>:</p>
+<a href="https://github.com/openfheorg/openfhe-development/tree/b59e1f291965f14fbee5172cd83a20f5b856204f"><code>b59e1f291965f14fbee5172cd83a20f5b856204f</code></a>:</p>
 <pre><code class="language-sh">bash scripts/openfhe_setup.sh
 </code></pre>
-<p>It compares N=65536 <code>NativePoly</code> coefficient/evaluation conversions with our
-reference, including bit-reversed evaluation order. Its <code>FirstPrime(50, ...)</code>
-and <code>LastPrime(59, ...)</code> fixtures are 51- and 59-bit primes. Cases include zero,
+<p>It compares N=65536 <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/poly-impl.h#L454-L474"><code>NativePoly::SwitchFormat</code></a> coefficient/evaluation conversions with our
+reference, including bit-reversed evaluation order. Its <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/math/nbtheory-impl.h#L336-L354"><code>FirstPrime(50, ...)</code></a>
+and <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/math/nbtheory-impl.h#L357-L380"><code>LastPrime(59, ...)</code></a> fixtures are 51- and 59-bit primes. Cases include zero,
 maximum, ramp, random coefficients, and independent random inverse inputs.</p>
 <p>A second gate, <code>openfhe_representation_contract</code>, checks exact evaluation
 indices, format-changing APIs, root selection, and three-tower DCRT packing at
@@ -119,7 +119,7 @@ input: natural coefficient order; output: bit-reversed evaluation order
 loads 256 contiguous rows. At N=65536, each pass handles eight stages in shared
 memory. One forward uses two launches and four logical array movements.
 The strided pass is uncoalesced, so logical bytes are not measured DRAM traffic.</p>
-<p>Stage bodies in <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/include/ntt/dev_core.hpp"><code>dev_core.hpp</code></a> are compiled for
+<p>Stage bodies in <a href="https://github.com/minnow54426/ntt-gpu/blob/d43a74411b312227a3bcc0a9c9a38b56ecc41c64/include/ntt/dev_core.hpp"><code>dev_core.hpp</code></a> are compiled for
 both CPU simulation and CUDA. The current <code>__uint128_t</code> remainder arithmetic
 is a correctness baseline. Shoup/Barrett reduction, coalesced layouts, and
 register staging are planned optimizations, subject to exact checks and profiling.</p>
@@ -180,7 +180,7 @@ or present employers. Development history is recorded in git.</p>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f11c8195cd8b377bfc79831929c09270b5f2f5e6">f11c819</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/d43a74411b312227a3bcc0a9c9a38b56ecc41c64">d43a744</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

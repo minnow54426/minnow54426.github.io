@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/docs/device-backend-contract.md">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/d43a74411b312227a3bcc0a9c9a38b56ecc41c64/docs/device-backend-contract.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="device-buffers-and-the-backend-boundary">Device buffers and the backend boundary<a class="headerlink" href="#device-buffers-and-the-backend-boundary" title="Permanent link">¶</a></h1>
 <p><strong>D9 · API proposal with executable metadata checks · N=65536</strong></p>
@@ -77,9 +77,9 @@ existing synchronous implementation.</p>
 </tr>
 </tbody>
 </table>
-<p>The prototype lives in <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/include/ntt/backend_contract.hpp">backend_contract.hpp</a>,
-with interfaces in <a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/include/ntt/backend_api.hpp">backend_api.hpp</a> and tests in
-<a href="https://github.com/minnow54426/ntt-gpu/blob/f11c8195cd8b377bfc79831929c09270b5f2f5e6/tests/backend_contract_tests.cpp">backend_contract_tests.cpp</a>. The
+<p>The prototype lives in <a href="https://github.com/minnow54426/ntt-gpu/blob/d43a74411b312227a3bcc0a9c9a38b56ecc41c64/include/ntt/backend_contract.hpp">backend_contract.hpp</a>,
+with interfaces in <a href="https://github.com/minnow54426/ntt-gpu/blob/d43a74411b312227a3bcc0a9c9a38b56ecc41c64/include/ntt/backend_api.hpp">backend_api.hpp</a> and tests in
+<a href="https://github.com/minnow54426/ntt-gpu/blob/d43a74411b312227a3bcc0a9c9a38b56ecc41c64/tests/backend_contract_tests.cpp">backend_contract_tests.cpp</a>. The
 <code>ntt::proposal</code> namespace makes its status explicit. These headers introduce
 no CUDA or OpenFHE dependency into the standalone build. The current CUDA
 wrapper and its algorithms were unchanged by D9. Later
@@ -110,7 +110,7 @@ FTT-cache constraint; support for conflicting custom-root contexts is not implie
 <p>Each <code>PolynomialLayout</code> adds the active Q count L, an explicit ordered list of
 <code>TowerRef {Q or P, index}</code>, domain, order, and residue encoding. M is the full
 Q count; K is the P count. The full parameter snapshot remains attached at
-reduced levels.</p>
+reduced levels. Upstream <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/ildcrtparams.h#L135-L149"><code>ILDCRTParams</code></a> constructs towers in the supplied modulus/root order; <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/dcrtpoly.h#L879-L889"><code>GetAllElements()</code></a> exposes their individual polynomials.</p>
 <table>
 <thead>
 <tr>
@@ -190,7 +190,7 @@ Arbitrary coefficient strides and partial-tower views are deferred.</p>
 </tbody>
 </table>
 <p>Shortening the full allocation to seven towers produces q₀…q₄,p₀,p₁, which is
-wrong. The validator rejects that attempted L=4 view. Materialize active QP in
+wrong. The validator rejects that attempted L=4 view. The upstream <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/pke/lib/keyswitch/keyswitch-hybrid.cpp#L398-L418"><code>EvalFastKeySwitchCoreExt</code></a> uses the full-key offset for exactly this case. Materialize active QP in
 a fresh contiguous allocation using the explicit tower map. A Q prefix alone
 can use a zero-copy prefix view; the full key's P suffix can also be viewed
 without copying. For initial Hybrid execution, gathering the active key into
@@ -314,18 +314,20 @@ ring size alone, or OpenFHE key tags alone are insufficient.</p>
 </tr>
 </tbody>
 </table>
-<p>The NTT plan bundles forward/inverse powers and normalization constants. Its
+<p>The upstream <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/math/hal/intnat/transformnat-impl.h#L718-L730"><code>GetTables</code></a> is the concrete cache behavior reviewed here.
+The NTT plan bundles forward/inverse powers and normalization constants. Its
 current table convention is natural ψ powers including the N endpoint. It
 cannot reuse an OpenFHE bit-reversed FTT table as if the two layouts were equal.
 A forward/inverse plan may share identity because both directions are included;
 the operand's domain still controls which operation is valid.</p>
 <p>For digit d, the conversion-plan validator derives its contiguous Q partition
 using the full α, then verifies the exact ordered active-Q/P complement. Its
-rule revision includes D8's uncentered, <strong>unreduced approximate CRT sum</strong>. A
+rule revision includes D8's uncentered, <strong>unreduced approximate CRT sum</strong>, implemented by upstream <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/dcrtpoly-impl.h#L938-L982"><code>ApproxSwitchCRTBasis</code></a>. A
 canonical-CRT plan is a different operation. ModDown needs a distinct plan kind
-for its P→active-Q conversion and P-inverse scale; the prototype's
+for its P→active-Q conversion and P-inverse scale (see <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/dcrtpoly-impl.h#L1020-L1055"><code>ApproxModDown</code></a>); the prototype's
 <code>ConversionPlanKey</code> covers digit extension only.</p>
-<p>Evaluation keys are deep immutable A/B snapshots; secret keys are not uploaded.
+<p>The proposed cache stores deep immutable A/B snapshots; secret keys are not uploaded.
+The actual OpenFHE input arrays come from <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/pke/include/key/evalkeyrelin.h#L129-L151"><code>GetAVector()</code></a> and <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/pke/include/key/evalkeyrelin.h#L159-L181"><code>GetBVector()</code></a>; <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/pke/include/cryptoobject.h#L130-L132"><code>GetKeyTag()</code></a> returns a tag, not a digest of those arrays.
 A material ID/generation is assigned to that snapshot. Mutating the original
 OpenFHE key requires a new snapshot and identity. A rotation index or
 relinearization component is part of the identity; equal tags do not establish
@@ -403,8 +405,8 @@ conversion scratch and out-of-place copies add memory. D10 accepts explicit
 budgets and fail-fast admission in ADR 0001; P2/P3 must measure actual live bytes.</p>
 <h2 id="8-integrate-openfhe-through-a-transactional-adapter">8. Integrate OpenFHE through a transactional adapter<a class="headerlink" href="#8-integrate-openfhe-through-a-transactional-adapter" title="Permanent link">¶</a></h2>
 <p>The proposed first seam is an <strong>explicit opt-in DCRT format-conversion adapter</strong>
-with SetFormat-equivalent behavior. It does not replace OpenFHE's global
-<code>SwitchFormat</code> or patch every NativePoly call. This small boundary tests exact
+with <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/ilelement.h#L474-L478"><code>SetFormat</code></a>-equivalent behavior. It does not replace OpenFHE's global
+<a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/dcrtpoly-impl.h#L1956-L1969"><code>DCRTPoly::SwitchFormat</code></a> or patch every NativePoly call. This small boundary tests exact
 tower packing, transform ordering, ownership and failure handling before Hybrid
 GPU integration adds conversion and key-material lifetimes.</p>
 <p>The host operation is synchronous even if its internal backend is asynchronous:</p>
@@ -412,10 +414,11 @@ GPU integration adds conversion and key-material lifetimes.</p>
 <li>Snapshot the DCRT context and validate all tower metadata, labels and values.
    If the requested format already matches, return without conversion.</li>
 <li>During preflight, select the device route or an explicitly permitted CPU route.</li>
-<li>Pack each tower using <code>ConvertToInt()</code> into canonical tower-major storage.
+<li>Pack each tower using <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/math/hal/intnat/ubintnat.h#L1420-L1424"><code>ConvertToInt()</code></a> into canonical tower-major storage.
    Do not reinterpret OpenFHE native integer objects as a flat <code>uint64_t*</code>.</li>
 <li>Upload, transform, download and wait. Import into a private candidate object,
-   set each tower's actual format and the DCRT format, and verify metadata.</li>
+   set each tower's actual format and the DCRT format, and verify metadata.
+   Compare upstream <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/poly-impl.h#L226-L243"><code>NativePoly::SetValues</code></a> and the label-only <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/dcrtpoly.h#L875-L877"><code>DCRTPoly::OverrideFormat</code></a>; neither should accidentally transform an already-computed result.</li>
 <li>Replace the caller's object only after the entire candidate succeeds.</li>
 </ol>
 <p>The caller must serialize access to the same host object during the operation.
@@ -493,7 +496,7 @@ GPU support, CKKS application integration and performance remain later gates.</p
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f11c8195cd8b377bfc79831929c09270b5f2f5e6">f11c819</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/d43a74411b312227a3bcc0a9c9a38b56ecc41c64">d43a744</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
