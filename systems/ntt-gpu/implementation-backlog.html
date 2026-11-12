@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="D10: dependency-ordered native GPU, resident runtime, cache, conversion, Hybrid and adapter acceptance gates.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/implementation-backlog.html">
+<title>Implementation backlog · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html" aria-current="page">Implementation backlog</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Plans</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/docs/implementation-backlog.md">View source</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><article class="site-article"><h1 id="implementation-backlog-after-d10">Implementation backlog after D10<a class="headerlink" href="#implementation-backlog-after-d10" title="Permanent link">¶</a></h1>
+<p><strong>Accepted by <a href="architecture-decision.html">ADR 0001</a> · 2026-11-12 · N=65536</strong></p>
+<p>P1's contracts are complete. The next working day is <strong>D11</strong>: provision and
+record the native GPU environment. Every item below is <strong>NOT STARTED</strong>. Design
+acceptance and portable CPU checks do not satisfy their CUDA/runtime gates.</p>
+<p>The <a href="openfhe-integration-plan.html">95-working-day roadmap</a> retains its phase
+boundaries. Each item lists a deliverable, dependencies and acceptance criteria.
+Update its state with reproducible evidence.</p>
+<h2 id="1-deliverables-and-dependencies">1. Deliverables and dependencies<a class="headerlink" href="#1-deliverables-and-dependencies" title="Permanent link">¶</a></h2>
+<p>Select a task ID for its acceptance criteria. The comparison scrolls horizontally.</p>
+<div class="site-table-scroll" role="region" aria-label="Implementation tasks and dependencies" tabindex="0">
+<table style="min-width:42rem">
+<colgroup><col style="width:5rem"><col style="width:10rem"><col><col style="width:9rem"></colgroup>
+<thead><tr><th>ID</th><th>Planned phase/days</th><th>Deliverable</th><th>Depends on</th></tr></thead>
+<tbody>
+<tr><td><a href="#b01-environment-record">B01</a></td><td>P2 / D11</td><td>Named GPU environment and reproducibility record</td><td>Accepted ADR</td></tr>
+<tr><td><a href="#b02-native-build-and-baseline-safety">B02</a></td><td>P2 / D12</td><td>Native build, constructor safety and validated baseline</td><td>B01</td></tr>
+<tr><td><a href="#b03-exact-cuda-matrix">B03</a></td><td>P2 / D13</td><td>Exact native CUDA/OpenFHE baseline matrix</td><td>B02</td></tr>
+<tr><td><a href="#b04-timing-and-bottleneck-report">B04</a></td><td>P2 / D14–D15</td><td>Reproducible timing, profiler evidence and first bottleneck</td><td>B03</td></tr>
+<tr><td><a href="#b05-arithmetic-policies">B05</a></td><td>P3 / D16–D23</td><td>Checked arithmetic policies and optimized reductions</td><td>B03; B04 informs selection</td></tr>
+<tr><td><a href="#b06-resident-runtime-and-registry">B06</a></td><td>P3 / D24</td><td>Resident buffers, explicit stream and owned completions</td><td>B02, B03</td></tr>
+<tr><td><a href="#b07-cache-and-memory-admission">B07</a></td><td>P3 / D24–D25</td><td>Plan cache, budget admission and lifecycle regression</td><td>B06</td></tr>
+<tr><td><a href="#b08-production-ntt-selection">B08</a></td><td>P3 / D26–D40</td><td>Measured NTT layout/radix selection and production NTT gate</td><td>B04–B07</td></tr>
+<tr><td><a href="#b09-base-conversion">B09</a></td><td>P4–P5 / D41–D61</td><td>Broader exact basis-conversion model and GPU implementation</td><td>B08; D8 graph</td></tr>
+<tr><td><a href="#b10-hybrid-runtime-keys-and-hoists">B10</a></td><td>P6–P7 / D62–D85</td><td>Production Hybrid fixtures, keys, hoisting and GPU graph</td><td>B09; D8/D9 contracts</td></tr>
+<tr><td><a href="#b11-transactional-adapter">B11</a></td><td>P8 / D86–D93</td><td>Transactional OpenFHE adapter and integrated dispatch</td><td>B08–B10</td></tr>
+<tr><td><a href="#b12-integration-release">B12</a></td><td>P8 / D94–D95</td><td>Application, fallback and integration release evidence</td><td>B11</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>B02's safety fixes are prerequisites for a trustworthy native baseline. They
+are scheduled explicitly inside P2 rather than silently assuming the current
+wrapper is failure-safe. B06/B07 implement lifecycle rules before production
+resident execution. B11 is the first OpenFHE host adapter; library tests against
+OpenFHE in earlier phases do not themselves integrate that adapter.</p>
+<h2 id="2-p2-establish-the-native-baseline">2. P2: establish the native baseline<a class="headerlink" href="#2-p2-establish-the-native-baseline" title="Permanent link">¶</a></h2>
+<h3 id="b01-environment-record">B01 — environment record<a class="headerlink" href="#b01-environment-record" title="Permanent link">¶</a></h3>
+<p>Record the actual GPU model, memory and compute capability; driver; CUDA
+compiler/runtime; host compiler; OS; CMake flags; source commit; OpenFHE commit,
+NativeInteger size and build options. Record clocks/power mode and profiler
+versions before performance measurements.</p>
+<p>Start with RTX 5090; use RTX 4090 as the control. If only a control GPU is
+available, label that run and keep the primary-device gate open. Use native
+architecture compilation on the selected device; <code>sm_120</code> requires an appropriate
+toolkit (the current configured target starts at CUDA 12.8).</p>
+<p><strong>Acceptance:</strong> checked-in or attached environment record plus successful device,
+compiler and driver queries. A CPU machine, toolkit version string alone, or PTX
+fallback without a native build does not complete B01/B02. This task does not
+provision or rent hardware as part of D10.</p>
+<h3 id="b02-native-build-and-baseline-safety">B02 — native build and baseline safety<a class="headerlink" href="#b02-native-build-and-baseline-safety" title="Permanent link">¶</a></h3>
+<p>Work in <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/include/ntt/cuda_ntt.hpp">cuda_ntt.hpp</a> and
+<a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/src/cuda/ntt_kernels.cu">ntt_kernels.cu</a>. Replace raw constructor ownership
+with exception-safe RAII, retain the owning device, use a device guard, and
+validate checked extents and supported canonical inputs before enqueue.
+Resolve compiler/architecture blockers exposed by the first native build.
+Keep the baseline arithmetic and transform convention intact.</p>
+<p><strong>Acceptance:</strong> native build and smoke run; injected failures at each allocation
+and constant upload unwind all prior allocations; invalid inputs submit no work;
+normal/destructor cleanup uses the owning device and does not throw. Update the
+<a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/tests/docs/test_cuda_dataflow.py">D5 source-contract tests</a> and buffer map to
+match the actual fix. Static source checks alone cannot complete this item.</p>
+<h3 id="b03-exact-cuda-matrix">B03 — exact CUDA matrix<a class="headerlink" href="#b03-exact-cuda-matrix" title="Permanent link">¶</a></h3>
+<p>Extend the native harness to import the exact OpenFHE fixture moduli, roots,
+input arrays and expected arrays. At N=65536 cover 50/55/60-bit primes, active
+Q levels and representative tower counts; include D7's deliberately unsorted
+50/55/60-bit packing case and D8's actual context parameters where applicable.</p>
+<p>Exercise zero, one, q−1, alternating bounds, monomials, deterministic dense
+residues, independent evaluation input, forward, inverse, round-trip, pointwise
+and negacyclic product. Compare complete arrays against the CPU oracle and
+pinned OpenFHE using the same fixtures. Run CUDA Compute Sanitizer memory,
+race, initialization and synchronization checks on the affected kernels.</p>
+<p><strong>Acceptance:</strong> every selected case passes exactly with a recorded native build
+and no relevant sanitizer errors. The current CLI's generated baseline uses
+46-bit parameters; its success alone does not cover this matrix. Keep the
+existing CPU/OpenFHE and small schedule-boundary gates green.</p>
+<h3 id="b04-timing-and-bottleneck-report">B04 — timing and bottleneck report<a class="headerlink" href="#b04-timing-and-bottleneck-report" title="Permanent link">¶</a></h3>
+<p>Separate construction/table upload, device-resident CUDA-event timings,
+transfer-inclusive wall time, and explicit synchronization. Add raw samples,
+warm-up, median/p5/p95, workload metadata and <code>ptxas</code> resource reports. Profile
+the strided column pass's sectors/requested byte, L2/DRAM traffic, bank conflicts,
+occupancy, registers/spills and launch gaps.</p>
+<p>Make the collection path fail visibly on a failed benchmark/profiler command.
+The current <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/scripts/autodl_setup.sh">AutoDL helper</a> runs a default build
+without the optional OpenFHE gates and does not preserve benchmark failure as
+its final verdict. Harden that reporting before using it as release evidence;
+retain failing logs and never publish an all-green summary from partial work.</p>
+<p><strong>Acceptance:</strong> reproducible raw results, exact-gate status and one evidence-backed
+first bottleneck decision on named hardware. Follow the
+<a href="benchmark-tuning-plan.html">benchmark plan</a>. Do not label the current wrapper's
+transfer-inclusive wall time as kernel-only time.</p>
+<h2 id="3-p3-implement-resident-ntt-safely">3. P3: implement resident NTT safely<a class="headerlink" href="#3-p3-implement-resident-ntt-safely" title="Permanent link">¶</a></h2>
+<h3 id="b05-arithmetic-policies">B05 — arithmetic policies<a class="headerlink" href="#b05-arithmetic-policies" title="Permanent link">¶</a></h3>
+<p>Retain the exact oracle path while adding Shoup twiddle multiplication and
+Barrett variable multiplication, with their exact range proofs and tables.
+Run independent bigint, maximum-width adversarial, complete-transform and
+native OpenFHE comparisons before selecting optimized dispatch.</p>
+<p><strong>Acceptance:</strong> no hidden integer-remainder path in selected optimized kernels;
+range/overflow tests and hardware-specific exactness evidence accompany each
+policy. Alternative encodings need a superseding contract, not a changed label.</p>
+<h3 id="b06-resident-runtime-and-registry">B06 — resident runtime and registry<a class="headerlink" href="#b06-resident-runtime-and-registry" title="Permanent link">¶</a></h3>
+<p>Implement the accepted metadata through a private registry, move-only allocation
+owners, one explicit initial stream, immutable views/results, owned upload and
+download staging, and completions. Pin all resources before attempting submission.
+Retain failed operation records even when event recording or submission throws
+before a completion is returned. Poison/drain or quarantine a failed session.</p>
+<p><strong>Acceptance:</strong> test wrong device/session, stale generations, alias rejection,
+input immutability, chained resident forward/pointwise/inverse, completion
+abandonment, close-with-live-handles, constructor unwinding, submission failure,
+event-recording failure, and failure before quiescence. Confirm a host download
+cannot expose data before success. Multi-stream capability stays disabled until
+exact cross-stream waits, event-generation handling and race tests pass.</p>
+<h3 id="b07-cache-and-memory-admission">B07 — cache and memory admission<a class="headerlink" href="#b07-cache-and-memory-admission" title="Permanent link">¶</a></h3>
+<p>Implement complete semantic plan keys, a single pending upload per key,
+readiness waits, external leases, in-flight pins and eligible-entry LRU eviction.
+Apply ADR 0001's separate 256 MiB cache, 256 MiB device workspace and 128 MiB
+host staging defaults, with checked allocation-size charging and configurable
+limits. The initial allocator owns individual allocations.</p>
+<p><strong>Acceptance:</strong> tests cover concurrent same-key lookup, changed roots/basis/device,
+live-reader eviction attempts, failed uploads, pending entries, budget exhaustion,
+actual released bytes, all-or-nothing budget reduction and retained output/host
+result credits. Busy/budget failures are explicit, bounded and cannot deadlock
+waiting for the caller's own lease. Do not enable multi-stream dispatch merely
+because the cache lookup mutex is tested.</p>
+<h3 id="b08-production-ntt-selection">B08 — production NTT selection<a class="headerlink" href="#b08-production-ntt-selection" title="Permanent link">¶</a></h3>
+<p>Evaluate coalesced transpose/Four-Step, radix-4/8, shared-memory padding and
+warp exchange only after the baseline is measured. Preserve exact ordering,
+roots, normalization and the required out-of-place copy cost.</p>
+<p><strong>Acceptance:</strong> device-resident composition without intermediate host waits;
+exact gates for every supported workload; recorded launch/resource parameters;
+latency and throughput selections for N=65536 on the primary GPU, with labeled
+control-device evidence. P3 closes only with the complete regression and dispatch
+record, not one faster microbenchmark.</p>
+<h2 id="4-p4p7-preserve-exact-conversion-and-hybrid-behavior">4. P4–P7: preserve exact conversion and Hybrid behavior<a class="headerlink" href="#4-p4p7-preserve-exact-conversion-and-hybrid-behavior" title="Permanent link">¶</a></h2>
+<h3 id="b09-base-conversion">B09 — base conversion<a class="headerlink" href="#b09-base-conversion" title="Permanent link">¶</a></h3>
+<p>Broaden D8's model into independent Q→QP and QP→Q CPU fixtures across the intended
+levels, tower counts and boundary coefficients. Freeze exact constants, integer
+representatives, reduction order, and separate digit-extension/ModDown plan kinds.
+Then implement batched GPU conversion over the resident views.</p>
+<p><strong>Acceptance:</strong> every intermediate array matches pinned OpenFHE; shortened digits
+and dynamic active prefixes work; NTT and conversion compose without host copies.
+Canonical CRT substitution must remain a detectable negative case. Record native
+sanitizer and performance evidence before the P5 production gate.</p>
+<h3 id="b10-hybrid-runtime-keys-and-hoists">B10 — Hybrid runtime, keys and hoists<a class="headerlink" href="#b10-hybrid-runtime-keys-and-hoists" title="Permanent link">¶</a></h3>
+<p>Broaden the production parameter, digit, level and key-family fixtures before
+GPU composition. Snapshot immutable A/B evaluation-key material with versioned
+identity; cache full-context metadata; preserve reduced-level P offsets, B/A
+accumulation, delayed QP scaling and one final ModDown per accumulated result.
+Add an explicit immutable hoist result tied to its source allocation/version.</p>
+<p><strong>Acceptance:</strong> complete intermediate/final arrays match for fixed input/key
+material; altered key snapshots cannot reuse stale cache entries; stale hoists
+are rejected. Actual rotation automorphisms and higher-degree relinearization
+need full exact and CKKS decryption tests; D8's source trace alone is insufficient.
+Record key upload reuse, peak live memory and full-operation timing.</p>
+<h2 id="5-p8-integrate-and-release">5. P8: integrate and release<a class="headerlink" href="#5-p8-integrate-and-release" title="Permanent link">¶</a></h2>
+<h3 id="b11-transactional-adapter">B11 — transactional adapter<a class="headerlink" href="#b11-transactional-adapter" title="Permanent link">¶</a></h3>
+<p>Implement the explicit opt-in SetFormat-equivalent DCRT seam before integrating
+broader operations. Validate every tower and outer format, use per-element
+packing/import, reserve the complete transaction's resource credits, and commit
+through a verified nonthrowing move only after successful download/import.
+Use <code>RequireDevice</code> by default; permit CPU only before submission under the
+explicit fallback policy. Add later conversion/Hybrid dispatch behind their gates.</p>
+<p><strong>Acceptance:</strong> same-format requests are validated no-ops; CPU-only builds keep
+working; unsupported/unavailable/unverified cases obey policy. Recoverable
+packing, allocation, upload, launch, event, download and import failures leave
+the original host object unchanged. No post-submission automatic fallback occurs.
+Test partial submission without a returned completion, concurrent host-object
+access rules and upstream <code>noexcept</code> limitations explicitly. Application input,
+keys and CKKS metadata must survive both device and permitted CPU paths.</p>
+<h3 id="b12-integration-release">B12 — integration release<a class="headerlink" href="#b12-integration-release" title="Permanent link">¶</a></h3>
+<p>Run relevant upstream CKKS examples/tests and the complete exact pipeline,
+including all target levels, relinearization, rotations and explicit fallback.
+Keep constants/keys resident across repeated operations and publish cold/warm,
+end-to-end and kernel-only measurements with raw evidence and source revisions.</p>
+<p><strong>Acceptance:</strong> all P8 exit gates are green; runtime failure and teardown tests
+pass; exact arrays and secondary decryption checks agree; per-device dispatch,
+limits, configuration and reproducibility instructions are published. Production
+promotion removes the proposal label only after these relevant implementation
+gates, with a reviewed API migration.</p>
+<h2 id="6-d11-handoff-and-evidence-record">6. D11 handoff and evidence record<a class="headerlink" href="#6-d11-handoff-and-evidence-record" title="Permanent link">¶</a></h2>
+<p>D11 begins on the provided GPU machine. Record its environment before installing
+or changing the selected toolkit. Configure a separate native build directory;
+reuse the pinned OpenFHE installation produced by <code>scripts/openfhe_setup.sh</code>.
+For example, after setting the install prefix for that machine:</p>
+<pre><code class="language-sh">cmake -S . -B build/native-gpu -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CUDA_ARCHITECTURES=native \
+  -DNTT_ENABLE_OPENFHE_COMPAT=ON \
+  -DCMAKE_PREFIX_PATH=&quot;$NTT_OPENFHE_PREFIX&quot;
+cmake --build build/native-gpu -j2
+ctest --test-dir build/native-gpu --output-on-failure
+</code></pre>
+<p>CMake auto-detection can produce a CPU-only build. B02/B03 require an actual
+CUDA compiler, the CUDA targets and their registered CTests, a real GPU, and
+successful native execution. The commands above are a handoff, not an observed
+D10 GPU run or proof that the current source already compiles with nvcc.</p>
+<p>For each completed item, retain the source commit, parameter/fixture identifiers,
+hardware/toolchain record, exact commands, raw logs, failing-case diagnosis where
+relevant, and the final gate result. Update this backlog, the roadmap and that
+calendar day's journal together. Leave unexecuted items visibly open.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#1-deliverables-and-dependencies">1. Deliverables and dependencies</a></li><li><a href="#2-p2-establish-the-native-baseline">2. P2: establish the native baseline</a></li><li><a href="#3-p3-implement-resident-ntt-safely">3. P3: implement resident NTT safely</a></li><li><a href="#4-p4p7-preserve-exact-conversion-and-hybrid-behavior">4. P4–P7: preserve exact conversion and Hybrid behavior</a></li><li><a href="#5-p8-integrate-and-release">5. P8: integrate and release</a></li><li><a href="#6-d11-handoff-and-evidence-record">6. D11 handoff and evidence record</a></li></ol></nav></aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/10bcdb81668aa06311e252da3dc2522c42680ba5">10bcdb8</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

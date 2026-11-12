@@ -76,8 +76,8 @@ All published text and accessible labels use English. The portfolio and
 research notebook share a restrained blue/white palette, serif headings,
 and a readable sans-serif body. Photography, mathematical diagrams, and
 painting studies supply the visual content. Navigation stays visible on phones.
-The current website has 44 HTML pages: 19 portfolio/collection pages and
-25 generated notebook pages. Browser review covers 1440, 1024, 375, and 320px.
+The current website has 46 HTML pages: 19 portfolio/collection pages and
+27 generated notebook pages. Browser review covers 1440, 1024, 375, and 320px.
 
 ## Deployment
 

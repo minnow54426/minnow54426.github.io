@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="D10: accepted representation, backend ownership, adapter/fallback policy, resource budgets and P1 review.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/architecture-decision.html">
+<title>Architecture decision · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html" aria-current="page">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Plans</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/docs/architecture-decision.md">View source</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><article class="site-article"><h1 id="adr-0001-accept-the-device-backend-architecture">ADR 0001: accept the device backend architecture<a class="headerlink" href="#adr-0001-accept-the-device-backend-architecture" title="Permanent link">¶</a></h1>
+<p><strong>D10 · Accepted for implementation · 2026-11-12 (Asia/Shanghai)</strong></p>
+<p>Use an explicit, device-resident backend with immutable polynomial handles,
+checked representation metadata, and owned completion dependencies. Integrate
+OpenFHE first through an opt-in DCRT format-conversion adapter with transactional
+host updates and preflight-only CPU fallback.</p>
+<p>This decision accepts the D7–D9 contracts and the
+<a href="implementation-backlog.html">implementation backlog</a>. <strong>P1 is complete. D11 is
+next: provision the native GPU environment.</strong> Acceptance establishes the design;
+it does not establish CUDA correctness, runtime failure safety, or performance.</p>
+<h2 id="1-review-scope-and-evidence">1. Review scope and evidence<a class="headerlink" href="#1-review-scope-and-evidence" title="Permanent link">¶</a></h2>
+<p>The reviewed source baseline is
+<a href="https://github.com/minnow54426/ntt-gpu/tree/f349e72a1053eaebd714232f14415a56c9c17c4b">f349e72</a>.
+OpenFHE remains pinned to 1.6.1, commit
+<code>b59e1f291965f14fbee5172cd83a20f5b856204f</code>, using NativeInteger 64.
+The production target is N=65536 with canonical 50–60-bit RNS primes.
+Small teaching examples and schedule boundary tests remain useful evidence;
+they do not expand production support.</p>
+<table>
+<thead>
+<tr>
+<th>P1 question</th>
+<th>Accepted evidence</th>
+<th>Remaining runtime gate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Does every butterfly/stage have the correct addresses and factors?</td>
+<td><a href="ntt-65536-work-distribution.html">D1–D4 proofs</a>, exhaustive shared-helper probes and CPU schedule checks</td>
+<td>Native compilation, launch geometry, barriers and races</td>
+</tr>
+<tr>
+<td>Are arithmetic bounds and reductions explicit?</td>
+<td><a href="modular-arithmetic-contract.html">D6 contract</a>, independent bigint checks and full-size CPU patterns</td>
+<td>Native 50/55/60-bit adversarial matrix</td>
+</tr>
+<tr>
+<td>Are OpenFHE formats, roots and tower arrays exact?</td>
+<td><a href="openfhe-representation-contract.html">D7 contract</a> and real NativePoly/DCRTPoly checks</td>
+<td>Same fixtures through CUDA and the adapter</td>
+</tr>
+<tr>
+<td>Is the Hybrid graph exact?</td>
+<td><a href="openfhe-hybrid-operation-graph.html">D8 graph</a>, 18 full-size cases and intermediate-array comparisons</td>
+<td>Broader parameter/key coverage and GPU composition</td>
+</tr>
+<tr>
+<td>Are buffer identity and ownership explicit?</td>
+<td><a href="device-backend-contract.html">D9 contract</a>, 78 metadata checks and a real OpenFHE metadata bridge</td>
+<td>Private registry, actual events, allocation and failure tests</td>
+</tr>
+</tbody>
+</table>
+<p>The existing <a href="cuda-buffer-dataflow.html">CUDA wrapper</a> remains a synchronous
+correctness baseline. The proposed interfaces in
+<a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/include/ntt/backend_api.hpp">backend_api.hpp</a> have no runtime implementation
+or factory. <code>ntt::proposal</code> stays in place until implementation tests justify
+promotion. This ADR freezes behavioral invariants, not a stable public C++ ABI.</p>
+<h2 id="2-freeze-the-representation-and-operation-boundary">2. Freeze the representation and operation boundary<a class="headerlink" href="#2-freeze-the-representation-and-operation-boundary" title="Permanent link">¶</a></h2>
+<p>Accept these rules without reinterpretation:</p>
+<ul>
+<li>A deep immutable context carries N, the full ordered Q/P moduli and exact
+  primitive roots, and the full-context digit width α.</li>
+<li>Each polynomial carries its ordered tower references, active Q count L,
+  domain, order and encoding. Coefficients use natural order; evaluations use
+  the D7 bit-reversed order. Residues are canonical <code>uint64_t</code> values.</li>
+<li>Forward, inverse and pointwise operations validate their input layouts.
+  Inverse includes N-inverse normalization. Public inputs are immutable;
+  results have fresh storage. Private scratch/output may use in-place kernels.</li>
+<li>Views alias only complete contiguous towers and retain allocation/readiness
+  leases. A shortened full-QP span cannot stand in for reduced QlP. Reduced-level
+  P key indices retain their full-context offsets.</li>
+<li>D8's digit/complement transform placement, unreduced approximate CRT,
+  B-before-A output order, accumulation before ModDown, and delayed-QP scaling
+  remain exact requirements. A decryption result alone cannot replace them.</li>
+</ul>
+<p>Semantic validity and device capability remain separate. Mathematical validity
+of an alternative primitive root does not establish OpenFHE cache compatibility.
+The first adapter accepts only the pinned context's canonical minimum roots and
+rejects known conflicting registrations before using the shared FTT cache.
+The process must not populate that upstream cache with conflicting custom roots;
+its entries do not retain enough root identity to detect such external usage
+after the fact. Broader custom-root support requires a new reviewed contract
+and fixtures.</p>
+<p>Out-of-place results may require an additional device-to-device copy when using
+the current kernels. Record that copy in memory and timing results. Public
+in-place writes, partial-tower strides, peer transfers and cross-device handles
+are excluded from the initial API.</p>
+<h2 id="3-accept-the-first-openfhe-seam-and-fallback-policy">3. Accept the first OpenFHE seam and fallback policy<a class="headerlink" href="#3-accept-the-first-openfhe-seam-and-fallback-policy" title="Permanent link">¶</a></h2>
+<p>The first adapter is an explicit opt-in DCRT operation with SetFormat-equivalent
+behavior. It packs towers through <code>ConvertToInt()</code>, performs a backend transform,
+imports a private candidate, and commits the candidate only after complete
+success. It does not globally replace <code>SwitchFormat</code> or patch NativePoly storage.
+The first adapter transaction is synchronous to its caller.</p>
+<p>Validate the DCRT label, each tower's label, dimension, ordered q/ψ pairs,
+length and canonical values, including on a same-format request. Verify both
+tower labels and the outer DCRT label when importing; metadata overrides alone
+do not convert data. Access to the same host object must be serialized by its
+caller.</p>
+<table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>Accepted behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Valid object already in the requested format</td>
+<td>Return without conversion</td>
+</tr>
+<tr>
+<td>Available, supported, verified device operation</td>
+<td>Use the device route</td>
+</tr>
+<tr>
+<td>Valid but unsupported layout, unavailable GPU, or unverified operation</td>
+<td>CPU only under <code>AllowCpuBeforeSubmit</code>; otherwise error</td>
+</tr>
+<tr>
+<td>Invalid object/metadata/residues</td>
+<td>Error under either policy</td>
+</tr>
+<tr>
+<td>Admission busy, budget exhausted or allocation failure</td>
+<td>Report the resource error; do not silently change routes</td>
+</tr>
+<tr>
+<td>First enqueue-capable call attempted, then any failure</td>
+<td>Propagate failure; no automatic CPU retry</td>
+</tr>
+</tbody>
+</table>
+<p><code>RequireDevice</code> is the explicit default for a caller opting into this adapter.
+Applications choosing fallback must select <code>AllowCpuBeforeSubmit</code>. The existing
+OpenFHE CPU APIs keep their existing behavior.</p>
+<p>Commit the completed candidate through the pinned DCRT move assignment, which
+is declared <code>noexcept</code> in <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/dcrtpoly.h#L131">the reviewed source</a>. All validation and
+import work precedes that commit. Recoverable failures leave the original host
+object unchanged. This promise does not cover process termination: some upstream
+constructors/copy operations are declared <code>noexcept</code> while allocating. Adapter
+fault tests must distinguish recoverable injected failures from upstream fatal
+allocation paths; no universal out-of-memory rollback claim is accepted.</p>
+<h2 id="4-close-the-partial-submission-lifetime-gap">4. Close the partial-submission lifetime gap<a class="headerlink" href="#4-close-the-partial-submission-lifetime-gap" title="Permanent link">¶</a></h2>
+<p>D9 establishes leases through completion. D10 additionally requires those leases
+to exist <strong>before the first enqueue-capable call</strong>, including when no completion
+handle is ever returned.</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Required ownership and error behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Preflight</td>
+<td>Validate handles, choose the route, reserve checked resource credits and create an operation record</td>
+</tr>
+<tr>
+<td>Submitting</td>
+<td>Mark the transaction as submitted before attempting the first async copy/kernel/wait; the operation record already owns all leases</td>
+</tr>
+<tr>
+<td>Event recorded</td>
+<td>Publish an immutable completion tied to that event/generation; retain all input/output/plan/staging/scratch pins</td>
+</tr>
+<tr>
+<td>Submission or event-recording failure</td>
+<td>Keep the record privately, mark it failed, drain the owning stream; do not release memory merely because no handle was returned</td>
+</tr>
+<tr>
+<td>Completed successfully</td>
+<td>Make readiness visible and release operation pins; external handles retain their own leases</td>
+</tr>
+<tr>
+<td>Failed, quiescence not established</td>
+<td>Poison the backend session, reject further submission and quarantine affected resources until safe teardown</td>
+</tr>
+</tbody>
+</table>
+<p>A producer on the same stream uses FIFO order. A pending producer on another
+stream needs the exact event wait. Only earlier submitted operation IDs are
+valid dependencies; IDs/generations must never wrap into reusable identities.
+A failed producer fails its consumers. Event failure is not proof of device
+quiescence, and dropping a completion is not cancellation.</p>
+<p>The registry validates all allocation, stream and event identities against its
+own session; user-supplied structs are not authority. Constructor unwinding uses
+RAII, each runtime call uses the owning device guard, and <code>close()</code> drains and
+reports errors. Destructors do not throw. The <a href="cuda-buffer-dataflow.html#open-ownership-and-integration-issues">D5 raw-Impl cleanup gap</a>
+is a release blocker tracked as B02, not a fix delivered by this ADR.</p>
+<p>Do not automatically call <code>cudaDeviceReset</code> to recover a session in a shared
+process: it can invalidate allocations owned by other users of the device.
+An unrecoverable session reports failure and retains quarantine until safe
+owner-controlled teardown, potentially at the worker-process boundary.</p>
+<h2 id="5-choose-initial-cache-and-admission-limits">5. Choose initial cache and admission limits<a class="headerlink" href="#5-choose-initial-cache-and-admission-limits" title="Permanent link">¶</a></h2>
+<p>Use these conservative, configurable defaults for the first backend/adapter
+implementation. They are engineering limits, not measured optimal settings.
+MiB means 2²⁰ bytes.</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Initial decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Device cache budget</td>
+<td>256 MiB per backend session</td>
+</tr>
+<tr>
+<td>Device operand/output/scratch budget</td>
+<td>Separate 256 MiB per backend session</td>
+</tr>
+<tr>
+<td>Owned host staging budget</td>
+<td>Separate 128 MiB per backend session</td>
+</tr>
+<tr>
+<td>Initial executor</td>
+<td>One explicit nonblocking CUDA stream per backend session</td>
+</tr>
+<tr>
+<td>Initial adapter concurrency</td>
+<td>One host adapter transaction at a time per session</td>
+</tr>
+<tr>
+<td>Admission when limits cannot be met</td>
+<td>Fail immediately with a specific error; no hidden waiting or automatic budget growth</td>
+</tr>
+</tbody>
+</table>
+<p>These are ceilings, not eager allocations. A second initial stream or concurrent
+adapter transaction reports a resource-limit/busy error. The accepted dependency
+model supports later multi-stream execution, but that capability remains disabled
+until its race/failure tests pass. Pure metadata helpers remain portable.</p>
+<p>Charge the allocator's requested allocation extents, including explicit padding,
+before allocating. These budgets bound accounted allocations, not CUDA's internal
+physical-memory reservation or driver overhead; measure those separately.
+Pending cache uploads count against the cache budget; an entry's pinned bytes
+are counted once. Operand/output/scratch allocations remain charged while any
+operation or external polynomial handle owns them. Host staging includes owned
+upload snapshots and retained download results. Register table-build/host-object
+memory separately in measurements; it is not covered by the staging cap.</p>
+<p>The initial allocator uses individually owned allocations, so <code>trim_cache()</code>
+reports actual released device bytes. A later pooling allocator must distinguish
+reusable suballocations from memory returned to CUDA and revise accounting before
+claiming the same statistic.</p>
+<p>Before the adapter's first submission, reserve credits for its complete checked
+transaction plan. Individual asynchronous backend operations reserve their own
+requirements before enqueue; a later operation can still fail after an earlier
+operation has submitted, which forbids automatic fallback for that transaction.
+Preserve the original host object in either case.</p>
+<p>Cache lookup uses D9's complete semantic keys. One mutex-protected pending entry
+coordinates each upload. Evict least-recently-used eligible entries only after
+external leases and operation pins are zero and quiescence is proven. If eviction
+cannot admit a request, return <code>CacheBudgetExceeded</code>; if output/staging credits
+are unavailable, report the corresponding resource limit. Budget reduction is
+atomic: if the new limit cannot be met, retain the previous limit.</p>
+<p>The D8 full-context key payload is 16 MiB and one eight-tower forward/inverse
+plan has approximately 8 MiB of payload. Those explain why a 256 MiB cache is a
+reasonable initial ceiling; they do not bound a production key set. No peak
+memory or throughput claim follows from these defaults.</p>
+<h2 id="6-alternatives-reviewed">6. Alternatives reviewed<a class="headerlink" href="#6-alternatives-reviewed" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Alternative</th>
+<th>Review result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Raw pointer plus length</td>
+<td>Rejected: omits basis, format, generation and producer ownership</td>
+</tr>
+<tr>
+<td>Add global format hooks immediately</td>
+<td>Deferred: broadens the first seam before packing and rollback are tested</td>
+</tr>
+<tr>
+<td>Expose public in-place writes first</td>
+<td>Deferred: adds aliasing and concurrent-reader hazards before a native baseline</td>
+</tr>
+<tr>
+<td>Keep the current host-vector wrapper as the production backend</td>
+<td>Rejected: forces transfers and hides stream/device ownership</td>
+</tr>
+<tr>
+<td>Retry CPU after a CUDA failure</td>
+<td>Rejected: submission can be partial and dependencies may still be live</td>
+</tr>
+<tr>
+<td>Unlimited caching or automatic cache growth</td>
+<td>Rejected: defeats predictable admission and live-reader safety</td>
+</tr>
+<tr>
+<td>Replace approximate CRT with canonical CRT</td>
+<td>Rejected: changes pinned OpenFHE intermediate arrays</td>
+</tr>
+<tr>
+<td>Tune layouts/arithmetic before measuring the baseline</td>
+<td>Deferred: native correctness and named-hardware evidence come first</td>
+</tr>
+</tbody>
+</table>
+<p>The existing wrapper is retained as the baseline comparison during migration.
+No algorithm rewrite or runtime adapter is introduced by D10.</p>
+<h2 id="7-accept-p1-and-track-the-implementation">7. Accept P1 and track the implementation<a class="headerlink" href="#7-accept-p1-and-track-the-implementation" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>P1 exit requirement</th>
+<th>D10 disposition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NTT/DCRT and Hybrid representation, ordering and active towers are explicit</td>
+<td>Accepted: D7/D8 source and CPU exactness gates</td>
+</tr>
+<tr>
+<td>Pinned approximate-CRT and reduction order are identified</td>
+<td>Accepted: D8 independent intermediate-array checks</td>
+</tr>
+<tr>
+<td>Buffer/device/stream/event ownership is specified</td>
+<td>Accepted: D9 metadata model plus D10 submission-failure rules</td>
+</tr>
+<tr>
+<td>First integration seam and CPU fallback are frozen</td>
+<td>Accepted: explicit DCRT adapter and the policy in section 3</td>
+</tr>
+</tbody>
+</table>
+<p>The <a href="implementation-backlog.html">backlog</a> gives each follow-up a phase,
+dependency and observable acceptance criterion. Native build/safety and exactness
+block benchmark claims. Runtime lifecycle and cache gates block promotion from
+<code>ntt::proposal</code>. The transactional adapter and application tests block production
+OpenFHE integration. D11–D95 retain their phase order; completing D10 does not
+mark any later implementation gate complete.</p>
+<p>Review validation reruns the 16-test CPU/OpenFHE Release suite, documentation
+unit tests, interactive mathematics, route/fragment checks, and desktop/mobile
+browser checks. Exact observed results are appended to the
+<a href="journal/2026-11-12.html#d10-accept-architecture-and-close-p1">daily journal</a>.
+No CUDA compiler or GPU is available in this review environment.</p>
+<p>Any later change to residue encoding, root conventions, public aliasing,
+submission/fallback boundaries, ownership, or resource-accounting semantics
+requires a superseding ADR and exact regression evidence. Budget values may
+be explicitly configured within the accepted admission rules; benchmark-based
+default changes must record the hardware and workload that justify them.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#1-review-scope-and-evidence">1. Review scope and evidence</a></li><li><a href="#2-freeze-the-representation-and-operation-boundary">2. Freeze the representation and operation boundary</a></li><li><a href="#3-accept-the-first-openfhe-seam-and-fallback-policy">3. Accept the first OpenFHE seam and fallback policy</a></li><li><a href="#4-close-the-partial-submission-lifetime-gap">4. Close the partial-submission lifetime gap</a></li><li><a href="#5-choose-initial-cache-and-admission-limits">5. Choose initial cache and admission limits</a></li><li><a href="#6-alternatives-reviewed">6. Alternatives reviewed</a></li><li><a href="#7-accept-p1-and-track-the-implementation">7. Accept P1 and track the implementation</a></li></ol></nav></aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/10bcdb81668aa06311e252da3dc2522c42680ba5">10bcdb8</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

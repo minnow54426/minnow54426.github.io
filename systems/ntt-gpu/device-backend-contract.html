@@ -22,7 +22,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html" aria-current="page">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html" aria-current="page">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f349e72a1053eaebd714232f14415a56c9c17c4b/docs/device-backend-contract.md">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/docs/device-backend-contract.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="device-buffers-and-the-backend-boundary">Device buffers and the backend boundary<a class="headerlink" href="#device-buffers-and-the-backend-boundary" title="Permanent link">¶</a></h1>
 <p><strong>D9 · API proposal with executable metadata checks · N=65536</strong></p>
@@ -77,15 +77,17 @@ existing synchronous implementation.</p>
 </tr>
 </tbody>
 </table>
-<p>The prototype lives in <a href="https://github.com/minnow54426/ntt-gpu/blob/f349e72a1053eaebd714232f14415a56c9c17c4b/include/ntt/backend_contract.hpp">backend_contract.hpp</a>,
-with interfaces in <a href="https://github.com/minnow54426/ntt-gpu/blob/f349e72a1053eaebd714232f14415a56c9c17c4b/include/ntt/backend_api.hpp">backend_api.hpp</a> and tests in
-<a href="https://github.com/minnow54426/ntt-gpu/blob/f349e72a1053eaebd714232f14415a56c9c17c4b/tests/backend_contract_tests.cpp">backend_contract_tests.cpp</a>. The
+<p>The prototype lives in <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/include/ntt/backend_contract.hpp">backend_contract.hpp</a>,
+with interfaces in <a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/include/ntt/backend_api.hpp">backend_api.hpp</a> and tests in
+<a href="https://github.com/minnow54426/ntt-gpu/blob/10bcdb81668aa06311e252da3dc2522c42680ba5/tests/backend_contract_tests.cpp">backend_contract_tests.cpp</a>. The
 <code>ntt::proposal</code> namespace makes its status explicit. These headers introduce
 no CUDA or OpenFHE dependency into the standalone build. The current CUDA
 wrapper and its algorithms are unchanged.</p>
-<p><strong>D9 completes the proposal. D10 must accept the architecture and backlog.</strong>
-P1 remains in progress; a metadata check cannot prove a physical allocation,
-an event wait, or native GPU correctness.</p>
+<p><strong>D10 accepted this design in <a href="architecture-decision.html">ADR 0001</a>; P1 is complete.</strong>
+The article records the D9 proposal and its implementation limits. The ADR adds
+fixed initial budgets, admission rules and partial-submission cleanup, with an
+<a href="implementation-backlog.html">implementation backlog</a>. A metadata check cannot
+prove a physical allocation, an event wait, or native GPU correctness.</p>
 <h2 id="2-carry-the-complete-polynomial-identity">2. Carry the complete polynomial identity<a class="headerlink" href="#2-carry-the-complete-polynomial-identity" title="Permanent link">¶</a></h2>
 <p>The immutable <code>Parameters</code> object owns a deep copy of:</p>
 <ul>
@@ -336,7 +338,8 @@ implemented cache, uploader, hash table or LRU policy.</p>
 with pinned bytes counted once per entry; operand/scratch pools are separate.
 Budget is reserved before allocation. Lowering the budget evicts eligible entries
 first and fails if live pins prevent the requested bound. Trimming returns only
-bytes actually freed. D10 must select the initial budget and admission policy.</p>
+bytes actually freed. <a href="architecture-decision.html#5-choose-initial-cache-and-admission-limits">ADR 0001</a>
+selects the initial budget and admission policy; their runtime implementation is pending.</p>
 <p>Hoisted digits are explicit immutable results, not an implicit global cache.
 Their provenance includes the complete parameter snapshot, source allocation
 ID/generation, complete active-Q view, domain/order and rule revision. The
@@ -393,8 +396,8 @@ Keys and tables remain pinned by all readers.</p>
 not a measured or proven peak allocation bound. Streaming digits can release
 scratch earlier; preserving a hoist for several rotations keeps all digits
 alive. Allocator alignment, twiddle tables, host staging, concurrent streams,
-conversion scratch and out-of-place copies add memory. D10 must choose the
-initial budget/backpressure policy; P2/P3 must measure actual live bytes.</p>
+conversion scratch and out-of-place copies add memory. D10 accepts explicit
+budgets and fail-fast admission in ADR 0001; P2/P3 must measure actual live bytes.</p>
 <h2 id="8-integrate-openfhe-through-a-transactional-adapter">8. Integrate OpenFHE through a transactional adapter<a class="headerlink" href="#8-integrate-openfhe-through-a-transactional-adapter" title="Permanent link">¶</a></h2>
 <p>The proposed first seam is an <strong>explicit opt-in DCRT format-conversion adapter</strong>
 with SetFormat-equivalent behavior. It does not replace OpenFHE's global
@@ -470,7 +473,7 @@ against actual Hybrid outputs and full-context key towers. It retains D8's
 <pre><code class="language-sh">.venv/bin/cmake --build build/openfhe-compat/ntt-build -j2
 .venv/bin/ctest --test-dir build/openfhe-compat/ntt-build --output-on-failure -j2
 </code></pre>
-<p>D10's acceptance artifact should decide and record:</p>
+<p>D10's <a href="architecture-decision.html">accepted ADR</a> records these decisions:</p>
 <ul>
 <li>the immutable, out-of-place initial API and its device-to-device copy cost;</li>
 <li>the DCRT format adapter as the first seam and its preflight-only fallback;</li>
@@ -487,7 +490,7 @@ GPU support, CKKS application integration and performance remain later gates.</p
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f349e72a1053eaebd714232f14415a56c9c17c4b">f349e72</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/10bcdb81668aa06311e252da3dc2522c42680ba5">10bcdb8</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
