@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Primary-source rental survey with dated rates, a saved Vast.ai sample, session budgets and profiling constraints.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal/2026-11-13.html">
+<title>Compare GPU rentals for the first native session · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="../vendor/katex/katex.min.css">
+<script defer src="../vendor/katex/katex.min.js"></script>
+<script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="../math-rendering.js"></script>
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../search-index.js"></script>
+<script defer src="../assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="../search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a><a href="../gpu-rental-market-survey.html">GPU rental market</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../offline-gpu-preparation.html">Before renting a GPU</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="../index.html">Notebook</a><span>/</span>Daily journal</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/docs/journal/2026-11-13.md">View source</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-13">2026-11-13</time><span>P2 D11 preparation</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="compare-gpu-rentals-for-the-first-native-session">Compare GPU rentals for the first native session<a class="headerlink" href="#compare-gpu-rentals-for-the-first-native-session" title="Permanent link">¶</a></h1><p class="site-journal-summary">Primary-source rental survey with dated rates, a saved Vast.ai sample, session budgets and profiling constraints.</p>
+<h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
+<p>Completed a <a href="../gpu-rental-market-survey.html">GPU rental market survey</a> for this
+project's first native CUDA session. Compare RunPod Community and verified
+Vast.ai RTX 5090 offers; retain RTX 4090 as the control. No GPU was rented or
+tested. D11 remains open and no roadmap gate advances.</p>
+<h2 id="reasoning">Reasoning<a class="headerlink" href="#reasoning" title="Permanent link">¶</a></h2>
+<p>The cheapest advertised GPU-hour need not be the cheapest usable experiment.
+Driver/toolkit compatibility, build resources, selected disk, network charges,
+setup time and Nsight counter permissions can change the decision. Offline
+preparation makes a short on-demand session more practical than continuous
+rental or an early reservation.</p>
+<h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
+<ul>
+<li>Added an English comparison of RunPod, Vast.ai, TensorDock, AutoDL,
+  Jarvislabs and Lambda, with clickable official sources and quote limitations.</li>
+<li>Inspected RunPod's Community and Secure pricing tabs in Chromium and
+  distinguished Lambda's November 16 future-effective prices from current rates.</li>
+<li>Saved a timestamped, read-only Vast offer sample with its query, compute
+  prices and selected public metadata; omitted public host IP addresses.</li>
+<li>Added worked compute budgets, stopped-storage billing rules, profiling
+  requirements and a first-session handoff; linked the survey from hardware
+  selection and offline preparation and registered it in the Research sidebar.</li>
+</ul>
+<h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
+<p>Official pricing, billing and NVIDIA permission sources were reviewed on
+November 13, 2026. The Vast query returned 64 records: 33 RTX 5090 and 31 RTX
+4090 offers. Its response reported no truncation; the survey describes a sample,
+not an exhaustive inventory or guaranteed booking. AutoDL's current GPU offer
+and all specific hosts' hardware-counter permissions remain unverified.</p>
+<p>All 23 documentation unit tests and 14 Node interaction/math tests passed.
+The build validated local links and fragments for 30 HTML pages, including
+nine journal entries. Chromium passed 120 page/width checks at
+1440/1024/375/320px: English content, rendered mathematics, no page-wide
+overflow and no script or HTTP errors. The new article and journal passed
+computed text-contrast checks; section navigation and search worked. Desktop
+and phone screenshots were inspected, and wide price tables were adjusted for
+horizontal scrolling on phones.</p>
+<p>All 64 saved offer records were checked against every stated query filter;
+the article's counts, minima, maxima and medians match the snapshot, and each
+record's compute plus default storage equals its reported total. This research
+establishes no GPU correctness or performance result. Website export,
+deployment and live verification follow the source commit.</p>
+<h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">¶</a></h2>
+<p>Which suitable host is available at checkout? Does its complete configuration
+provide the required driver, toolkit, build resources and Nsight permissions?
+What are the actual setup time, verified workload time and final invoice?</p>
+<h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
+<p>Select a live full-GPU on-demand RTX 5090 offer, resolve profiler permissions,
+then run the <a href="../offline-gpu-preparation.html">prepared session</a> and save evidence.
+Complete D11 only after observing the real hardware environment and required
+native checks. Analyze results offline between paid sessions.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li></ol></nav></aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/19cc2854def743ebfa69f3429fe44ac7fe50ae58">19cc285</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

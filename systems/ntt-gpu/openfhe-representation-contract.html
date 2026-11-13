@@ -22,7 +22,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html" aria-current="page">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html" aria-current="page">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -34,16 +34,16 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/d43a74411b312227a3bcc0a9c9a38b56ecc41c64/docs/openfhe-representation-contract.md">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/docs/openfhe-representation-contract.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="openfhe-representation-contract-d7">OpenFHE representation contract — D7<a class="headerlink" href="#openfhe-representation-contract-d7" title="Permanent link">¶</a></h1>
 <p>This freezes the NTT/DCRT boundary for <strong>OpenFHE 1.6.1</strong>, commit
 <code>b59e1f291965f14fbee5172cd83a20f5b856204f</code>, at <strong>N=65536</strong>. This contract uses the <strong>64-bit NativeInteger backend</strong>. It covers
 coefficient/evaluation format, exact array order, per-tower parameters, and
 packing into the current CUDA interface. The <a href="openfhe-hybrid-operation-graph.html">D8 Hybrid operation graph</a> builds on this boundary.</p>
-<p>The executable evidence is <a href="https://github.com/minnow54426/ntt-gpu/blob/d43a74411b312227a3bcc0a9c9a38b56ecc41c64/tests/openfhe_representation_tests.cpp">openfhe_representation_tests.cpp</a>.
+<p>The executable evidence is <a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/tests/openfhe_representation_tests.cpp">openfhe_representation_tests.cpp</a>.
 It uses the real OpenFHE core library on CPU. No native CUDA result is claimed.</p>
-<p>Code excerpts © 2022 OpenFHE, reproduced under the <a href="https://github.com/minnow54426/ntt-gpu/blob/d43a74411b312227a3bcc0a9c9a38b56ecc41c64/docs/site-assets/licenses/OpenFHE-BSD-2-Clause.txt">BSD 2-Clause license</a>. Click a code symbol or an excerpt’s file/line link to open the corresponding GitHub source.</p>
+<p>Code excerpts © 2022 OpenFHE, reproduced under the <a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/docs/site-assets/licenses/OpenFHE-BSD-2-Clause.txt">BSD 2-Clause license</a>. Click a code symbol or an excerpt’s file/line link to open the corresponding GitHub source.</p>
 <p>The public <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/lat-backend.h#L59-L60">NativePoly/DCRTPoly aliases</a> resolve to <code>PolyImpl</code> and
 <code>DCRTPolyImpl</code>; those are the class names you will see in the implementation.</p>
 <h2 id="1-the-boundary-in-one-table">1. The boundary in one table<a class="headerlink" href="#1-the-boundary-in-one-table" title="Permanent link">¶</a></h2>
@@ -351,7 +351,7 @@ accepted by <a href="architecture-decision.html">D10's ADR</a>, closing P1's arc
 Native runtime implementation and its exactness/failure tests remain later work.</p>
 <h2 id="9-run-the-checks">9. Run the checks<a class="headerlink" href="#9-run-the-checks" title="Permanent link">¶</a></h2>
 <p>After installing the pinned OpenFHE release with
-<a href="https://github.com/minnow54426/ntt-gpu/blob/d43a74411b312227a3bcc0a9c9a38b56ecc41c64/scripts/openfhe_setup.sh"><code>scripts/openfhe_setup.sh</code></a>:</p>
+<a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/scripts/openfhe_setup.sh"><code>scripts/openfhe_setup.sh</code></a>:</p>
 <pre><code class="language-sh">cmake -S . -B build/openfhe-compat/ntt-build \
   -DCMAKE_BUILD_TYPE=Release -DNTT_ENABLE_OPENFHE_COMPAT=ON \
   -DCMAKE_PREFIX_PATH=&quot;$PWD/build/openfhe-compat/install&quot;
@@ -379,7 +379,7 @@ The linked entry points lead to the statements used above.</p>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/d43a74411b312227a3bcc0a9c9a38b56ecc41c64">d43a744</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/19cc2854def743ebfa69f3429fe44ac7fe50ae58">19cc285</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

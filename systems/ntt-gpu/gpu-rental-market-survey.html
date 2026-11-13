@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="November 2026 provider comparison, verified public rates, a live offer sample, session budgets and CUDA profiling access.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/gpu-rental-market-survey.html">
+<title>GPU rental market · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html" aria-current="page">GPU rental market</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Research</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/docs/gpu-rental-market-survey.md">View source</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><article class="site-article"><h1 id="gpu-rental-market-where-to-run-this-project">GPU rental market: where to run this project<a class="headerlink" href="#gpu-rental-market-where-to-run-this-project" title="Permanent link">¶</a></h1>
+<p><strong>Checked November 13, 2026 · single-GPU CUDA development · N=65536</strong></p>
+<p>Start with a short, on-demand <strong>RTX 5090</strong> session. Compare RunPod Community
+Cloud with verified Vast.ai offers, then choose the machine that supports our
+toolchain and profiling work at the lowest complete session cost. Keep an RTX
+4090 as a compatibility control. H100/H200/B200 rentals become useful when a
+measured workload justifies their capacity or performance.</p>
+<p>This is a primary-source market survey, with a read-only marketplace sample.
+No machine was booked or tested. Prices are observations, not reserved capacity;
+the exact configuration and checkout total decide what a session will cost.</p>
+<h2 id="what-we-are-renting-for">What we are renting for<a class="headerlink" href="#what-we-are-renting-for" title="Permanent link">¶</a></h2>
+<p>Our first paid session verifies the environment and runs the prepared native
+CUDA checks. The <a href="offline-gpu-preparation.html">offline preparation</a> is complete;
+the <a href="openfhe-integration-plan.html">D11 hardware gate</a> remains open. Learning,
+documentation, host testing and most build preparation can continue on a CPU.</p>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Project choice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primary GPU</td>
+<td>One full RTX 5090, 32 GB, <code>sm_120</code></td>
+</tr>
+<tr>
+<td>Control GPU</td>
+<td>One full RTX 4090, 24 GB, <code>sm_89</code></td>
+</tr>
+<tr>
+<td>Workload</td>
+<td>Exact <code>u64</code> modular arithmetic and N=65536 transforms; later OpenFHE Hybrid operations</td>
+</tr>
+<tr>
+<td>Environment</td>
+<td>Linux x86_64, SSH, C++20 compiler, compatible driver and CUDA development toolkit</td>
+</tr>
+<tr>
+<td>Profiling</td>
+<td>Compute Sanitizer; Nsight Compute performance-counter access when profiling is scheduled</td>
+</tr>
+<tr>
+<td>Practical build allowance</td>
+<td>About 8 vCPUs, 16–32 GB host RAM and 40–80 GB disk as a starting recommendation</td>
+</tr>
+</tbody>
+</table>
+<p>The CPU/RAM/disk allowance is our planning estimate, not a measured minimum.
+More host resources can save paid compilation time. A runtime-only CUDA image
+may lack <code>nvcc</code>; choose a development image or install the toolkit. RTX 5090
+compilation needs CUDA 12.8 or newer, and the driver must support the toolkit
+actually used: see NVIDIA's
+<a href="https://docs.nvidia.com/datacenter/tesla/drivers/cuda-toolkit-driver-and-architecture-matrix.html">architecture/toolkit matrix</a>.
+Our offline build used CUDA 13.0; that does not establish a rental's compatibility.</p>
+<p>Use the <a href="gpu-selection-survey.html">hardware assessment</a> for GPU specifications.
+Tensor FLOPS, image-generation throughput and LLM tokens per second do not rank
+our modular kernels. A MIG slice or a different regional GPU variant should
+not silently replace the named full-GPU baseline.</p>
+<h2 id="how-the-market-is-divided">How the market is divided<a class="headerlink" href="#how-the-market-is-divided" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Rental model</th>
+<th>What matters for us</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Host marketplace, such as Vast.ai</td>
+<td>Variable price, location, CPU allocation, driver and host reliability; inspect each offer</td>
+</tr>
+<tr>
+<td>GPU containers, such as RunPod Pods and AutoDL containers</td>
+<td>Convenient environments; host-controlled driver and profiling permissions still matter</td>
+</tr>
+<tr>
+<td>GPU virtual machines, such as TensorDock and Jarvislabs VM</td>
+<td>More operating-system control; inspect passthrough, resources and counter permissions</td>
+</tr>
+<tr>
+<td>Data-center GPU clouds, such as Lambda</td>
+<td>Useful for later HBM/capacity comparisons; select the actual instance size</td>
+</tr>
+<tr>
+<td>Serverless endpoints and inference APIs</td>
+<td>A different product; exclude their rates from an interactive CUDA development comparison</td>
+</tr>
+</tbody>
+</table>
+<p>Choose <strong>on-demand</strong> for the first debugging session. Interruptible/spot capacity
+can make sense later for repeatable jobs that save results and tolerate restart.
+Monthly reservations are premature while our GPU use is intermittent. Renting
+also avoids buying a workstation before we know sustained utilization.</p>
+<h2 id="published-price-snapshot">Published price snapshot<a class="headerlink" href="#published-price-snapshot" title="Permanent link">¶</a></h2>
+<p>All dollar prices below are <strong>USD per hour</strong>. RunPod values are the public Pods
+rate card with its hourly toggle selected. TensorDock's figure is an advertised
+starting price. Jarvislabs values use the one-GPU selector. These are different
+bundles, so compare CPU/RAM, disk and final billing before choosing.</p>
+<div aria-label="Published provider rates and qualifications" class="site-table-scroll" role="region" tabindex="0">
+<div style="min-width:760px">
+<table>
+<thead>
+<tr>
+<th>Provider / product</th>
+<th>GPU</th>
+<th>Published rate</th>
+<th>Evidence and qualification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RunPod Community Cloud</td>
+<td>RTX 5090 · 32 GB</td>
+<td><strong>$0.69</strong></td>
+<td><a href="https://www.runpod.io/pricing">Pods pricing</a>, Community tab; 9 vCPUs / 35 GB host RAM shown</td>
+</tr>
+<tr>
+<td>RunPod Secure Cloud</td>
+<td>RTX 5090 · 32 GB</td>
+<td><strong>$1.39</strong></td>
+<td>Same page, Secure tab; compare the available region and deployment total</td>
+</tr>
+<tr>
+<td>RunPod Community Cloud</td>
+<td>RTX 4090 · 24 GB</td>
+<td><strong>$0.34</strong></td>
+<td>Same page, Community tab; 6 vCPUs / 41 GB host RAM shown</td>
+</tr>
+<tr>
+<td>RunPod Secure Cloud</td>
+<td>RTX 4090 · 24 GB</td>
+<td><strong>$0.89</strong></td>
+<td>Same page, Secure tab</td>
+</tr>
+<tr>
+<td>TensorDock on-demand VM</td>
+<td>RTX 4090 · 24 GB</td>
+<td><strong>From $0.37</strong></td>
+<td><a href="https://www.tensordock.com/gpu-4090.html">Model page</a>; CPU/RAM allocation affects the price; current full VM quote unverified</td>
+</tr>
+<tr>
+<td>Jarvislabs on-demand</td>
+<td>RTX PRO 6000 Blackwell · 96 GB</td>
+<td><strong>$2.19</strong></td>
+<td><a href="https://jarvislabs.ai/pricing">Pricing</a>, 1 GPU; 28 vCPUs / 160 GB host RAM shown</td>
+</tr>
+<tr>
+<td>Jarvislabs on-demand</td>
+<td>H100 SXM · 80 GB</td>
+<td><strong>$3.49</strong></td>
+<td>Same page, 1 GPU; later data-center comparison candidate</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The RunPod page says it was updated November 12. Both cloud tabs were inspected
+in a browser; the default Secure tab alone does not reveal Community pricing.
+Neither these public cards nor the following sample guarantees stock.</p>
+<h3 id="vastai-observed-offers-not-a-fixed-tariff">Vast.ai: observed offers, not a fixed tariff<a class="headerlink" href="#vastai-observed-offers-not-a-fixed-tariff" title="Permanent link">¶</a></h3>
+<p>At <strong>01:16 UTC on November 13</strong>, a public, read-only offer search returned 64
+records. The query requested one RTX 5090 or RTX 4090, verified/rentable hosts,
+on-demand access, reported reliability at least 0.99, CUDA capability at least
+13.0, at least 16,000 in the API's host-RAM field, 80 GB available disk and one
+direct port. Returned records were checked against those filters.</p>
+<div aria-label="Vast sample compute prices" class="site-table-scroll" role="region" tabindex="0">
+<div style="min-width:620px">
+<table>
+<thead>
+<tr>
+<th>GPU</th>
+<th>Offers in this response</th>
+<th>Compute-only range</th>
+<th>Sample median</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RTX 5090</td>
+<td>33</td>
+<td><strong>$0.4533–$1.0533/h</strong></td>
+<td><strong>$0.72/h</strong></td>
+</tr>
+<tr>
+<td>RTX 4090</td>
+<td>31</td>
+<td><strong>$0.40–$0.80/h</strong></td>
+<td><strong>$0.5333/h</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>These are the response's <code>dph_base</code> values, rounded to four decimals, not
+market-wide minima or an exhaustive regional inventory. The endpoint reported
+<code>truncated: false</code>, but the figures describe only this response. The cheapest
+5090 record was offer <strong>50556739</strong> in Sichuan, China; the cheapest 4090 was
+<strong>58010958</strong> in Türkiye. Location suitability depends on your connection.</p>
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/docs/data/gpu-rental-vast-2026-11-13.json">saved sample and query</a> preserve the
+observed rates and relevant host metadata. Public IP addresses are omitted.
+<code>dph_total</code> includes the endpoint's default disk allowance, <strong>not our proposed
+80 GB build disk</strong>, so it is not used as an all-in quote. Available disk capacity
+is not included storage. Transfer, selected storage and tax can increase cost.</p>
+<p><a href="https://docs.vast.ai/guides/instances/pricing">Vast's pricing documentation</a>
+explains host-set pricing and separate compute, storage and bandwidth charges.
+Host verification and a reliability score do not establish Nsight permission or
+guarantee uptime. Requery with your region and full resources before renting.</p>
+<h3 id="autodl-and-lambda-why-no-current-rate-is-quoted">AutoDL and Lambda: why no current rate is quoted<a class="headerlink" href="#autodl-and-lambda-why-no-current-rate-is-quoted" title="Permanent link">¶</a></h3>
+<p><strong>AutoDL</strong> is worth checking if its network locations and CNY payment options
+suit you. Its <a href="https://www.autodl.com/market/list">market</a> was not verified to
+a specific current offer in this survey. Compare the exact GPU name, CPU/RAM,
+disk and driver; treat 4090D/5090D labels as distinct configurations rather than
+substituting them into a 4090/5090 result. Keep CNY and USD quotes separate until
+you have a dated exchange rate and payment fees.</p>
+<p><strong>Lambda</strong> offers GPU instances, but its
+<a href="https://lambda.com/instances">public table</a> explicitly takes effect
+<strong>November 16, 2026 at 00:00 UTC</strong>, three days after this survey. It directs users
+to their account for the current price. The table also defaults to eight-GPU
+instances while quoting <strong>per GPU-hour</strong>: multiply by the actual GPU count.
+Future rates are not used in today's cost comparison.</p>
+<h2 id="provider-fit-and-tradeoffs">Provider fit and tradeoffs<a class="headerlink" href="#provider-fit-and-tradeoffs" title="Permanent link">¶</a></h2>
+<p><strong>RunPod — convenient first candidate.</strong> Community's 5090 card is an affordable
+starting point with a documented environment workflow. Secure costs more;
+compare its specific location and service offering against your needs. Confirm
+the selected Pod's resources and profiling support before paying.</p>
+<p><strong>Vast.ai — price-sensitive alternative.</strong> The observed 5090 compute floor was
+lower than RunPod's public Community card, while the sample median was higher.
+Select an individual host, not just a GPU label. A low floor does not establish
+the cheapest usable session after disk, transfer and setup time.</p>
+<p><strong>TensorDock — 4090 VM candidate.</strong> Its model page describes on-demand KVM VMs
+with root access and GPU passthrough, and explicitly allows 1–8 GPUs. The page
+also retains old Q1 2024 wording; its $0.37 floor is not a verified live cart.
+Get a whole-VM quote with sufficient build resources.</p>
+<p><strong>AutoDL — conditional regional candidate.</strong> Consider it if access and payment
+are convenient. Verify a specific market offer and profiler permissions; this
+survey establishes neither a current hourly GPU price nor Nsight availability.</p>
+<p><strong>Jarvislabs — later capacity comparison.</strong> Its 96 GB RTX PRO card is a concrete
+option if our measured working set outgrows 32 GB. Its
+<a href="https://jarvislabs.ai/products/vm">VM product</a> documents SSH and root access;
+confirm that the selected product and region match the quoted configuration.</p>
+<p><strong>Lambda — later data-center comparison.</strong> Useful when the experiment requires
+HBM or a named data-center GPU. Obtain the current one-GPU or multi-GPU quote;
+do not pay for eight devices to run a single-device correctness check.</p>
+<p>AWS, Azure and Google Cloud also belong in an enterprise procurement comparison.
+Their region, quota, instance size and attached-resource pricing need a separate
+matched quote. This shortlist targets our first small CUDA session, rather than
+claiming complete coverage or a global cheapest provider.</p>
+<h2 id="the-cost-beyond-gpu-hours">The cost beyond GPU-hours<a class="headerlink" href="#the-cost-beyond-gpu-hours" title="Permanent link">¶</a></h2>
+<p>Use one currency and the <strong>whole instance</strong> rate:</p>
+<p><span class="site-math">\[
+C_{\mathrm{session}} = r_{\mathrm{instance}}t_{\mathrm{billable}}
+  + C_{\mathrm{disk}} + C_{\mathrm{transfer}} + C_{\mathrm{tax/fees}}.
+\]</span></p>
+<p>Billable time includes environment setup and rebuilding dependencies, not only
+the seconds spent inside a kernel. Add separately charged CPU/RAM to the
+instance rate. An account top-up is prepaid balance, not automatically the cost
+of this experiment. Check region, tax, minimum credit and billing granularity
+on the final quote.</p>
+<table>
+<thead>
+<tr>
+<th>Billing issue</th>
+<th>What the official sources establish</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RunPod Pods</td>
+<td><a href="https://docs.runpod.io/pods/pricing">Per-second billing</a>; no ingress/egress fee; one hour's configuration credit needed to deploy on-demand</td>
+</tr>
+<tr>
+<td>RunPod retained volume</td>
+<td>$0.10/GB/month running and $0.20/GB/month stopped; terminating the Pod removes its attached volume disk</td>
+</tr>
+<tr>
+<td>RunPod network volume</td>
+<td>Separately retained storage: $0.07/GB/month below 1 TB; remove it separately when finished</td>
+</tr>
+<tr>
+<td>Vast.ai</td>
+<td><a href="https://docs.vast.ai/guides/instances/pricing">Compute, disk and bandwidth</a> are separately priced; <a href="https://docs.vast.ai/api-reference/hello-world">stopping</a> halts compute but keeps disk charges</td>
+</tr>
+<tr>
+<td>TensorDock</td>
+<td><a href="https://www.tensordock.com/gpu-4090.html">Stopping and unreserving the GPU</a> changes an on-demand server to storage-only pricing; verify reserved resources</td>
+</tr>
+<tr>
+<td>AutoDL</td>
+<td><a href="https://www.autodl.com/docs/price/">On-demand billing</a> is per second with a CNY 0.01 minimum; <a href="https://www.autodl.com/docs/local_disk/">paid disk expansion</a> can remain billable while powered off</td>
+</tr>
+<tr>
+<td>Jarvislabs</td>
+<td><a href="https://jarvislabs.ai/termsandservice">Paused instances</a> retain storage charges; deleting compute does not necessarily remove separately created storage</td>
+</tr>
+</tbody>
+</table>
+<p>Export reports before deleting resources. Check the billing/resource view after
+cleanup, including independent volumes, snapshots and reserved IPs where used.</p>
+<h3 id="small-session-budget-examples">Small-session budget examples<a class="headerlink" href="#small-session-budget-examples" title="Permanent link">¶</a></h3>
+<p>The following is <strong>our arithmetic</strong>, using the observed public rates and exactly
+four or ten billable hours. It excludes all storage, transfer, tax and separately
+billed resources; it is not a quotation or a promise that the work finishes in
+that time.</p>
+<div aria-label="Illustrative compute budgets" class="site-table-scroll" role="region" tabindex="0">
+<div style="min-width:560px">
+<table>
+<thead>
+<tr>
+<th>Configuration</th>
+<th>4 hours of compute</th>
+<th>10 hours of compute</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RunPod Community RTX 5090</td>
+<td><strong>$2.76</strong></td>
+<td><strong>$6.90</strong></td>
+</tr>
+<tr>
+<td>RunPod Secure RTX 5090</td>
+<td><strong>$5.56</strong></td>
+<td><strong>$13.90</strong></td>
+</tr>
+<tr>
+<td>RunPod Community RTX 4090</td>
+<td><strong>$1.36</strong></td>
+<td><strong>$3.40</strong></td>
+</tr>
+<tr>
+<td>Vast sample's lowest RTX 5090 compute rate</td>
+<td><strong>About $1.81</strong></td>
+<td><strong>About $4.53</strong></td>
+</tr>
+<tr>
+<td>Jarvislabs RTX PRO 6000, 1 GPU</td>
+<td><strong>$8.76</strong></td>
+<td><strong>$21.90</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>For a first attempt, a <strong>$10–$15 spending allowance</strong> is a reasonable planning
+choice for one short 5090 session plus modest extras. It is neither a provider
+minimum deposit nor an upper bound: a long build, retained disks, transfer or a
+different quote can exceed it. Record actual costs and choose the next allowance
+from observed session time.</p>
+<p>At the RunPod Community card rates, 5090 compute costs about <strong>2.03×</strong> the 4090.
+The 5090 must finish a fixed job over 2.03× faster to win on compute cost alone.
+That speedup is unmeasured; development value and extra VRAM are separate
+reasons to choose it. Rank later providers by dollars per verified workload,
+including transfers, rather than dollars per advertised GPU-hour.</p>
+<h2 id="profiling-access-can-decide-the-provider">Profiling access can decide the provider<a class="headerlink" href="#profiling-access-can-decide-the-provider" title="Permanent link">¶</a></h2>
+<p>A machine can run CUDA correctly and still reject Nsight Compute's hardware
+counters with <code>ERR_NVGPUCTRPERM</code>. NVIDIA's
+<a href="https://developer.nvidia.com/ERR_NVGPUCTRPERM">permission guide</a> explains the
+host/driver permissions and container capabilities involved. SSH access or a
+root shell inside a container does not itself establish those permissions.</p>
+<p><strong>Counter access is unverified for every specific offer in this survey.</strong> Ask
+whether Nsight Compute hardware-counter collection is permitted on the chosen
+GPU and product, and whether the provider enables the required host permissions.
+A full VM is worth considering when container restrictions block the experiment,
+but it also needs verification. A successful <code>nvidia-smi</code> is not that verification.</p>
+<p>Treat correctness, sanitizer coverage and profiling as separate observed results.
+If a host cannot provide counters, it may still serve the correctness session;
+schedule profiling on a host that can. Do not report the profiling gate complete
+from timing-only runs.</p>
+<h2 id="recommended-first-rental">Recommended first rental<a class="headerlink" href="#recommended-first-rental" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Finish preparation on CPU.</strong> Use the pinned source/dependencies and the
+   <a href="offline-gpu-preparation.html">offline handoff</a>. Check image compatibility before
+   copying binaries; rebuilding OpenFHE can consume paid time.</li>
+<li><strong>Compare two live carts.</strong> Select one full on-demand RTX 5090 on RunPod
+   Community and a suitable verified Vast.ai host. Match region, driver,
+   CPU/RAM, an explicit disk allocation and the complete hourly total.</li>
+<li><strong>Resolve profiling access.</strong> Obtain a clear answer for the chosen product
+   before a counter-dependent session. Confirm SSH and development tools too.</li>
+<li><strong>Run the prepared collection path.</strong> Follow the handoff's
+   <a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/scripts/gpu_session.py"><code>gpu_session.py</code></a> command with the actual CUDA and
+   OpenFHE paths. Capture environment, native exactness, sanitizer and benchmark
+   reports. The runner is not the complete later profiling/failure-test suite.</li>
+<li><strong>Export evidence and end billing.</strong> Save logs and cost records, then stop or
+   delete according to the provider's resource rules. Perform analysis offline.</li>
+</ol>
+<p>The next evidence we need is one successful, reproducible native GPU session.
+Keep D11 open until that evidence exists. Revisit 96 GB cards or H100/H200/B200
+after measuring residency and complete-workload performance.</p>
+<h2 id="sources-and-freshness">Sources and freshness<a class="headerlink" href="#sources-and-freshness" title="Permanent link">¶</a></h2>
+<p>Pricing pages, linked billing documentation and NVIDIA's permission guide were
+checked on November 13, 2026. The Vast JSON is a timestamped observation, with
+the exact read-only query and selected public fields. RunPod's two cloud tabs
+were read in Chromium. AutoDL's billing rules were available through official
+indexed documentation; a current GPU offer was not established. No checkout,
+paid instance, network-speed measurement or provider support confirmation was
+performed. Recheck price, inventory and permissions before spending.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#what-we-are-renting-for">What we are renting for</a></li><li><a href="#how-the-market-is-divided">How the market is divided</a></li><li><a href="#published-price-snapshot">Published price snapshot</a></li><li><a href="#provider-fit-and-tradeoffs">Provider fit and tradeoffs</a></li><li><a href="#the-cost-beyond-gpu-hours">The cost beyond GPU-hours</a></li><li><a href="#profiling-access-can-decide-the-provider">Profiling access can decide the provider</a></li><li><a href="#recommended-first-rental">Recommended first rental</a></li><li><a href="#sources-and-freshness">Sources and freshness</a></li></ol></nav></aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/19cc2854def743ebfa69f3429fe44ac7fe50ae58">19cc285</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>
