@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Start here</span><a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/README.md">View source</a></div>
+    <div class="site-page-meta"><span>Start here</span><a href="https://github.com/minnow54426/ntt-gpu/blob/bbfa6dbb6bcfdaaeeecadcd41169176513d3024a/README.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="ntt-gpu">ntt-gpu<a class="headerlink" href="#ntt-gpu" title="Permanent link">¶</a></h1>
 <p>Exact GPU kernels for CKKS: NTT first, then base conversion, Hybrid key
@@ -104,10 +104,13 @@ GPU image, use the selected clean checkout and an existing pinned OpenFHE prefix
 </code></pre>
 <p>The script records hardware/toolchain details, requires CUDA and OpenFHE test
 registration, builds, runs exact tests and sanitizer smoke checks, and collects
-raw 50/55/60-bit public-call samples using the
+raw 30/50/55/60-bit samples over N=4096–65536 and 1/3/8/16/24/32/40 RNS towers using the
 <a href="offline-test-tooling.html">offline-prepared protocol</a>. The new CUDA changes
 still require native compilation/execution; the saved first session predates
-them. Each session writes logs and
+them. The batch separates public-call wall time, resident CUDA events/pinned
+copies and the OpenFHE NativeVector CPU baseline. Optional <code>--profile</code> captures
+Nsight data; <code>--resume --output-dir &lt;previous-record&gt;</code> reruns gates and reuses
+only matching, hash-verified completed benchmark jobs. Each session writes logs and
 <code>report.json</code> under an ignored <code>bench-results-*</code> directory. Any failed stage
 returns nonzero. It does not update source, install packages or change drivers.
 Select paths with <code>NTT_REPO_DIR</code>, <code>NTT_CUDA_ROOT</code>, and <code>NTT_OPENFHE_PREFIX</code>;
@@ -125,7 +128,7 @@ input: natural coefficient order; output: bit-reversed evaluation order
 loads 256 contiguous rows. At N=65536, each pass handles eight stages in shared
 memory. One forward uses two launches and four logical array movements.
 The strided pass is uncoalesced, so logical bytes are not measured DRAM traffic.</p>
-<p>Stage bodies in <a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/include/ntt/dev_core.hpp"><code>dev_core.hpp</code></a> are compiled for
+<p>Stage bodies in <a href="https://github.com/minnow54426/ntt-gpu/blob/bbfa6dbb6bcfdaaeeecadcd41169176513d3024a/include/ntt/dev_core.hpp"><code>dev_core.hpp</code></a> are compiled for
 both CPU simulation and CUDA. The current <code>__uint128_t</code> remainder arithmetic
 is a correctness baseline. Shoup/Barrett reduction, coalesced layouts, and
 register staging are planned optimizations, subject to exact checks and profiling.</p>
@@ -186,7 +189,7 @@ or present employers. Development history is recorded in git.</p>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/44751007bc90413cbdec966134758279c364be30">4475100</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/bbfa6dbb6bcfdaaeeecadcd41169176513d3024a">bbfa6db</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

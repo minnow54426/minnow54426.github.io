@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/docs/journal/2026-11-14.md">View source</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/bbfa6dbb6bcfdaaeeecadcd41169176513d3024a/docs/journal/2026-11-14.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-14">2026-11-14</time><span>P2 / D11 diagnostic</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="first-native-gpu-diagnostic-session">First native GPU diagnostic session<a class="headerlink" href="#first-native-gpu-diagnostic-session" title="Permanent link">¶</a></h1><p class="site-journal-summary">Native Ada checks passed; offline analysis audited exactness scope, benchmark caveats and next experiments. RTX 5090 evidence remains pending.</p>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
@@ -252,11 +252,137 @@ wrong-device restoration or context destruction. Cleanup remains nonthrowing
 and is not a production error-reporting lifecycle interface. Kernel-only CUDA
 events, optimized OpenFHE CPU timing, active telemetry and Nsight profiling
 still need implementation/measurement. Primary RTX 5090 evidence stays open.
-These limits are recorded in the guide; the offline tests do not close B02/B04.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li><li><a href="#follow-up-analyze-the-exported-native-evidence-offline">Follow-up: analyze the exported native evidence offline</a></li><li><a href="#follow-up-implement-offline-measurement-and-setup-failure-preparation">Follow-up: implement offline measurement and setup-failure preparation</a></li></ol></nav></aside>
+These limits are recorded in the guide; the offline tests do not close B02/B04.</p>
+<h2 id="follow-up-prepare-the-next-rental-as-a-batch-including-30-bit-primes">Follow-up: prepare the next rental as a batch, including 30-bit primes<a class="headerlink" href="#follow-up-prepare-the-next-rental-as-a-batch-including-30-bit-primes" title="Permanent link">¶</a></h2>
+<h3 id="outcome_2">Outcome<a class="headerlink" href="#outcome_2" title="Permanent link">¶</a></h3>
+<p>Prepared a bounded 30/50/55/60-bit batch at N=4096/8192/16384/32768/65536,
+K=1/3. The default is 40 workloads and 120 independently recorded measurement
+jobs, with five warm-ups and 100 samples per operation. No GPU was rented or
+reconnected. D11/P2 remain in progress; current CUDA changes remain uncompiled
+and unrun on native hardware.</p>
+<h3 id="reasoning-and-changes_1">Reasoning and changes<a class="headerlink" href="#reasoning-and-changes_1" title="Permanent link">¶</a></h3>
+<p>The user requested 30-bit primes and approved offline batch preparation.
+Keep public-call wall time separate from standalone resident CUDA-event and
+pinned-transfer experiments. A shared seeded-operand helper fixes N/q/root/input
+identity across GPU and OpenFHE CPU jobs. Thirty-bit values still occupy
+<code>uint64_t</code> buffers; no specialized <code>uint32_t</code> kernel or bandwidth reduction
+has been implemented.</p>
+<p>Added event timing of resident forward/inverse/pointwise/fused product and
+pinned H2D/D2H copies, with reset and verification outside the event interval.
+The public wrapper's transfer behavior and mathematical kernels are unchanged.
+Multi-launch event intervals include potential submission gaps and are not
+additive components of pageable public-call latency.</p>
+<p>Added a real pinned-OpenFHE NativeVector CRT-FTT comparator for forward, inverse,
+pointwise and ring product. It uses preconditioned upstream arithmetic and
+sequential per-tower calls, not our scalar CPU algorithm. Metadata records
+library/compiler settings. This is not a fastest-possible CPU/DCRT/HEXL or
+full CKKS comparison, and multiplication API allocation boundaries differ.</p>
+<p>The collector now requires a prepared direct GPU/CPU/OpenFHE exactness gate
+over all 40 cells and runs each sanitizer on legacy smoke plus a bounded
+30/60-bit boundary-dimension matrix smoke. Added optional selected nsys/ncu
+captures and compiler resource/line-info output. Captures do not replace a
+full D14 counter analysis and are not accepted as benchmark samples.</p>
+<p>Batch checkpoints retain successful jobs after independent measurement failures;
+the overall exit remains nonzero. Resume reruns environment/build/correctness/
+sanitizer gates, verifies matching clean source, device/driver, binary/library
+hashes and matrix settings, and revalidates raw log hashes/parameters/scopes.
+Reports are archived, logs use unique retry names, and origin attempts remain
+visible. Command timeouts/interrupts terminate their own process group on POSIX;
+this is not permission to stop unrelated processes. Concurrent use of one
+record directory is unsupported.</p>
+<h3 id="verification_2">Verification<a class="headerlink" href="#verification_2" title="Permanent link">¶</a></h3>
+<ul>
+<li>All <strong>18 standalone CTests</strong> and <strong>22 OpenFHE-enabled CPU CTests</strong> passed.</li>
+<li>The new OpenFHE protocol gate ran <strong>40 actual CPU workloads</strong>, covering every
+  default dimension/width/tower cell and exact final outputs for four operations.
+  These correctness/protocol runs are not published performance baselines.</li>
+<li>All <strong>31 Python tooling tests</strong> passed, including the full 120-job synthetic
+  matrix, 30-bit coverage, partial failure/resume, tampered logs, changed binary/
+  dependency/device rejection, profiler command bounds and process-group timeout
+  cleanup control flow. Mocked subprocess results are not GPU evidence.</li>
+<li>All <strong>23 documentation tests</strong> and <strong>14 Node tests</strong> passed. CLI host syntax
+  passes Clang C++20 with warnings treated as errors.</li>
+</ul>
+<h3 id="open-questions-and-next-deliverable_1">Open questions and next deliverable<a class="headerlink" href="#open-questions-and-next-deliverable_1" title="Permanent link">¶</a></h3>
+<p>Native compilation must validate event APIs, fault ownership and new exactness
+fixtures before accepting timings. Run the batch on the next compatible rental,
+copy/hash-verify the complete evidence directory, then analyze it offline.
+Primary RTX 5090 evidence, actual driver/context failures, per-pass timing and
+full profiler/production CKKS coverage stay open. No new measured GPU speedup
+or bottleneck claim is made.</p>
+<h2 id="follow-up-extend-prime-batches-through-40-towers">Follow-up: extend prime batches through 40 towers<a class="headerlink" href="#follow-up-extend-prime-batches-through-40-towers" title="Permanent link">¶</a></h2>
+<h3 id="outcome-and-reasoning_1">Outcome and reasoning<a class="headerlink" href="#outcome-and-reasoning_1" title="Permanent link">¶</a></h3>
+<p>The user requested prime batches up to 40. Interpreted this as RNS primes per
+polynomial, not ciphertext batch size. The default representative sweep is now
+K=1/3/8/16/24/32/40 across five dimensions and four prime widths: <strong>140
+workloads, 420 timing jobs and 224,000 timed operation samples</strong> at the default
+100 samples. Arbitrary integer counts from 1 through 40 can be selected;
+the direct native matrix gate covers the representative default set.</p>
+<h3 id="changes_1">Changes<a class="headerlink" href="#changes_1" title="Permanent link">¶</a></h3>
+<p>Expanded both the OpenFHE CPU protocol gate and prepared native exactness gate
+to the default tower counts. Matrix sanitizer smoke includes K=3 and K=40 at
+the boundary dimensions and 30/60-bit widths. These CUDA changes have not been
+compiled or executed on a GPU. Wrapper layouts and arithmetic are unchanged.</p>
+<p>Benchmark-only parameter files now use explicitly labelled zero coefficient
+placeholders, avoiding large, unused CRT integers at 40 towers. The benchmark
+executables still create their original seeded dense operands. Ordinary
+correctness fixture generation remains unchanged unless the new optional flag
+is explicitly selected. Parameter tests check all 40 distinct primes, exact
+bit widths, 2N divisibility, primitive-root identities and compact files at all
+four widths, including N=65536.</p>
+<h3 id="verification-and-next-deliverable">Verification and next deliverable<a class="headerlink" href="#verification-and-next-deliverable" title="Permanent link">¶</a></h3>
+<ul>
+<li>The real OpenFHE CPU protocol gate passed <strong>all 140 workload cells</strong>, checking
+  four operation outputs against the reference. Its local 48.07-second test
+  runtime is not a GPU-rental runtime estimate or a performance baseline.</li>
+<li>All <strong>33 tooling tests</strong> passed, including a synthetic 420-job matrix,
+  acceptance of custom counts through 40, and rejection of 0/41.</li>
+<li>All <strong>23 documentation tests</strong> and the <strong>33-page</strong> link/fragment build passed.
+  The updated native exactness test's host C++ syntax passed with warnings
+  treated as errors; this is not a CUDA compile or execution result.</li>
+</ul>
+<p>Next: compile and execute the enlarged native batch on the next rental, retain
+all evidence, and analyze timings offline. P2/D11 and primary-device gates remain
+open. Previous entries above describe their earlier, smaller verified scopes.</p>
+<h2 id="freeze-checkpoint-complete-local-regression-before-rental">Freeze checkpoint: complete local regression before rental<a class="headerlink" href="#freeze-checkpoint-complete-local-regression-before-rental" title="Permanent link">¶</a></h2>
+<h3 id="outcome-and-verification">Outcome and verification<a class="headerlink" href="#outcome-and-verification" title="Permanent link">¶</a></h3>
+<p>At the user's request, rebuilt and reran the complete offline regression suite
+after the 40-tower expansion: <strong>18/18 standalone CTests</strong> and <strong>22/22
+OpenFHE-enabled CPU CTests</strong> passed. The latter includes the full 140-cell
+OpenFHE benchmark protocol gate. The tooling suite now has <strong>33 passing tests</strong>.
+Documentation checks passed <strong>23 Python tests</strong>, <strong>14 Node tests</strong>, and the
+<strong>33-page</strong> HTML/link/fragment build. Measurement and setup-ownership host tests
+also passed AddressSanitizer/UndefinedBehaviorSanitizer. Host CLI and updated
+CUDA/OpenFHE fixture C++ syntax checks passed with warnings treated as errors.
+<code>git diff --check</code> is clean.</p>
+<h3 id="reasoning-publication-and-next-gate">Reasoning, publication and next gate<a class="headerlink" href="#reasoning-publication-and-next-gate" title="Permanent link">¶</a></h3>
+<p>Freeze this batch before adding more kernels or timing features. Commit/push
+the reviewed source, use the existing no-GPU CI compiler job to check sm_89 and
+sm_120, and export the revision-pinned notebook to the personal website. CI
+compiler success, if observed, will be recorded separately; it cannot establish
+GPU correctness, timings or primary-device acceptance. No rental is started by
+this checkpoint. The next paid session begins with native compilation and exact
+gates before collecting the batch; download/hash-verify evidence before stopping.
+P2/D11 remain in progress.</p>
+<h2 id="freeze-follow-up-compiler-only-ci-passed-request-the-next-rental">Freeze follow-up: compiler-only CI passed; request the next rental<a class="headerlink" href="#freeze-follow-up-compiler-only-ci-passed-request-the-next-rental" title="Permanent link">¶</a></h2>
+<p>The batch implementation is pushed as <code>f1ecff1</code>. Its
+<a href="https://github.com/minnow54426/ntt-gpu/actions/runs/43599616970">Correctness and CUDA compilation run</a>
+completed successfully: Linux CPU checks pass, stock pinned CUDA builds both
+sm_89 and sm_120, and the CUDA-linked host-only checks pass without a driver.
+The <a href="https://github.com/minnow54426/ntt-gpu/actions/runs/43599616988">documentation CI</a>
+also passes. These are observed CI results, not a real GPU execution record.</p>
+<p>Offline freeze is complete. The next meaningful gate now needs a rental:
+probe actual hardware/driver and profiler access, build the full CUDA/OpenFHE
+configuration, run exactness/fault/sanitizer gates, then collect the 420 timing
+jobs and selected profiler captures. Copy and hash-verify the evidence before
+stopping the instance. Notify the user that a GPU is now needed; no instance
+has been started or reconnected automatically. GPU timing/correctness and
+primary RTX 5090 acceptance remain pending. Website export follows the latest
+committed revision; deployment success is verified separately after pushing.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li><li><a href="#follow-up-analyze-the-exported-native-evidence-offline">Follow-up: analyze the exported native evidence offline</a></li><li><a href="#follow-up-implement-offline-measurement-and-setup-failure-preparation">Follow-up: implement offline measurement and setup-failure preparation</a></li><li><a href="#follow-up-prepare-the-next-rental-as-a-batch-including-30-bit-primes">Follow-up: prepare the next rental as a batch, including 30-bit primes</a></li><li><a href="#follow-up-extend-prime-batches-through-40-towers">Follow-up: extend prime batches through 40 towers</a></li><li><a href="#freeze-checkpoint-complete-local-regression-before-rental">Freeze checkpoint: complete local regression before rental</a></li><li><a href="#freeze-follow-up-compiler-only-ci-passed-request-the-next-rental">Freeze follow-up: compiler-only CI passed; request the next rental</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/44751007bc90413cbdec966134758279c364be30">4475100</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/bbfa6dbb6bcfdaaeeecadcd41169176513d3024a">bbfa6db</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
