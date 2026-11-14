@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Native Ada checks passed; offline analysis audited exactness scope, benchmark caveats and next experiments. RTX 5090 evidence remains pending.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal/2026-11-14.html">
+<title>First native GPU diagnostic session · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="../vendor/katex/katex.min.css">
+<script defer src="../vendor/katex/katex.min.js"></script>
+<script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="../math-rendering.js"></script>
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="../search-index.js"></script>
+<script defer src="../assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="../search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a><a href="../gpu-rental-market-survey.html">GPU rental market</a><a href="../first-native-analysis.html">First GPU run: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../offline-gpu-preparation.html">Before renting a GPU</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="../offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="../index.html">Notebook</a><span>/</span>Daily journal</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/docs/journal/2026-11-14.md">View source</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-14">2026-11-14</time><span>P2 / D11 diagnostic</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="first-native-gpu-diagnostic-session">First native GPU diagnostic session<a class="headerlink" href="#first-native-gpu-diagnostic-session" title="Permanent link">¶</a></h1><p class="site-journal-summary">Native Ada checks passed; offline analysis audited exactness scope, benchmark caveats and next experiments. RTX 5090 evidence remains pending.</p>
+<h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
+<p>Connected to the user-provided rental machine. It reports <strong>NVIDIA GeForce
+RTX 4080 SUPER</strong>, compute capability 8.9, and 32,760 MiB memory. This is the
+reported identity, not an independently verified board specification. It is
+neither the primary RTX 5090 nor the planned RTX 4090 control; record the run
+as an additional Ada diagnostic. No primary-device gate advances.</p>
+<p>The completed collector reports <strong>GPU_CHECKS_PASSED</strong>. All 23 CTests passed,
+including all four registered native GPU gates; all four sanitizer smoke tools
+passed. Raw logs and the report have been copied back to the local workspace.</p>
+<h2 id="reasoning">Reasoning<a class="headerlink" href="#reasoning" title="Permanent link">¶</a></h2>
+<p>Use the provided machine to exercise native compilation and exactness, without
+changing its driver or treating compiler-only results as GPU results. Keep all
+project builds, dependencies and evidence on the rental's data disk.</p>
+<h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
+<p>The remote checkout is clean at <code>19cc2854def743ebfa69f3429fe44ac7fe50ae58</code>.
+No project implementation changes have been made.</p>
+<h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
+<p>Initial discovery: Ubuntu 22.04.1, GCC 11.3, driver 595.71.05, bundled CUDA
+11.8.89, Python 3.10.8 and CMake 3.22.1. Project-local preparation installs
+CMake 3.31.6, managed Python 3.12.16, the locked CUDA 13.0.2 redistributables
+(nvcc 13.0.88), and matching Compute Sanitizer 2025.3.1.0. NVIDIA downloads
+are checked against their SHA-256 values.</p>
+<p>The first OpenFHE clone failed with an HTTP/2 transport error. A command-local
+HTTP/1.1 retry also failed with a TLS transport error. Instead, transferred a
+bundle from the clean local pinned checkout, checked its SHA-256 on both hosts,
+and verified commit <code>b59e1f291965f14fbee5172cd83a20f5b856204f</code>. Its four submodules
+match the local checkout. No vendor source/header changes were required.</p>
+<h3 id="final-native-evidence">Final native evidence<a class="headerlink" href="#final-native-evidence" title="Permanent link">¶</a></h3>
+<p>The collector ran from 07:02:25 to 07:03:36 UTC (15:02–15:03 Asia/Shanghai)
+after dependency preparation, with a clean source checkout. The report contains
+17 successful stages. OpenFHE uses NativeInteger 64, reduced-noise off, OpenMP
+off, native optimization off, Release; GCC is 11.3 and glibc is 2.35.</p>
+<ul>
+<li>Native preflight: <strong>19/19 tests passed</strong>, including three real GPU tests.</li>
+<li>Pinned dependency setup: <strong>18/18 CPU/OpenFHE/tooling tests passed</strong>.</li>
+<li>Full native collector: <strong>23/23 CTests passed in 36.64 seconds</strong>, including
+  <code>cuda_oracle_crosscheck</code>, <code>cuda_matches_ref</code>, <code>cuda_verify</code>, and
+  <code>cuda_openfhe_exact</code>.</li>
+<li>The direct CUDA/CPU/OpenFHE gate checked <strong>169,279,488 residues</strong> across
+  N=65536, unsorted 55/50/60-bit towers, D8 Q and QlP bases at L=5,4,3,1,
+  and seven input patterns. It checks complete forward/independent inverse
+  arrays, roundtrip, pointwise/inverse, ring square and source immutability.
+  This is GPU NTT/product evidence using the Hybrid fixture's tower sets,
+  <strong>not a GPU implementation of the Hybrid graph</strong>.</li>
+<li>Compute Sanitizer memcheck, racecheck, initcheck and synccheck each passed
+  the prepared zero/dense three-tower smoke scope, with <strong>3,538,944 comparisons
+  per tool</strong>. Memory/init/sync summaries report zero errors; racecheck reports
+  zero errors/warnings/hazards. This is not the full production sanitizer matrix.</li>
+<li>Native compilation uses <code>-arch=native</code> on the observed compute-8.9 device.
+  Device queries report runtime API 13.0 and driver API 13.2. The pre-session
+  hardware snapshot reports a 320 W power limit and idle clocks; clocks were
+  not locked and are not a continuous benchmark trace.</li>
+</ul>
+<h3 id="initial-latency-sample">Initial latency sample<a class="headerlink" href="#initial-latency-sample" title="Permanent link">¶</a></h3>
+<p>N=65536, three <strong>46-bit</strong> primes; public synchronous wrapper, transfers,
+host validation and device guards included. Constructor/table setup is outside
+the timed region. The implementation uses warmups and averaged repetitions;
+this is one session's summary, not a raw timing distribution or Nsight profile.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th style="text-align: right;">Mean latency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPU reference forward</td>
+<td style="text-align: right;">47.4496 ms</td>
+</tr>
+<tr>
+<td>GPU forward</td>
+<td style="text-align: right;">0.786293 ms</td>
+</tr>
+<tr>
+<td>GPU inverse</td>
+<td style="text-align: right;">0.806584 ms</td>
+</tr>
+<tr>
+<td>GPU complete ring multiply</td>
+<td style="text-align: right;">1.49319 ms</td>
+</tr>
+</tbody>
+</table>
+<p>The CPU number is this repository's correctness-first scalar reference, not
+an optimized OpenFHE throughput benchmark. Do not extrapolate these results
+to 50–60-bit performance, a standard retail board, or the RTX 5090.</p>
+<h3 id="evidence-and-reproduction">Evidence and reproduction<a class="headerlink" href="#evidence-and-reproduction" title="Permanent link">¶</a></h3>
+<p>Remote workspace: <code>/root/autodl-tmp/ntt-gpu</code>. Run directory:
+<code>bench-results-gpu-20261114-ada</code>. Reproduce with the clean pinned checkout,
+the local CUDA 13 toolchain and matching Compute Sanitizer directory on PATH:</p>
+<pre><code class="language-sh">python3 scripts/gpu_session.py --mode gpu \
+  --cuda-root build/toolchains/cuda-13.0.2 \
+  --openfhe-prefix build/openfhe-compat/install \
+  --architectures native --jobs 8 --benchmark
+</code></pre>
+<p>Downloaded archive: <code>build/gpu-session-evidence-20261114.tar.gz</code>, SHA-256
+<code>cccf41b6231ac1ac3b62d1540c8d2e7d8c9012216a29a7c23f51148dd7625db4</code>.
+The digest matches on both machines. Extracted local report:
+<code>build/gpu-session-evidence-20261114/bench-results-gpu-20261114-ada/report.json</code>.
+The archive also includes every collector log, CTest's complete output,
+native compiler flags, preflight/setup logs, toolchain lock and submodule list.
+These ignored artifacts are local evidence, not a published remote download.
+No SSH address, login secret or authentication transcript is included.</p>
+<p>After documenting the result locally, all 23 documentation tests and 14 Node
+lesson/explorer tests passed. The 31-page notebook build validated local links,
+fragments and assets. No layout or interaction changes were made.</p>
+<h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">¶</a></h2>
+<p>Native exactness and sanitizer smoke results are established for this machine.
+Nsight tools were not found on the initial PATH; profiling was not performed.
+Reported model/memory identity needs provider confirmation before hardware
+comparisons. The session does not verify native allocation/upload failure
+unwinding, failed-context cleanup, full production cases or RTX 5090 behavior.</p>
+<h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
+<p>Evidence is safely exported. Stop the rental through the provider when no
+further work is needed; disconnecting SSH does not itself establish that billing
+has stopped. No machine shutdown/deletion or provider billing action was taken.
+Next obtain primary-device evidence and complete failure injection and full
+profiling, tracked separately in the <a href="../implementation-backlog.html">backlog</a>.</p>
+<h2 id="follow-up-analyze-the-exported-native-evidence-offline">Follow-up: analyze the exported native evidence offline<a class="headerlink" href="#follow-up-analyze-the-exported-native-evidence-offline" title="Permanent link">¶</a></h2>
+<p>The user reports the rental is stopped. No reconnection, billing action or
+new GPU execution was performed during this analysis.</p>
+<h3 id="outcome-and-reasoning">Outcome and reasoning<a class="headerlink" href="#outcome-and-reasoning" title="Permanent link">¶</a></h3>
+<p>Added <a href="../first-native-analysis.html">the first-run analysis</a>. Correctness evidence
+is strong for the tested arrays, but performance evidence is one averaged
+46-bit/K=3 row. There is no measured bottleneck, optimized OpenFHE CPU timing,
+kernel-only breakdown or production inference speedup. P2 and B04 remain open.</p>
+<p>Audited the 169,279,488-comparison count: 63 pattern/basis combinations,
+41 towers summed across nine basis groups, seven patterns and nine equality
+checks per residue position. It is not 169 million independent random cases.
+Each sanitizer covers two patterns/three towers, not the full basis matrix.</p>
+<p>The benchmark's approximately 60.35× forward ratio is against this repository's
+scalar reference only. Source inspection found missing dedicated inverse
+warm-up/reset, different CPU/GPU forward repetition input policies, host-copy
+costs inside multiply timing, and no saved individual samples. These are
+measurement limitations to fix in a separate implementation task, not evidence
+that the executed exactness tests or means are fabricated.</p>
+<p>Transfer accounting confirms 9S versus 3S operand traffic for separate versus
+fused public multiplication, with eight launches in either case. That supports
+the device-resident architecture, but summing unmatched means does not measure
+a fusion speedup. Arithmetic cost, 2,048-byte column-thread strides, partial
+butterfly-thread participation and host copies are profiling hypotheses only.</p>
+<h3 id="changes-and-verification">Changes and verification<a class="headerlink" href="#changes-and-verification" title="Permanent link">¶</a></h3>
+<ul>
+<li>Added the analysis article to the generated notebook's Research directory;
+  linked it from the benchmark plan and B04 backlog.</li>
+<li>Rechecked the saved archive SHA-256, 17 successful report stages, clean
+  source identity, complete 23-test output, all 63 native pattern rows, the
+  comparison-count formula and four zero-error sanitizer summaries.</li>
+<li>Recomputed scalar ratio, transfer payloads, source-level multiply counts
+  and coefficient-array traffic without contacting the rental machine.</li>
+<li>No kernel, arithmetic, benchmark implementation or runtime changed.</li>
+<li>All 23 documentation tests and 14 Node tests passed; the 32-page build
+  validated local links, fragments and assets. <code>git diff --check</code> passed.</li>
+</ul>
+<h3 id="open-questions-and-next-deliverable">Open questions and next deliverable<a class="headerlink" href="#open-questions-and-next-deliverable" title="Permanent link">¶</a></h3>
+<p>Next prepare the raw-sample/fixed-input measurement harness and deterministic
+allocation/upload failure tests offline. Confirm profiling access and hardware
+identity before the next paid session. That session should collect missing
+primary-device, failure-path and per-pass evidence rather than only repeat
+the existing averaged row. Do not advance the working-day tracker from this
+partial B04/D15 analysis alone.</p>
+<h2 id="follow-up-implement-offline-measurement-and-setup-failure-preparation">Follow-up: implement offline measurement and setup-failure preparation<a class="headerlink" href="#follow-up-implement-offline-measurement-and-setup-failure-preparation" title="Permanent link">¶</a></h2>
+<h3 id="outcome_1">Outcome<a class="headerlink" href="#outcome_1" title="Permanent link">¶</a></h3>
+<p>Implemented the <a href="../offline-test-tooling.html">offline tooling increment</a>: raw
+public-call timing protocol, strict JSONL validation, a shared setup allocation
+owner, host fault tests and a prepared native constructor probe. No connection
+to the stopped rental was made. <strong>The new CUDA code is uncompiled/unrun here</strong>;
+the successful native record above applies only to 19cc285, not these changes.
+No working-day or native gate is marked complete.</p>
+<h3 id="reasoning-and-changes">Reasoning and changes<a class="headerlink" href="#reasoning-and-changes" title="Permanent link">¶</a></h3>
+<p>Used one ownership seam for the production CUDA constructor and the host test
+adapter, rather than implementing a separate cleanup algorithm in tests.
+<code>SetupResources</code> tracks the actual six allocations and four constant uploads;
+host tests cover failures before adapter calls and adapter exceptions, reverse
+cleanup, and cleanup-failure accounting. The GPU-labelled
+<code>cuda_setup_fault_injection</code> constructs the real wrapper and checks real CUDA
+frees after synthetic pre-call failures. It is prepared, not executed.</p>
+<p><code>bench-jsonl</code> uses parameter files for exact N/q/root identity and deterministic
+seeded operands. Each operation has fixed-input reset and explicit warm-up;
+reset/packing is outside timing. It measures scalar reference forward, public
+GPU forward, inverse, pointwise, unfused product and fused product. It saves
+all samples and linear-interpolated percentile summaries. Fused output is now
+retained/released outside timing; its by-value input allocation/copy remains
+inside the public call. Legacy <code>bench</code> stays available for reproducing old rows.</p>
+<p>The collector now requires the new native setup probe and new host gates;
+benchmark mode generates 50/55/60-bit parameters and retains three JSONL logs.
+It recomputes summaries and rejects truncated, malformed, wrongly scoped,
+incomplete or explicitly synthetic data even after a zero executable exit.
+Tooling mocks remain labelled synthetic/control-flow evidence, not GPU results.
+The parameter generator now accepts an optional bit-width argument.</p>
+<p>Updated the D5 ownership map/static checks, collector instructions and backlog.
+The mathematical NTT kernels and modular arithmetic algorithms are unchanged.</p>
+<h3 id="verification_1">Verification<a class="headerlink" href="#verification_1" title="Permanent link">¶</a></h3>
+<ul>
+<li>All <strong>18 standalone CTests</strong> and <strong>21 OpenFHE-enabled CPU CTests</strong> passed.</li>
+<li>All <strong>20 Python tooling tests</strong> passed, including malformed/synthetic output
+  rejection, raw percentile recomputation and three-width collection control flow.</li>
+<li><code>measurement_json_interop</code> compiled the C++ JSON writer and validated its
+  explicitly synthetic six-operation output with the Python parser.</li>
+<li>Host ownership and measurement tests passed with AddressSanitizer and
+  UndefinedBehaviorSanitizer. No native CUDA sanitizer results are claimed.</li>
+<li>Host CLI syntax passed Clang C++20 with warnings treated as errors.</li>
+<li>Generated small parameter fixtures at 50/55/60 bits; existing vector/oracle
+  and full-size arithmetic gates remain green.</li>
+<li>All <strong>23 documentation tests</strong>, <strong>14 Node tests</strong> and the <strong>33-page</strong>
+  build/link/fragment checks passed. No shared layout or interactions changed.</li>
+</ul>
+<h3 id="remaining-work">Remaining work<a class="headerlink" href="#remaining-work" title="Permanent link">¶</a></h3>
+<p>Native compile/execution must validate the refactor and probe. Synthetic
+pre-call failures are not actual driver OOM, partially failed transfers,
+wrong-device restoration or context destruction. Cleanup remains nonthrowing
+and is not a production error-reporting lifecycle interface. Kernel-only CUDA
+events, optimized OpenFHE CPU timing, active telemetry and Nsight profiling
+still need implementation/measurement. Primary RTX 5090 evidence stays open.
+These limits are recorded in the guide; the offline tests do not close B02/B04.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li><li><a href="#follow-up-analyze-the-exported-native-evidence-offline">Follow-up: analyze the exported native evidence offline</a></li><li><a href="#follow-up-implement-offline-measurement-and-setup-failure-preparation">Follow-up: implement offline measurement and setup-failure preparation</a></li></ol></nav></aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/44751007bc90413cbdec966134758279c364be30">4475100</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

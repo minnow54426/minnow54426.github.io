@@ -22,7 +22,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html" aria-current="page">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html" aria-current="page">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/docs/openfhe-hybrid-operation-graph.md">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/docs/openfhe-hybrid-operation-graph.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="openfhe-hybrid-key-switching-the-exact-operation-graph">OpenFHE Hybrid key switching: the exact operation graph<a class="headerlink" href="#openfhe-hybrid-key-switching-the-exact-operation-graph" title="Permanent link">¶</a></h1>
 <p>D8 traces <strong>OpenFHE 1.6.1</strong>, commit
@@ -43,10 +43,10 @@
 CRT representatives, key addressing, accumulation, and reduction that a future
 backend must preserve. Read the <a href="openfhe-representation-contract.html">D7 representation contract</a>
 for the NTT's exact array order.</p>
-<p>The executable evidence is <a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/tests/openfhe_hybrid_tests.cpp">openfhe_hybrid_tests.cpp</a>.
+<p>The executable evidence is <a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/tests/openfhe_hybrid_tests.cpp">openfhe_hybrid_tests.cpp</a>.
 It calls the actual OpenFHE PKE library and compares complete arrays with an
 independent unreduced-CRT formula and scalar arithmetic. These are CPU results.</p>
-<p>Code excerpts © 2022 OpenFHE, reproduced under the <a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/docs/site-assets/licenses/OpenFHE-BSD-2-Clause.txt">BSD 2-Clause license</a>. Click a code symbol or an excerpt’s file/line link to open the corresponding GitHub source.</p>
+<p>Code excerpts © 2022 OpenFHE, reproduced under the <a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/docs/site-assets/licenses/OpenFHE-BSD-2-Clause.txt">BSD 2-Clause license</a>. Click a code symbol or an excerpt’s file/line link to open the corresponding GitHub source.</p>
 <h2 id="1-read-the-complete-path">1. Read the complete path<a class="headerlink" href="#1-read-the-complete-path" title="Permanent link">¶</a></h2>
 <p>The ordinary path starts at <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/pke/lib/keyswitch/keyswitch-hybrid.cpp#L295-L298"><code>KeySwitchCore(c,key)</code></a>. Its output is two
 <strong>contributions</strong> in the active Q basis, ordered <strong>B first, A second</strong>.
@@ -456,7 +456,7 @@ modulus/root order and outer/child format. Intermediate conversion states are
 observed by calling the same public primitive separately; the tests do not
 instrument or modify OpenFHE's implementation. Full-core equality checks the
 composition against the independent formulas.</p>
-<p>Run the opt-in gate after <a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/scripts/openfhe_setup.sh">installing pinned OpenFHE</a>:</p>
+<p>Run the opt-in gate after <a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/scripts/openfhe_setup.sh">installing pinned OpenFHE</a>:</p>
 <pre><code class="language-sh">cmake -S . -B build/openfhe-compat/ntt-build \
   -DCMAKE_BUILD_TYPE=Release -DNTT_ENABLE_OPENFHE_COMPAT=ON \
   -DCMAKE_PREFIX_PATH=&quot;$PWD/build/openfhe-compat/install&quot;
@@ -505,7 +505,7 @@ performance result, or complete CKKS encryption/decryption integration gate.</p>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/19cc2854def743ebfa69f3429fe44ac7fe50ae58">19cc285</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/44751007bc90413cbdec966134758279c364be30">4475100</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

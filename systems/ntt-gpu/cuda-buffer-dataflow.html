@@ -22,7 +22,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html" aria-current="page">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html" aria-current="page">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -34,12 +34,12 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/docs/cuda-buffer-dataflow.md">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/docs/cuda-buffer-dataflow.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="cuda-buffers-and-hostdevice-dataflow-d5">CUDA buffers and host/device dataflow — D5<a class="headerlink" href="#cuda-buffers-and-hostdevice-dataflow-d5" title="Permanent link">¶</a></h1>
 <p>This is a map of the current implementation, not a proposed device-resident
-API. Read it alongside the <a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/include/ntt/cuda_ntt.hpp">public interface</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/src/cuda/ntt_kernels.cu">implementation and launchers</a>, and
+API. Read it alongside the <a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/include/ntt/cuda_ntt.hpp">public interface</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/src/cuda/ntt_kernels.cu">implementation and launchers</a>, and
 <a href="ntt-65536-work-distribution.html">kernel schedule</a>.</p>
 <p>Updated after <a href="offline-gpu-preparation.html">offline GPU preparation</a>: ownership,
 validation and device guards now compile with nvcc; real GPU behavior is pending.</p>
@@ -78,7 +78,7 @@ does <strong>not</strong> preserve a transfer-free pipeline.</p>
 <p>The CPU constructor checks power-of-two N≥2, <code>(q−1) % (2N) == 0</code>,
 <code>ψ^N mod q == q−1</code>, and q&gt;N. It assumes prime q; it does not itself run a
 primality test. The wrapper now adds that prime/range/extent validation in
-<a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/include/ntt/cuda_validation.hpp">cuda_validation.hpp</a> before any CUDA call.</p>
+<a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/include/ntt/cuda_validation.hpp">cuda_validation.hpp</a> before any CUDA call.</p>
 <p>After construction, temporary host power-table/inverse-length vectors are
 released. <code>Impl</code> retains the moduli vector and per-limb CPU references, not a
 second permanent host copy of every power table.</p>
@@ -134,16 +134,20 @@ Every stored element is <code>uint64_t</code>.</p>
 </tr>
 </tbody>
 </table>
-<p><code>CudaNttTransform</code> owns <code>unique_ptr&lt;Impl&gt;</code>; <code>Impl</code> owns the CUDA pointers. They are private:
+<p><code>CudaNttTransform</code> owns <code>unique_ptr&lt;Impl&gt;</code>; <code>Impl</code> owns a shared-logic
+<code>SetupResources&lt;CudaSetupRuntime&gt;</code> allocation owner. The six named pointers
+are private aliases into that owner's allocation list:
 callers cannot retain a borrowed device-buffer view. Copy construction and
 copy assignment are deleted. No move operations are declared; this class is
 not currently movable either. Do not use one instance concurrently: public
 operations share and overwrite A/B and there is no locking or per-call scratch.</p>
 <p>On normal destruction or constructor unwinding, <code>unique_ptr</code> destroys <code>Impl</code>.
-Its destructor selects the owning device, calls <code>cudaFree</code> on each pointer and
-restores the previous device. Host-preflight failure skips CUDA entirely.
-Device-selection/free errors cannot be reported by this nonthrowing destructor;
-a failed device selection skips freeing rather than using a different device. Do not
+The allocation owner releases acquired pointers in reverse order. Its CUDA
+adapter selects/restores the owning device around each release. Host-preflight
+failure has no acquired pointers and skips CUDA cleanup entirely. A diagnostic
+trace counts releases/failures; the ordinary nonthrowing destructor still cannot
+report them to its caller. Failed device selection skips that free rather than
+using another device. Do not
 infer safe concurrent destruction or synchronization with unrelated GPU work.</p>
 <h3 id="exact-byte-counts-requested-allocations-not-measured-device-usage">Exact byte counts (requested allocations, not measured device usage)<a class="headerlink" href="#exact-byte-counts-requested-allocations-not-measured-device-usage" title="Permanent link">¶</a></h3>
 <p><span class="site-math">\[
@@ -303,7 +307,9 @@ timing.</p>
 <ul>
 <li><strong>Constructor cleanup:</strong> the original raw-Impl ownership gap is repaired with
   <code>unique_ptr</code>. Partial device state now reaches the cleanup destructor during
-  unwinding. Real allocation/upload failure injection remains required; host
+  unwinding. Shared ownership logic now has host failure tests and a prepared
+  native pre-call injection probe; neither establishes real driver OOM, DMA or
+  context-error safety. Native execution of the new probe remains required; host
   rejection tests do not prove CUDA cleanup under a failed runtime/context.</li>
 <li>The wrapper captures its owning device and guards operations/destruction.
   Native wrong-device, restore-failure and cleanup-error tests are still open.</li>
@@ -320,7 +326,7 @@ native failure/lifetime tests. The
 <a href="modular-arithmetic-contract.html">D6 arithmetic review</a> examines arithmetic
 bounds, parameter assumptions, and adversarial exactness.</p>
 <h2 id="verification-and-limits">Verification and limits<a class="headerlink" href="#verification-and-limits" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/tests/docs/test_cuda_dataflow.py">Source-contract tests</a> check that this map
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/tests/docs/test_cuda_dataflow.py">Source-contract tests</a> check that this map
 matches current allocation sizes, frees, public copy directions, operation
 ordering and host-only interface shape. They also pin the N=65536 arithmetic
 above. These are deliberately <strong>static source checks</strong>, not CUDA-runtime tests
@@ -330,7 +336,7 @@ made by completing D5.</p></article></div><aside class="site-on-this-page" id="s
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/19cc2854def743ebfa69f3429fe44ac7fe50ae58">19cc285</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/44751007bc90413cbdec966134758279c364be30">4475100</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

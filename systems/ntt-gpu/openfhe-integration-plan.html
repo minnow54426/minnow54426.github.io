@@ -22,7 +22,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html" aria-current="page">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html" aria-current="page">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/19cc2854def743ebfa69f3429fe44ac7fe50ae58/docs/openfhe-integration-plan.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/docs/openfhe-integration-plan.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="ckks-gpu-to-openfhe-integration-plan">CKKS GPU-to-OpenFHE integration plan<a class="headerlink" href="#ckks-gpu-to-openfhe-integration-plan" title="Permanent link">¶</a></h1>
 <p><strong>Target:</strong> OpenFHE 1.6.1 CKKS with Hybrid key switching<br>
@@ -42,7 +42,7 @@
 <code>uint32_t</code> indexing/control paths where safe<br>
 <strong>Ring dimension:</strong> <code>65536</code><br>
 <strong>Estimate:</strong> 95 planned working days + 15 risk-reserve days<br>
-<strong>Last updated:</strong> 2026-11-12 (Asia/Shanghai)</p>
+<strong>Last updated:</strong> 2026-11-14 (Asia/Shanghai)</p>
 <p>Follow the live tracker, then open the phase you need from the section sidebar.
 The sequence is NTT → base conversion → Hybrid key switching → OpenFHE.
 Update this tracker only when a deliverable passes its gate.</p>
@@ -61,11 +61,11 @@ Update this tracker only when a deliverable passes its gate.</p>
 </tr>
 <tr>
 <td>Active phase</td>
-<td><strong>P2 — first RTX GPU baseline (offline preparation complete)</strong></td>
+<td><strong>P2 — first RTX GPU baseline (Ada diagnostic passed)</strong></td>
 </tr>
 <tr>
 <td>Active task</td>
-<td>Validate and record the real GPU environment; D11 hardware gate remains open</td>
+<td>Verify new CUDA measurement/fault tooling in a native build, then collect primary-device and remaining P2 evidence</td>
 </tr>
 <tr>
 <td>Next gate</td>
@@ -73,7 +73,7 @@ Update this tracker only when a deliverable passes its gate.</p>
 </tr>
 <tr>
 <td>Overall state</td>
-<td>In progress; offline preparation complete, hardware verification pending</td>
+<td>In progress; additional Ada hardware verified, primary-device and remaining P2 gates open</td>
 </tr>
 </tbody>
 </table>
@@ -106,7 +106,7 @@ when measurements justify it; see the <a href="gpu-selection-survey.html">GPU co
 <td>P2 — first RTX GPU baseline</td>
 <td style="text-align: right;">D11–D15</td>
 <td>IN PROGRESS</td>
-<td>Offline compilation/preflight ready; native exact CUDA results and named-hardware baseline pending</td>
+<td>Native Ada diagnostic passed; RTX 5090 evidence, failure injection and full profiling pending</td>
 </tr>
 <tr>
 <td>P3 — production GPU NTT</td>
@@ -331,6 +331,20 @@ started because a native GPU environment has not been provisioned here.</p>
   observable acceptance criteria and explicit remaining runtime gates.</li>
 </ul>
 <h2 id="p2-first-real-gpu-baseline-d11d15">P2 — first real GPU baseline (D11–D15)<a class="headerlink" href="#p2-first-real-gpu-baseline-d11d15" title="Permanent link">¶</a></h2>
+<p><a href="journal/2026-11-14.html">First native diagnostic, 2026-11-14</a>: the supplied
+machine reports RTX 4080 SUPER/compute 8.9. All 23 native CTests and four
+sanitizer smoke tools passed, with a saved 46-bit transfer-inclusive sample.
+This is additional Ada evidence, not the planned RTX 5090 primary or RTX 4090
+control. D11's primary-device gate and B02/B04's failure/profiling gates remain
+open; the working-day tracker does not advance automatically.</p>
+<p><a href="first-native-analysis.html">Offline analysis</a> audits this sample's exactness
+scope and measurement limitations. Next prepare raw samples, matched input
+protocols and failure injection before another rental. No measured bottleneck
+or completed B04/D15 acceptance is claimed from the existing averaged row.</p>
+<p><a href="offline-test-tooling.html">Offline tooling</a> now implements the host protocol,
+strict JSONL validation and shared ownership failure tests. New CUDA code and
+the native setup probe remain uncompiled/unrun locally; existing native evidence
+applies only to 19cc285. B02/B04 and the working-day gate remain open.</p>
 <p><a href="offline-gpu-preparation.html">Offline preparation is complete</a>: stock nvcc builds
 sm_89/sm_120 binaries, 19 host/OpenFHE CTests pass with GPU tests excluded, and
 the native fixture/collection path is prepared. This starts P2 preparation but
@@ -858,12 +872,18 @@ rotations, graph scheduling, accuracy, and end-to-end latency.</p>
 <td>Completed stock CUDA sm_89/sm_120 compilation, baseline ownership/preflight fixes, native fixture compilation and tested failure-aware session collection. P2 preparation is in progress; D11 hardware acceptance and native gates remain open.</td>
 <td><a href="offline-gpu-preparation.html">Preparation guide</a>; 19 host/OpenFHE CTests; <a href="journal/2026-11-12.html#offline-preparation-before-gpu-rental">daily entry</a></td>
 </tr>
+<tr>
+<td>2026-11-14</td>
+<td style="text-align: right;">D11 diagnostic</td>
+<td>Supplied RTX 4080 SUPER reports compute 8.9; clean native run passed 23 CTests, 169279488 CUDA-gate comparisons and four sanitizer smoke tools. Exported reports and initial 46-bit latency sample. Primary RTX 5090 and remaining P2 gates stay open.</td>
+<td><a href="journal/2026-11-14.html">Native session</a>; local <code>report.json</code>: <code>GPU_CHECKS_PASSED</code></td>
+</tr>
 </tbody>
 </table></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#live-tracker">Live tracker</a></li><li><a href="#definition-of-exact-compatibility">Definition of exact compatibility</a></li><li><a href="#p0-pre-plan-baseline-done">P0 — pre-plan baseline (DONE)</a></li><li><a href="#p1-contract-and-architecture-freeze-d1d10">P1 — contract and architecture freeze (D1–D10)</a></li><li><a href="#p2-first-real-gpu-baseline-d11d15">P2 — first real GPU baseline (D11–D15)</a></li><li><a href="#p3-production-gpu-ntt-d16d40">P3 — production GPU NTT (D16–D40)</a></li><li><a href="#p4-exact-base-conversion-model-d41d49">P4 — exact base-conversion model (D41–D49)</a></li><li><a href="#p5-gpu-base-conversion-d50d61">P5 — GPU base conversion (D50–D61)</a></li><li><a href="#p6-hybrid-key-switch-contract-d62d68">P6 — Hybrid key-switch contract (D62–D68)</a></li><li><a href="#p7-gpu-hybrid-key-switching-d69d85">P7 — GPU Hybrid key switching (D69–D85)</a></li><li><a href="#p8-openfhe-integration-d86d95">P8 — OpenFHE integration (D86–D95)</a></li><li><a href="#p9-risk-reserve-d96d110">P9 — risk reserve (D96–D110)</a></li><li><a href="#progress-log">Progress log</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/19cc2854def743ebfa69f3429fe44ac7fe50ae58">19cc285</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/44751007bc90413cbdec966134758279c364be30">4475100</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

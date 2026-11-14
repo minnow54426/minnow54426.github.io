@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Raw timing samples, strict report validation and shared constructor ownership tests prepared for the next native GPU session.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/offline-test-tooling.html">
+<title>Offline test tooling · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html" aria-current="page">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Plans</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/docs/offline-test-tooling.md">View source</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><article class="site-article"><h1 id="prepare-the-next-gpu-session-offline">Prepare the next GPU session offline<a class="headerlink" href="#prepare-the-next-gpu-session-offline" title="Permanent link">¶</a></h1>
+<p><strong>2026-11-14 · host checks complete; new CUDA code uncompiled/unrun locally</strong></p>
+<p>The <a href="first-native-analysis.html">first-run analysis</a> identified measurement and
+failure-path gaps. This increment implements host-testable preparation for the
+next session. It does not reconnect to the stopped rental or close B02/B04.</p>
+<h2 id="raw-measurement-protocol">Raw measurement protocol<a class="headerlink" href="#raw-measurement-protocol" title="Permanent link">¶</a></h2>
+<p>The new <code>ntt_cuda_cli bench-jsonl &lt;parameter-vector&gt; [warmups samples]</code> path
+uses the vector file's exact N/q/root list; coefficients are generated from a
+fixed documented seed, not copied from that file. N must be 65536. Every
+warm-up and timed call resets fixed inputs <strong>before</strong> the timer, including the
+inverse. Defaults are five warm-ups and 100 samples per operation.</p>
+<p>Six operations produce separate sample and summary records:</p>
+<ul>
+<li>Scalar reference forward, with tower packing/reset outside timing.</li>
+<li>Public GPU forward and independent inverse.</li>
+<li>Public GPU pointwise multiply.</li>
+<li>The complete four-public-call unfused product.</li>
+<li>The complete fused public product.</li>
+</ul>
+<p>All GPU numbers are <strong>host-wall public-call</strong> time, including transfers,
+validation and guards, not CUDA-event/kernel time. Fused multiplication still
+includes its by-value left copy/output allocation; it retains the result and
+releases the previous result outside timing. This is explicitly different
+from the original benchmark's discarded result. Last results for each operation
+are checked against the reference outside timing; full exactness is a separate
+suite. The CPU comparator is not optimized OpenFHE.</p>
+<p>Workload metadata includes exact q/roots, GPU identity, driver/runtime API,
+input seed/policy, warm-ups, sample count and timing/setup scope. Raw samples
+survive in JSONL, with mean, median and p5/p95 using linear interpolation at
+<code>(count−1)*fraction</code>. Output ends with an explicit completion marker.</p>
+<p>The host-only <a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/include/ntt/measurement.hpp">measurement helper</a> is tested
+with a fake clock: reset occurs outside timing, each operation sees a reset
+input, warm-up calls are distinct, and percentile/JSON escaping checks pass.
+These tests are not performance observations.</p>
+<h2 id="collector-and-validation">Collector and validation<a class="headerlink" href="#collector-and-validation" title="Permanent link">¶</a></h2>
+<p>With <code>--benchmark</code>, <a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/scripts/gpu_session.py">gpu_session.py</a> now generates
+parameter vectors at 50, 55 and 60 bits, then runs the sample protocol on each.
+It retains raw <code>benchmark-b50.log</code>, <code>benchmark-b55.log</code>, <code>benchmark-b60.log</code>
+JSONL and adds regenerated summaries to <code>report.json</code>. The old <code>bench</code> command
+remains a legacy 46-bit path; the collector no longer uses it.</p>
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/scripts/benchmark_report.py">benchmark_report.py</a> rejects truncated output,
+missing operations/samples, wrong scope/width, duplicate indices, nonfinite or
+negative samples, and summaries inconsistent with raw observations. Collector
+failure remains nonzero even if the executable exited zero with malformed
+output. This validates the record, not GPU authenticity or mathematical
+correctness; those require the native gates and source provenance.</p>
+<p>On the next compatible GPU host, from a reviewed clean checkout:</p>
+<pre><code class="language-sh">python3 scripts/gpu_session.py --mode gpu \
+  --cuda-root /path/to/cuda --openfhe-prefix /path/to/openfhe \
+  --architectures native --benchmark \
+  --benchmark-warmups 5 --benchmark-samples 100
+</code></pre>
+<p>Offline analysis after that future session:</p>
+<pre><code class="language-sh">python3 scripts/benchmark_report.py /path/to/benchmark-b50.log
+</code></pre>
+<p>The sample recorder does not yet provide resident CUDA events, per-pass/copy
+timing, Nsight counters, active telemetry, batch sweeps or an optimized OpenFHE
+CPU benchmark. Those are explicit next increments, not completed by raw samples.</p>
+<h2 id="shared-allocation-ownership-and-injected-failures">Shared allocation ownership and injected failures<a class="headerlink" href="#shared-allocation-ownership-and-injected-failures" title="Permanent link">¶</a></h2>
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/44751007bc90413cbdec966134758279c364be30/include/ntt/setup_resources.hpp">SetupResources</a> owns the actual constructor's
+six allocations, registers ownership immediately after allocation succeeds,
+and releases acquired pointers in reverse order. Four constant uploads cross
+the same runtime adapter. Host tests use a host-memory adapter through this
+same owner; the CUDA adapter uses real allocation/upload/free calls. This keeps
+cleanup bookkeeping at one testable seam rather than copying the constructor
+algorithm into a fake test.</p>
+<p><code>setup_ownership_host</code> injects at all ten operation positions in two ways:
+before the adapter call and as an adapter exception. It verifies acquired
+allocations, completed uploads, reverse release order, no surviving host
+allocations, and nonthrowing cleanup-failure accounting. These are 20 failure
+cases plus normal/cleanup-reporting paths, not actual CUDA failures.</p>
+<p>The prepared <code>cuda_setup_fault_injection</code> GPU-labelled CTest uses the real
+constructor at N=65536 and three 50-bit towers. It runs one successful setup,
+then injects before each of six allocations and four uploads. It requires each
+acquired allocation to reach a successful real CUDA free. The collector now
+requires this fifth GPU gate and both new host gates to be registered.</p>
+<p>This new CUDA probe has <strong>not</strong> been compiled or executed on this Mac. Native
+compilation/execution is mandatory before accepting the refactor. Even after
+it passes, a synthetic pre-call exception does not simulate a partially failed
+driver transfer, OOM state, wrong-device restore failure or destroyed context.
+Those remain separate failure tests. Ordinary destructor cleanup still cannot
+surface errors to the caller; the diagnostic trace is not a production lifecycle
+interface.</p>
+<h2 id="verify-without-renting">Verify without renting<a class="headerlink" href="#verify-without-renting" title="Permanent link">¶</a></h2>
+<pre><code class="language-sh">cmake -S . -B build -DNTT_ENABLE_CUDA=OFF
+cmake --build build -j 8
+ctest --test-dir build --output-on-failure
+.venv/bin/python -m unittest discover -s tests/tooling -v
+</code></pre>
+<p>These run real host ownership, timing/statistics and collector/report logic,
+not an emulated GPU arithmetic backend. Historical native results in the
+<a href="journal/2026-11-14.html">session record</a> apply to source 19cc285, <strong>not</strong> the new
+unverified CUDA changes. Keep the primary-device and native failure gates open.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#raw-measurement-protocol">Raw measurement protocol</a></li><li><a href="#collector-and-validation">Collector and validation</a></li><li><a href="#shared-allocation-ownership-and-injected-failures">Shared allocation ownership and injected failures</a></li><li><a href="#verify-without-renting">Verify without renting</a></li></ol></nav></aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/44751007bc90413cbdec966134758279c364be30">4475100</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>
