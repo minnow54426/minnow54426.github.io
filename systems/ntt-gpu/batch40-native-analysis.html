@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="140-workload results through 40 primes: exactness, public versus resident timings, fusion, transfers, 30-bit behavior and the separate M1 Pro baseline.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/batch40-native-analysis.html">
+<title>Full GPU matrix: analysis · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a><a href="batch40-native-analysis.html" aria-current="page">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Research</div>
+    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/docs/batch40-native-analysis.md">View source</a></div>
+    <div class="site-reading-layout">
+      <div class="site-page-content"><article class="site-article"><h1 id="full-matrix-gpu-run-analysis">Full-matrix GPU run: analysis<a class="headerlink" href="#full-matrix-gpu-run-analysis" title="Permanent link">¶</a></h1>
+<p><strong>2026-11-14 · temporary reported RTX 4080 SUPER / sm_89 · CPU: local M1 Pro</strong></p>
+<p>The implementation passes the executed exactness and sanitizer gates. Its
+largest performance opportunity is currently the boundary around GPU work:
+keeping intermediate arrays resident already provides a substantial benefit.
+This is a measured baseline, not a finished OpenFHE accelerator or an RTX 5090
+result. No new rental is needed to analyze or prepare the next experiments.</p>
+<h2 id="evidence-and-measurement-boundaries">Evidence and measurement boundaries<a class="headerlink" href="#evidence-and-measurement-boundaries" title="Permanent link">¶</a></h2>
+<p>The verified local evidence is under:</p>
+<pre><code class="language-text">build/ntt-evidence-20261114-ada-batch40/
+  record/                     original mixed collector, cancelled
+  gpu-only/                   complete fresh GPU-only collection
+  profiling/selected-stats.log Nsight Systems CUDA kernel/copy summary
+build/cpu-m1-pro-20261114/      separate complete CPU collection
+build/analyze-split-session.py local analysis helper
+</code></pre>
+<p>Archive SHA-256:
+<code>d7cdbe24ea9e87270c248011408d983f8760ef451dc72abba2be87ccdca5a1b6</code>.
+The prior download check verified 1,087 per-file hashes. This analysis again
+checks each fresh GPU/CPU log against its manifest hash, recomputes its
+statistics with <a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/scripts/benchmark_report.py">benchmark_report.py</a>, and
+requires identical N/q/roots/seed and repetition counts across platforms/scopes.</p>
+<table>
+<thead>
+<tr>
+<th>Collection</th>
+<th>Accepted scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Original mixed batch</td>
+<td>366 retained completed jobs; cancelled with exit 143, <strong>not</strong> a full successful 420-job batch</td>
+</tr>
+<tr>
+<td>Fresh GPU-only batch</td>
+<td>140 workloads × two scopes = <strong>280 passing jobs</strong>, 154,000 timed samples</td>
+</tr>
+<tr>
+<td>Local CPU baseline</td>
+<td>140 passing jobs × four operations = <strong>56,000 timed samples</strong></td>
+</tr>
+<tr>
+<td>Matrix</td>
+<td>N=4096/8192/16384/32768/65536; K=1/3/8/16/24/32/40; primes=30/50/55/60 bits</td>
+</tr>
+<tr>
+<td>Repetitions</td>
+<td>Five warmups and 100 samples per operation; fixed seeded inputs, reset outside timing</td>
+</tr>
+</tbody>
+</table>
+<p>K is the number of RNS prime towers for one polynomial; it is <strong>not</strong> a batch
+of independent ciphertexts. No independent-ciphertext batch sweep was measured.</p>
+<p>Fresh GPU results use base commit <code>bbfa6db</code> plus an archived benchmark-only
+source patch (SHA-256
+<code>f844a963391c9d8ae9bc753bed9ec05a8d67175bd05e3321291e5532217764c1</code>).
+The changed host benchmark skips repeated scalar CPU timing; device kernels
+are unchanged. Its binary hash is recorded in the fresh manifest. Do not merge
+old and new timing series as if they had identical binary provenance.</p>
+<p>Hardware reports compute capability 8.9 and approximately 32 GiB under the
+RTX 4080 SUPER name. That capacity is unusual for this model; the report is
+not independent verification of the physical card or its retail configuration.
+CUDA is 12.8.93. Nothing here measures the primary RTX 5090/sm_120 target.</p>
+<h2 id="1-correctness-a-strong-baseline-not-complete-fhe">1. Correctness: a strong baseline, not complete FHE<a class="headerlink" href="#1-correctness-a-strong-baseline-not-complete-fhe" title="Permanent link">¶</a></h2>
+<p>The saved native run passes <strong>29/29 CTests</strong>, including six GPU-labelled tests.
+The original OpenFHE comparison matrix records <strong>169,279,488</strong> residue
+comparisons; the expanded 140-cell × seven-pattern matrix records
+<strong>3,967,746,048</strong>. These are comparison counts, not billions of independent
+random test cases. Independent inverse checks avoid relying only on a forward/
+inverse roundtrip.</p>
+<p>All eight sanitizer executions pass: memcheck, racecheck, initcheck and
+synccheck, each on legacy plus expanded matrix smoke. Both racechecks report
+zero warnings/hazards. Expanded smoke covers N=4096/65536, 30/60-bit primes,
+K=3/40 and zero/dense inputs: 107,790,336 comparisons per tool. It does not
+cover every possible input, concurrent context, allocation failure or stream
+ownership scenario. Setup-fault injection covers the existing ten pre-call
+injection points, not a guarantee about every real driver/OOM failure.</p>
+<p>The fresh benchmark also validates its GPU outputs against the reference.
+The conclusion is exactness for the executed NTT/product cases against the
+pinned OpenFHE 1.6.1 path, <strong>not</strong> completed GPU base conversion, Hybrid key
+switching or CKKS inference. See the <a href="openfhe-integration-plan.html">roadmap</a>.</p>
+<h2 id="2-public-latency-versus-resident-execution">2. Public latency versus resident execution<a class="headerlink" href="#2-public-latency-versus-resident-execution" title="Permanent link">¶</a></h2>
+<p>All following numbers are <strong>medians in milliseconds</strong>, not minima or means.
+Public calls include host residue validation, guards, pageable transfers and
+blocking output copies. Public multiply also includes its by-value host copy/
+output allocation. Setup/table construction is excluded.</p>
+<p>Resident CUDA-event experiments exclude preparation/upload and result checking/
+download. Multi-launch intervals still include submission gaps. The two scopes
+are separate experiments: their ratio is <strong>not a measured production speedup</strong>,
+and their difference cannot be labelled pure PCIe overhead.</p>
+<h3 id="largest-workload-n65536-k40-60-bit-primes">Largest workload: N=65536, K=40, 60-bit primes<a class="headerlink" href="#largest-workload-n65536-k40-60-bit-primes" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th style="text-align: right;">GPU public</th>
+<th style="text-align: right;">GPU resident event</th>
+<th style="text-align: right;">M1 Pro OpenFHE CPU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Forward</td>
+<td style="text-align: right;">8.079</td>
+<td style="text-align: right;">0.552</td>
+<td style="text-align: right;">21.071</td>
+</tr>
+<tr>
+<td>Inverse</td>
+<td style="text-align: right;">8.045</td>
+<td style="text-align: right;">0.598</td>
+<td style="text-align: right;">21.827</td>
+</tr>
+<tr>
+<td>Pointwise</td>
+<td style="text-align: right;">11.858</td>
+<td style="text-align: right;">0.0478</td>
+<td style="text-align: right;">3.115</td>
+</tr>
+<tr>
+<td>Complete fused ring product</td>
+<td style="text-align: right;">12.431</td>
+<td style="text-align: right;">1.723</td>
+<td style="text-align: right;">65.687</td>
+</tr>
+<tr>
+<td>Complete unfused ring product</td>
+<td style="text-align: right;">33.412</td>
+<td style="text-align: right;">Not separately measured</td>
+<td style="text-align: right;">Not separately measured</td>
+</tr>
+</tbody>
+</table>
+<p>The public/resident forward ratio is 14.63; the product ratio is 7.22.
+Pointwise's approximately 248× scope gap is especially clear evidence that
+public latency must not be interpreted as arithmetic-kernel time.
+The source validates <strong>both</strong> pointwise input arrays and transfers two arrays
+in and one out. Compare <a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/src/cuda/ntt_kernels.cu">wrapper calls</a> and
+<a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/include/ntt/cuda_validation.hpp">host residue validation</a>.</p>
+<p>Across the 140 equally weighted workload cells, the median public/resident
+ratio is <strong>9.20× for forward</strong> and <strong>5.67× for the ring product</strong>. These are
+medians of per-cell ratios, not application-weighted aggregate accelerations.</p>
+<h3 id="representative-complete-product-latencies">Representative complete-product latencies<a class="headerlink" href="#representative-complete-product-latencies" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">N</th>
+<th style="text-align: right;">K</th>
+<th style="text-align: right;">Prime bits</th>
+<th style="text-align: right;">Public fused</th>
+<th style="text-align: right;">Resident fused</th>
+<th style="text-align: right;">Public unfused</th>
+<th style="text-align: right;">M1 CPU product</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">0.0869</td>
+<td style="text-align: right;">0.0451</td>
+<td style="text-align: right;">0.1628</td>
+<td style="text-align: right;">0.0664</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">0.0847</td>
+<td style="text-align: right;">0.0410</td>
+<td style="text-align: right;">0.1537</td>
+<td style="text-align: right;">0.0676</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">1.280</td>
+<td style="text-align: right;">0.335</td>
+<td style="text-align: right;">2.834</td>
+<td style="text-align: right;">2.783</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">1.288</td>
+<td style="text-align: right;">0.295</td>
+<td style="text-align: right;">3.118</td>
+<td style="text-align: right;">2.823</td>
+</tr>
+<tr>
+<td style="text-align: right;">65536</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">1.149</td>
+<td style="text-align: right;">0.192</td>
+<td style="text-align: right;">2.924</td>
+<td style="text-align: right;">4.409</td>
+</tr>
+<tr>
+<td style="text-align: right;">65536</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">1.134</td>
+<td style="text-align: right;">0.163</td>
+<td style="text-align: right;">2.958</td>
+<td style="text-align: right;">5.050</td>
+</tr>
+<tr>
+<td style="text-align: right;">65536</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">14.659</td>
+<td style="text-align: right;">1.986</td>
+<td style="text-align: right;">27.772</td>
+<td style="text-align: right;">56.943</td>
+</tr>
+<tr>
+<td style="text-align: right;">65536</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">12.431</td>
+<td style="text-align: right;">1.723</td>
+<td style="text-align: right;">33.412</td>
+<td style="text-align: right;">65.687</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-fusion-is-already-a-measured-improvement">3. Fusion is already a measured improvement<a class="headerlink" href="#3-fusion-is-already-a-measured-improvement" title="Permanent link">¶</a></h2>
+<p>The complete unfused and fused chains are both directly timed under the same
+public-call protocol. Fused is faster in <strong>all 140 workloads</strong>. The per-cell
+unfused/fused median-latency ratio ranges from <strong>1.77× to 3.03×</strong>, with a
+median of <strong>2.36×</strong>. At N=65536/K=40/60 bits it is <strong>2.69×</strong>.</p>
+<p>This is transfer/API fusion, not butterfly-kernel fusion. Both chains launch
+eight kernels: two per forward, one pointwise, three for inverse including
+normalization. For one polynomial buffer of size S, the wrapper reduces operand
+transfer payload from <strong>9S to 3S</strong> and reduces repeated validations/guards.
+Source accounting is explained in <a href="cuda-buffer-dataflow.html">CUDA dataflow</a>.</p>
+<p>Consequently, preserve residency when designing base conversion and Hybrid
+key switching. Returning to the host after every NTT would discard an already
+demonstrated benefit. This does not predict a 2.36× Hybrid or inference gain.</p>
+<h2 id="4-transfer-scale-kernel-trace-and-remaining-bottleneck-uncertainty">4. Transfer scale, kernel trace and remaining bottleneck uncertainty<a class="headerlink" href="#4-transfer-scale-kernel-trace-and-remaining-bottleneck-uncertainty" title="Permanent link">¶</a></h2>
+<p>At N=65536/K=40 one u64 array is <strong>20 MiB</strong>. The separately measured pinned
+copy events at 60 bits are:</p>
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th style="text-align: right;">Median</th>
+<th style="text-align: right;">Effective payload rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H2D</td>
+<td style="text-align: right;">1.614 ms</td>
+<td style="text-align: right;">12.99 GB/s</td>
+</tr>
+<tr>
+<td>D2H</td>
+<td style="text-align: right;">1.558 ms</td>
+<td style="text-align: right;">13.46 GB/s</td>
+</tr>
+</tbody>
+</table>
+<p>Rates use payload bytes / event time, decimal GB/s, not measured DRAM bandwidth
+or a claim about the PCIe link generation. The smaller 4096/K=1 copies achieve
+only about 5.4 GB/s because per-copy overhead matters. Public calls use pageable
+host vectors; these pinned-copy times are not an additive decomposition of
+their timings. In particular, 1.723 ms resident product time is <strong>not</strong> a
+promised end-to-end time for an input that still lives on the host.</p>
+<p>The selected Nsight Systems trace uses N=65536/K=3/60 bits, one warmup and two
+samples. It is a different workload and profiler-perturbed observation, not a
+replacement timing series. Of its approximately 0.845 ms total kernel time:</p>
+<ul>
+<li>Forward strided/contiguous kernels account for 29.5% / 26.7%.</li>
+<li>Inverse strided/contiguous kernels account for 20.2% / 18.0%.</li>
+<li>Pointwise and inverse scaling account for about 2.8% each.</li>
+</ul>
+<p>These totals aggregate different operations and invocation counts. They are
+not percentages of one ring product. Total copy time in this trace is about
+5.349 ms, but includes event reset/upload and validation/download that are
+excluded from resident timing. It must not be used as a production bottleneck
+percentage.</p>
+<p>Compile-time resources are 40 registers for forward-strided, 38 for the other
+three transform kernels, and 24 for pointwise/scale, with <strong>zero spill loads/
+stores</strong>. This does not establish achieved occupancy or utilization.</p>
+<p>Nsight Compute fails with <code>ERR_NVGPUCTRPERM</code>; counters are unavailable. We
+therefore cannot yet rank modular reduction against strided memory transactions,
+barriers or occupancy as the dominant <strong>resident-kernel</strong> bottleneck. The
+current <a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/include/ntt/mod_arith.hpp"><code>mul_mod</code></a> uses u64 operands and a u128
+remainder; specialized exact reduction is a candidate experiment, not a
+measured winner. Host validation/copy/staging costs also need separate timing.</p>
+<h2 id="5-thirty-bit-results-and-scaling">5. Thirty-bit results and scaling<a class="headerlink" href="#5-thirty-bit-results-and-scaling" title="Permanent link">¶</a></h2>
+<p>Thirty-bit primes currently use exactly the same <strong>u64 storage and arithmetic
+implementation</strong> as wider primes. They neither halve transfer size nor select
+a dedicated u32 modular kernel.</p>
+<p>For each of 35 matching N/K pairs, divide the 60-bit resident median by the
+30-bit median. The median ratio is <strong>0.882 for forward</strong> and <strong>0.881 for fused
+product</strong>; all 35 ratios are below one. In this run, 60-bit resident execution
+is about 12% faster by that paired-ratio summary, not slower.</p>
+<p>Do not conclude that wider primes are intrinsically faster. Prime values and
+seeded residues differ; runtime remainder lowering may be input-dependent;
+widths ran in fixed order; clocks and active-load telemetry were not captured
+throughout the batch. The explanation remains unverified. Test a proven u32
+implementation separately and repeat with interleaved/randomized order before
+claiming a 30-bit advantage or diagnosing the cause of this inversion.</p>
+<p>At 60 bits, increasing N from 4096 to 65536 at K=40 grows resident product
+latency from 0.295 to 1.723 ms (<strong>5.83×</strong>) while N grows 16×. Increasing K
+from one to 40 at N=65536 grows it from 0.0852 to 1.723 ms (<strong>20.22×</strong>).
+This is consistent with fixed launch costs and improved use of parallel work
+at larger shapes, but does not prove the occupancy mechanism or predict scaling
+beyond K=40. Small shapes remain important: at N=4096/K=1 the M1 CPU product
+is faster than the public GPU product for both displayed widths.</p>
+<h2 id="6-cpu-comparison-and-measurement-reliability">6. CPU comparison and measurement reliability<a class="headerlink" href="#6-cpu-comparison-and-measurement-reliability" title="Permanent link">¶</a></h2>
+<p>The CPU path is OpenFHE <strong>1.6.1 NativeVector/CRT-FTT</strong>, sequential tower
+execution, OpenMP OFF and native optimization OFF, built with Apple LLVM 21.
+It is not a best-tuned parallel DCRT/HEXL or CKKS application baseline.</p>
+<p>At N=65536/K=40/60 bits, CPU/public-GPU ratios are <strong>2.61× for forward</strong> and
+<strong>5.28× for product</strong>. Across the matrix, the M1 CPU takes longer than the
+public GPU in 114/140 forward cells and 136/140 product cells. These are
+<strong>cross-platform latency comparisons</strong>, not same-host acceleration factors,
+architecture rankings or proof that one GPU is the most suitable purchase.</p>
+<p>Only one ordered run per cell was collected. The 100 samples are repetitions
+within that run, not 100 independent sessions; p5/p95 describe sample spread,
+not confidence intervals. Do not overinterpret close differences:</p>
+<ul>
+<li>Largest 60-bit public fused product: median <strong>12.431 ms</strong>, mean <strong>13.817 ms</strong>,
+  p5 <strong>11.963 ms</strong>, p95 <strong>20.732 ms</strong>.</li>
+<li>Its resident product: median <strong>1.723 ms</strong>, p95 <strong>1.728 ms</strong>.</li>
+<li>Across operation/cell pairs, median p95/median is 1.068 for public GPU,
+  1.013 for events and 1.107 for CPU. Some cells have much larger tails.</li>
+</ul>
+<p>There are non-monotonic public results, e.g. 60-bit forward N=16384/K=16
+is 1.786 ms while K=24 is 1.348 ms. This is a reason to repeat/control the
+experiment, not choose a dispatch boundary from this single noisy series.
+Resident curves are smoother, but kernel counters and repeated sessions are
+still needed to explain them.</p>
+<h2 id="7-next-work-without-keeping-a-rental-running">7. Next work, without keeping a rental running<a class="headerlink" href="#7-next-work-without-keeping-a-rental-running" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Make split collection routine.</strong> Add explicit GPU-only/CPU-only scope
+   selection and platform provenance to the normal resumable collector. The
+   existing legacy <code>--benchmark</code> still schedules CPU timings on the GPU host.</li>
+<li><strong>Prepare resident-pipeline experiments.</strong> Keep strict validation at the
+   external input boundary, represent validated device buffers explicitly, and
+   measure chains without repeated host roundtrips. Do not remove validation
+   from untrusted public inputs to manufacture a speedup.</li>
+<li><strong>Prepare one-factor kernel candidates offline.</strong> Prove u32/30-bit and
+   u64 reduction bounds against bigint/reference/OpenFHE tests; separately
+   prepare the coalesced-layout candidate. Do not change both together and
+   attribute the result to either one.</li>
+<li><strong>Freeze a bounded next rental batch.</strong> Include original baseline versus
+   each candidate, exactness and sanitizers, repeated/interleaved timing order,
+   active clocks/power metadata, and the same 30/50/55/60-bit/K≤40 matrix.
+   Check counter permissions early; use the actual RTX 5090 for primary-device
+   acceptance. Counter access may require a different rental environment.</li>
+</ol>
+<p>No mathematical implementation changes or new GPU executions were made for
+this analysis. Remaining OpenFHE base-conversion, Hybrid and integration gates
+are unchanged. The <a href="journal/2026-11-14.html">daily journal</a> tracks the evidence
+and the <a href="implementation-backlog.html">backlog</a> tracks subsequent implementation.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#evidence-and-measurement-boundaries">Evidence and measurement boundaries</a></li><li><a href="#1-correctness-a-strong-baseline-not-complete-fhe">1. Correctness: a strong baseline, not complete FHE</a></li><li><a href="#2-public-latency-versus-resident-execution">2. Public latency versus resident execution</a></li><li><a href="#3-fusion-is-already-a-measured-improvement">3. Fusion is already a measured improvement</a></li><li><a href="#4-transfer-scale-kernel-trace-and-remaining-bottleneck-uncertainty">4. Transfer scale, kernel trace and remaining bottleneck uncertainty</a></li><li><a href="#5-thirty-bit-results-and-scaling">5. Thirty-bit results and scaling</a></li><li><a href="#6-cpu-comparison-and-measurement-reliability">6. CPU comparison and measurement reliability</a></li><li><a href="#7-next-work-without-keeping-a-rental-running">7. Next work, without keeping a rental running</a></li></ol></nav></aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5">e9cb8d0</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

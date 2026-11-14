@@ -22,7 +22,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html" aria-current="page">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a><a href="batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html" aria-current="page">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/bbfa6dbb6bcfdaaeeecadcd41169176513d3024a/docs/offline-test-tooling.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/docs/offline-test-tooling.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="prepare-the-next-gpu-session-offline">Prepare the next GPU session offline<a class="headerlink" href="#prepare-the-next-gpu-session-offline" title="Permanent link">¶</a></h1>
 <p><strong>2026-11-14 · host checks complete; new CUDA code uncompiled/unrun locally</strong></p>
@@ -48,6 +48,23 @@ sanitizers and profiler captures still need execution on a real device.</p>
 failure-path gaps. This increment implements host-testable preparation for the
 next session. It does not reconnect to the stopped rental or close B02/B04.</p>
 <h2 id="raw-measurement-protocol">Raw measurement protocol<a class="headerlink" href="#raw-measurement-protocol" title="Permanent link">¶</a></h2>
+<h3 id="rental-gpu-local-cpu-split">Rental GPU / local CPU split<a class="headerlink" href="#rental-gpu-local-cpu-split" title="Permanent link">¶</a></h3>
+<p>The later <a href="journal/2026-11-14.html">November 14 session notes</a> supersede the
+pre-rental execution status above. Rental runs can now use:</p>
+<pre><code class="language-sh">ntt_cuda_cli gpu-bench-jsonl parameters.txt 5 100
+ntt_cuda_cli events-jsonl parameters.txt 5 100
+</code></pre>
+<p><code>gpu-bench-jsonl</code> emits five GPU public operations under the distinct
+<code>host_wall_gpu_public_call</code> timing scope. It skips repeated scalar CPU
+timings, not the untimed reference preparation/checks needed to validate GPU
+outputs. The event command is unchanged. Run the four-operation
+<code>ntt_openfhe_bench</code> baseline separately on the local M1 Pro using identical
+N/q/roots/seed and repetition counts. Always retain separate machine/build
+identities: M1 CPU versus rental GPU is not a same-host acceleration factor.</p>
+<p>The legacy <code>gpu_session.py --benchmark</code> collector below still schedules
+mixed CPU/GPU work. Do not use it unchanged for a GPU-only rental. This session
+uses an independently archived split runner and manifests; integrating scope
+selection into the normal resumable collector remains follow-up work.</p>
 <p>The new <code>ntt_cuda_cli bench-jsonl &lt;parameter-vector&gt; [warmups samples]</code> path
 uses the vector file's exact N/q/root list; coefficients are generated from a
 fixed documented seed, not copied from that file. The batch covers N=4096,
@@ -74,7 +91,7 @@ OpenFHE comparator below avoids conflating them.</p>
 input seed/policy, warm-ups, sample count and timing/setup scope. Raw samples
 survive in JSONL, with mean, median and p5/p95 using linear interpolation at
 <code>(count−1)*fraction</code>. Output ends with an explicit completion marker.</p>
-<p>The host-only <a href="https://github.com/minnow54426/ntt-gpu/blob/bbfa6dbb6bcfdaaeeecadcd41169176513d3024a/include/ntt/measurement.hpp">measurement helper</a> is tested
+<p>The host-only <a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/include/ntt/measurement.hpp">measurement helper</a> is tested
 with a fake clock: reset occurs outside timing, each operation sees a reset
 input, warm-up calls are distinct, and percentile/JSON escaping checks pass.
 These tests are not performance observations.</p>
@@ -110,7 +127,7 @@ This is an optimized-arithmetic OpenFHE comparator, not a best-tuned DCRT/OpenMP
 HEXL or end-to-end CKKS baseline. Library-internal allocations remain included;
 unlike GPU public multiplication it does not include a by-value return copy.</p>
 <h2 id="collector-and-validation">Collector and validation<a class="headerlink" href="#collector-and-validation" title="Permanent link">¶</a></h2>
-<p>With <code>--benchmark</code>, <a href="https://github.com/minnow54426/ntt-gpu/blob/bbfa6dbb6bcfdaaeeecadcd41169176513d3024a/scripts/gpu_session.py">gpu_session.py</a> now generates
+<p>With <code>--benchmark</code>, <a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/scripts/gpu_session.py">gpu_session.py</a> now generates
 parameter vectors at <strong>30, 50, 55 and 60 bits</strong>, all five dimensions above,
 and K=1/3/8/16/24/32/40 towers: <strong>140 workloads and 420 measurement jobs</strong>, three timing
 scopes per workload. Every scope must match the requested N/K/q/roots/seed
@@ -119,7 +136,7 @@ no <code>uint32_t</code> specialization or reduced transfer size is claimed.
 It retains <code>benchmark-n65536-k3-b30-public.log</code> and similarly named event/CPU
 JSONL logs, and adds regenerated summaries to <code>report.json</code>. The old <code>bench</code> command
 remains a legacy 46-bit path; the collector no longer uses it.</p>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/bbfa6dbb6bcfdaaeeecadcd41169176513d3024a/scripts/benchmark_report.py">benchmark_report.py</a> rejects truncated output,
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/scripts/benchmark_report.py">benchmark_report.py</a> rejects truncated output,
 missing operations/samples, wrong scope/width, duplicate indices, nonfinite or
 negative samples, and summaries inconsistent with raw observations. Collector
 failure remains nonzero even if the executable exited zero with malformed
@@ -184,7 +201,7 @@ output and line mappings are enabled in native builds and retained in build logs
 counter analysis, active telemetry, deep CKKS levels and ciphertext batch sweeps
 remain future work. Prepared collection commands do not close D14 or P2.</p>
 <h2 id="shared-allocation-ownership-and-injected-failures">Shared allocation ownership and injected failures<a class="headerlink" href="#shared-allocation-ownership-and-injected-failures" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/bbfa6dbb6bcfdaaeeecadcd41169176513d3024a/include/ntt/setup_resources.hpp">SetupResources</a> owns the actual constructor's
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/include/ntt/setup_resources.hpp">SetupResources</a> owns the actual constructor's
 six allocations, registers ownership immediately after allocation succeeds,
 and releases acquired pointers in reverse order. Four constant uploads cross
 the same runtime adapter. Host tests use a host-memory adapter through this
@@ -221,7 +238,7 @@ unverified CUDA changes. Keep the primary-device and native failure gates open.<
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/bbfa6dbb6bcfdaaeeecadcd41169176513d3024a">bbfa6db</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5">e9cb8d0</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

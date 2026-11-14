@@ -22,7 +22,7 @@
   <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a><a href="../gpu-rental-market-survey.html">GPU rental market</a><a href="../first-native-analysis.html">First GPU run: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../offline-gpu-preparation.html">Before renting a GPU</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="../offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a><a href="../gpu-rental-market-survey.html">GPU rental market</a><a href="../first-native-analysis.html">First GPU run: analysis</a><a href="../batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../offline-gpu-preparation.html">Before renting a GPU</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="../offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/bbfa6dbb6bcfdaaeeecadcd41169176513d3024a/docs/journal/2026-11-14.md">View source</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/docs/journal/2026-11-14.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-14">2026-11-14</time><span>P2 / D11 diagnostic</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="first-native-gpu-diagnostic-session">First native GPU diagnostic session<a class="headerlink" href="#first-native-gpu-diagnostic-session" title="Permanent link">¶</a></h1><p class="site-journal-summary">Native Ada checks passed; offline analysis audited exactness scope, benchmark caveats and next experiments. RTX 5090 evidence remains pending.</p>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
@@ -378,11 +378,143 @@ jobs and selected profiler captures. Copy and hash-verify the evidence before
 stopping the instance. Notify the user that a GPU is now needed; no instance
 has been started or reconnected automatically. GPU timing/correctness and
 primary RTX 5090 acceptance remain pending. Website export follows the latest
-committed revision; deployment success is verified separately after pushing.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li><li><a href="#follow-up-analyze-the-exported-native-evidence-offline">Follow-up: analyze the exported native evidence offline</a></li><li><a href="#follow-up-implement-offline-measurement-and-setup-failure-preparation">Follow-up: implement offline measurement and setup-failure preparation</a></li><li><a href="#follow-up-prepare-the-next-rental-as-a-batch-including-30-bit-primes">Follow-up: prepare the next rental as a batch, including 30-bit primes</a></li><li><a href="#follow-up-extend-prime-batches-through-40-towers">Follow-up: extend prime batches through 40 towers</a></li><li><a href="#freeze-checkpoint-complete-local-regression-before-rental">Freeze checkpoint: complete local regression before rental</a></li><li><a href="#freeze-follow-up-compiler-only-ci-passed-request-the-next-rental">Freeze follow-up: compiler-only CI passed; request the next rental</a></li></ol></nav></aside>
+committed revision; deployment success is verified separately after pushing.</p>
+<h2 id="temporary-native-batch-setup-and-execution">Temporary native batch: setup and execution<a class="headerlink" href="#temporary-native-batch-setup-and-execution" title="Permanent link">¶</a></h2>
+<h3 id="scope-and-reasoning">Scope and reasoning<a class="headerlink" href="#scope-and-reasoning" title="Permanent link">¶</a></h3>
+<p>The user authorized running the frozen batch on the supplied machine as a
+temporary validation step before the final RTX 5090 run. The device reports
+<strong>RTX 4080 SUPER</strong>, compute capability <strong>8.9</strong>, 32,760 MiB memory, driver
+595.71.05. Preserve that reported identity; it is not a 5090 measurement or
+independent verification of the retail board specification.</p>
+<h3 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">¶</a></h3>
+<p>Transferred a clean project git bundle at <code>bbfa6db</code> and the clean pinned
+OpenFHE source/submodules from the local checkout; archive SHA-256 values
+match on both hosts. The remote source checkout remains clean. OpenFHE is
+<code>b59e1f291965f14fbee5172cd83a20f5b856204f</code> with all four recorded submodule IDs.
+Build/install stays on the instance's data disk; no driver changes are made.</p>
+<p>The image supplies Ubuntu 22.04.5, GCC 11.4, Python 3.12.3, CUDA 12.8.93,
+and Compute Sanitizer 2025.1.0.0. Added project-local CMake 3.31.6. The full
+native CUDA/OpenFHE configuration builds with <code>-arch=native</code>; runtime API
+reports 12.8, driver API 13.2. The OpenFHE-only setup passed all 22 CPU tests,
+including the expanded 140-cell benchmark protocol gate.</p>
+<h3 id="profiling-access-and-execution-status">Profiling access and execution status<a class="headerlink" href="#profiling-access-and-execution-status" title="Permanent link">¶</a></h3>
+<p>Nsight Compute 2025.1.1 preflight fails with <strong>ERR_NVGPUCTRPERM</strong>. Root inside
+the container cannot access the provider's GPU counters. No host/module/sysctl
+permissions are changed. Installed Nsight Systems 2025.1.3 locally from an
+official package after checking its published SHA-256. Its CUDA-only trace
+probe succeeds with CPU sampling/context-switch tracing disabled; CPU perf
+access is unavailable in the container. Profiler-perturbed samples are not
+benchmark evidence.</p>
+<p>The detached runner starts the frozen collector's exactness/fault gates,
+legacy and matrix sanitizer smoke, then the 420-job timing batch. <code>--profile</code>
+is deliberately omitted after the counter-access failure; a separate selected
+Nsight Systems capture follows only after the collector succeeds. A separate
+session-context artifact records this limitation. Native batch results are
+still pending at this checkpoint; no timing or correctness gate is advanced.</p>
+<h3 id="next-deliverable">Next deliverable<a class="headerlink" href="#next-deliverable" title="Permanent link">¶</a></h3>
+<p>Monitor completion, retain failures as well as successes, copy the complete
+evidence archive locally and verify its hash before telling the user it is safe
+to stop. Primary RTX 5090 and hardware-counter gates remain open regardless of
+the temporary batch outcome.</p>
+<h3 id="native-gate-progress">Native gate progress<a class="headerlink" href="#native-gate-progress" title="Permanent link">¶</a></h3>
+<p>The frozen CUDA 12.8 build passes <strong>all 29 native CTests</strong> in 442.61 seconds,
+including all six GPU-labelled gates and the real setup-fault cleanup probe.
+Saved CTest output records <strong>169,279,488</strong> original-matrix and
+<strong>3,967,746,048</strong> expanded-matrix exact residue comparisons. The expanded scope
+is 140 parameter cells × seven patterns, not independent random trials for
+every comparison. Setup/build logs and complete CTest output are copied locally.</p>
+<p>Both legacy and expanded memcheck smoke pass with zero reported errors. The
+expanded smoke records <strong>107,790,336</strong> exact comparisons at N=4096/65536,
+30/60-bit widths and K=3/40; legacy smoke records 3,538,944. Other sanitizers
+and the benchmark batch remain pending at this progress checkpoint.</p>
+<p>Subsequently, <strong>all eight sanitizer executions pass</strong>: memcheck, racecheck,
+initcheck and synccheck each on legacy plus expanded matrix smoke. Downloaded
+logs show zero errors; both racecheck summaries also show zero warnings/hazards.
+This is the bounded zero/dense smoke scope, not every production parameter or
+every possible input. The 420-job raw timing batch then starts without changing
+the frozen implementation. Compile-time <code>ptxas</code> output is preserved and reports
+zero spill loads/stores for all six kernels; achieved occupancy and hardware
+counters remain unavailable on this provider.</p>
+<h3 id="separate-rental-gpu-and-local-m1-cpu-collection">Separate rental GPU and local M1 CPU collection<a class="headerlink" href="#separate-rental-gpu-and-local-m1-cpu-collection" title="Permanent link">¶</a></h3>
+<p>At the user's request, the original mixed collector was terminated (exit 143)
+before completion. Its partial manifest/raw logs remain intact; its RUNNING
+report is not a successful full-batch result. Repeated CPU timings are no
+longer scheduled on the paid machine. Added <code>gpu-bench-jsonl</code>, which times
+only the five GPU public operations, retaining the untimed exact reference
+preparation required to validate their outputs. Its timing scope is explicitly
+<code>host_wall_gpu_public_call</code>; legacy six-operation records remain supported.
+No device kernels or arithmetic were changed.</p>
+<p>A separate fresh GPU-only collection uses the 140-cell matrix, two timing
+scopes, five warmups and 100 samples. It records the base commit, dirty source
+patch/hash, binary hashes, actual device identity and validated per-log hashes;
+it does not reuse the old collector's binary identity. In parallel, the native
+OpenFHE CPU baseline runs on the local M1 Pro, with separate platform evidence.
+These timings support cross-platform comparisons, not same-host speedup claims.
+Completion and safe rental shutdown remain pending until the GPU collection,
+selected CUDA timeline and local archive verification finish.</p>
+<h3 id="collection-complete-rental-can-stop">Collection complete — rental can stop<a class="headerlink" href="#collection-complete-rental-can-stop" title="Permanent link">¶</a></h3>
+<p>The separate GPU-only collection passes <strong>280/280 jobs</strong>, covering all 140
+parameter cells with five public GPU operations and six event/copy experiments:
+<strong>154,000 raw timed samples</strong>. All <strong>140/140 local M1 Pro OpenFHE jobs</strong> also
+pass, with matching exact q/roots and the same seeded-input protocol. A selected
+N=65536, K=3, 60-bit Nsight Systems CUDA timeline and kernel/memory summary
+are captured successfully. Hardware counters remain blocked by the provider.</p>
+<p>The original mixed collection retains <strong>366 completed jobs</strong>; it was cancelled
+at user direction and must not be labelled a full successful 420-job run.
+Its original report, logs and hashes are preserved separately from the fresh
+GPU-only manifest. The latter records the benchmark-only dirty source patch
+and rebuilt binary hash. Subsequent local comment/indentation and documentation
+edits are not claimed as the precise remote source snapshot.</p>
+<p>Downloaded <code>build/ntt-evidence-20261114-ada-batch40.tar.gz</code> and extracted it
+under <code>build/ntt-evidence-20261114-ada-batch40/</code>. Archive SHA-256 matches the
+remote value:</p>
+<pre><code class="language-text">d7cdbe24ea9e87270c248011408d983f8760ef451dc72abba2be87ccdca5a1b6
+</code></pre>
+<p>Independent local verification passes <strong>1,087 per-file checksums</strong>, retained
+legacy job hashes, all fresh GPU JSONL counts/summaries/parameters, selected
+timeline contents, and the M1 baseline's matching parameter lists. CPU evidence
+is in <code>build/cpu-m1-pro-20261114/</code>. The user was explicitly told the rental
+can now stop; no cloud shutdown was performed on their behalf.</p>
+<p>Local verification also passes 34 tooling tests, 23 documentation tests,
+the 33-page documentation link/fragment build, and whitespace checks.
+Next: analyze these temporary sm_89 results offline and integrate platform/scope
+selection into the regular resumable collector. Primary RTX 5090/sm_120 native
+execution and hardware-counter gates remain open; M1-versus-GPU comparisons
+must not be presented as same-host speedups.</p>
+<h3 id="offline-analysis-of-the-full-matrix">Offline analysis of the full matrix<a class="headerlink" href="#offline-analysis-of-the-full-matrix" title="Permanent link">¶</a></h3>
+<p>Analyzed all 280 fresh GPU and 140 M1 CPU jobs locally, rechecking log hashes,
+recomputing JSONL summaries and matching q/roots/seed/counts across scopes.
+Registered <a href="../batch40-native-analysis.html">the full-matrix report</a> in the site
+catalog. No remote execution, arithmetic changes or kernel tuning was done.</p>
+<p>The directly measured unfused/fused public ratio exceeds one in all 140 cells:
+range 1.77–3.03, median 2.36. At N=65536/K=40/60 bits, public fused product
+is 12.431 ms versus 1.723 ms in the separately timed resident experiment and
+65.687 ms on the M1 CPU. These are distinct timing scopes/platforms, not an
+application acceleration claim. Large pinned copies achieve approximately
+13.0 GB/s H2D and 13.5 GB/s D2H payload rates; they are not an additive public
+timing breakdown. Source inspection confirms public validation scans remain
+inside timing, so the scope gap cannot be assigned solely to PCIe.</p>
+<p>Thirty-bit primes still take the u64 path. All 35 paired resident forward and
+product comparisons put 60-bit execution below 30-bit in this run (median
+60/30 ratios 0.882 and 0.881). Causation is unproven: operand/prime values,
+runtime remainder behavior and fixed run order are confounded. Public timing
+tails and non-monotonic cells require repeated sessions before dispatch tuning.</p>
+<p>Priority remains split-runner integration and resident-pipeline preparation,
+then individually validated arithmetic/layout candidates. Counters and actual
+RTX 5090 execution remain pending. No roadmap gate advances from this analysis.</p>
+<h3 id="publish-the-analysis-to-the-personal-website">Publish the analysis to the personal website<a class="headerlink" href="#publish-the-analysis-to-the-personal-website" title="Permanent link">¶</a></h3>
+<p>The user requested publication of the new report and current session notes.
+Publication preparation passes 23 documentation tests, 34 tooling tests,
+14 interactive Node tests, the 34-page link/fragment build and whitespace
+checks. Export uses the existing managed <code>systems/ntt-gpu</code> topic and relative
+navigation; unrelated website files are preserved. Source is committed before
+export so generated code links point to the matching repository revision.
+Remote deployment and live-page availability are checked separately from a
+successful Git push.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li><li><a href="#follow-up-analyze-the-exported-native-evidence-offline">Follow-up: analyze the exported native evidence offline</a></li><li><a href="#follow-up-implement-offline-measurement-and-setup-failure-preparation">Follow-up: implement offline measurement and setup-failure preparation</a></li><li><a href="#follow-up-prepare-the-next-rental-as-a-batch-including-30-bit-primes">Follow-up: prepare the next rental as a batch, including 30-bit primes</a></li><li><a href="#follow-up-extend-prime-batches-through-40-towers">Follow-up: extend prime batches through 40 towers</a></li><li><a href="#freeze-checkpoint-complete-local-regression-before-rental">Freeze checkpoint: complete local regression before rental</a></li><li><a href="#freeze-follow-up-compiler-only-ci-passed-request-the-next-rental">Freeze follow-up: compiler-only CI passed; request the next rental</a></li><li><a href="#temporary-native-batch-setup-and-execution">Temporary native batch: setup and execution</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/bbfa6dbb6bcfdaaeeecadcd41169176513d3024a">bbfa6db</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5">e9cb8d0</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
