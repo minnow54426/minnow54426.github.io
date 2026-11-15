@@ -34,7 +34,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/docs/offline-test-tooling.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/864fd972db41542b99efedc2c9966ebbb39588eb/docs/offline-test-tooling.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="prepare-the-next-gpu-session-offline">Prepare the next GPU session offline<a class="headerlink" href="#prepare-the-next-gpu-session-offline" title="Permanent link">¶</a></h1>
 <p><strong>2026-11-14 · host checks complete; new CUDA code uncompiled/unrun locally</strong></p>
@@ -91,7 +91,7 @@ OpenFHE comparator below avoids conflating them.</p>
 input seed/policy, warm-ups, sample count and timing/setup scope. Raw samples
 survive in JSONL, with mean, median and p5/p95 using linear interpolation at
 <code>(count−1)*fraction</code>. Output ends with an explicit completion marker.</p>
-<p>The host-only <a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/include/ntt/measurement.hpp">measurement helper</a> is tested
+<p>The host-only <a href="https://github.com/minnow54426/ntt-gpu/blob/864fd972db41542b99efedc2c9966ebbb39588eb/include/ntt/measurement.hpp">measurement helper</a> is tested
 with a fake clock: reset occurs outside timing, each operation sees a reset
 input, warm-up calls are distinct, and percentile/JSON escaping checks pass.
 These tests are not performance observations.</p>
@@ -127,7 +127,7 @@ This is an optimized-arithmetic OpenFHE comparator, not a best-tuned DCRT/OpenMP
 HEXL or end-to-end CKKS baseline. Library-internal allocations remain included;
 unlike GPU public multiplication it does not include a by-value return copy.</p>
 <h2 id="collector-and-validation">Collector and validation<a class="headerlink" href="#collector-and-validation" title="Permanent link">¶</a></h2>
-<p>With <code>--benchmark</code>, <a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/scripts/gpu_session.py">gpu_session.py</a> now generates
+<p>With <code>--benchmark</code>, <a href="https://github.com/minnow54426/ntt-gpu/blob/864fd972db41542b99efedc2c9966ebbb39588eb/scripts/gpu_session.py">gpu_session.py</a> now generates
 parameter vectors at <strong>30, 50, 55 and 60 bits</strong>, all five dimensions above,
 and K=1/3/8/16/24/32/40 towers: <strong>140 workloads and 420 measurement jobs</strong>, three timing
 scopes per workload. Every scope must match the requested N/K/q/roots/seed
@@ -136,7 +136,7 @@ no <code>uint32_t</code> specialization or reduced transfer size is claimed.
 It retains <code>benchmark-n65536-k3-b30-public.log</code> and similarly named event/CPU
 JSONL logs, and adds regenerated summaries to <code>report.json</code>. The old <code>bench</code> command
 remains a legacy 46-bit path; the collector no longer uses it.</p>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/scripts/benchmark_report.py">benchmark_report.py</a> rejects truncated output,
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/864fd972db41542b99efedc2c9966ebbb39588eb/scripts/benchmark_report.py">benchmark_report.py</a> rejects truncated output,
 missing operations/samples, wrong scope/width, duplicate indices, nonfinite or
 negative samples, and summaries inconsistent with raw observations. Collector
 failure remains nonzero even if the executable exited zero with malformed
@@ -201,7 +201,7 @@ output and line mappings are enabled in native builds and retained in build logs
 counter analysis, active telemetry, deep CKKS levels and ciphertext batch sweeps
 remain future work. Prepared collection commands do not close D14 or P2.</p>
 <h2 id="shared-allocation-ownership-and-injected-failures">Shared allocation ownership and injected failures<a class="headerlink" href="#shared-allocation-ownership-and-injected-failures" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5/include/ntt/setup_resources.hpp">SetupResources</a> owns the actual constructor's
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/864fd972db41542b99efedc2c9966ebbb39588eb/include/ntt/setup_resources.hpp">SetupResources</a> owns the actual constructor's
 six allocations, registers ownership immediately after allocation succeeds,
 and releases acquired pointers in reverse order. Four constant uploads cross
 the same runtime adapter. Host tests use a host-memory adapter through this
@@ -238,7 +238,7 @@ unverified CUDA changes. Keep the primary-device and native failure gates open.<
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/e9cb8d0969fb568b36c6d7dbb7f50572b68165a5">e9cb8d0</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/864fd972db41542b99efedc2c9966ebbb39588eb">864fd97</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
