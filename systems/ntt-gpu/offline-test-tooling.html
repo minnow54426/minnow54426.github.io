@@ -35,7 +35,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/03e7f96a237a1b6f6cae73c00daa777eb71f1c8d/docs/offline-test-tooling.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/a63f644e585805bcc8009d579b52358ad7002bbd/docs/offline-test-tooling.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="prepare-the-next-gpu-session-offline">Prepare the next GPU session offline<a class="headerlink" href="#prepare-the-next-gpu-session-offline" title="Permanent link">¶</a></h1>
 <p><strong>2026-11-14 · host checks complete; new CUDA code uncompiled/unrun locally</strong></p>
@@ -92,7 +92,7 @@ OpenFHE comparator below avoids conflating them.</p>
 input seed/policy, warm-ups, sample count and timing/setup scope. Raw samples
 survive in JSONL, with mean, median and p5/p95 using linear interpolation at
 <code>(count−1)*fraction</code>. Output ends with an explicit completion marker.</p>
-<p>The host-only <a href="https://github.com/minnow54426/ntt-gpu/blob/03e7f96a237a1b6f6cae73c00daa777eb71f1c8d/include/ntt/measurement.hpp">measurement helper</a> is tested
+<p>The host-only <a href="https://github.com/minnow54426/ntt-gpu/blob/a63f644e585805bcc8009d579b52358ad7002bbd/include/ntt/measurement.hpp">measurement helper</a> is tested
 with a fake clock: reset occurs outside timing, each operation sees a reset
 input, warm-up calls are distinct, and percentile/JSON escaping checks pass.
 These tests are not performance observations.</p>
@@ -128,16 +128,61 @@ This is an optimized-arithmetic OpenFHE comparator, not a best-tuned DCRT/OpenMP
 HEXL or end-to-end CKKS baseline. Library-internal allocations remain included;
 unlike GPU public multiplication it does not include a by-value return copy.</p>
 <h2 id="collector-and-validation">Collector and validation<a class="headerlink" href="#collector-and-validation" title="Permanent link">¶</a></h2>
-<p>With <code>--benchmark</code>, <a href="https://github.com/minnow54426/ntt-gpu/blob/03e7f96a237a1b6f6cae73c00daa777eb71f1c8d/scripts/gpu_session.py">gpu_session.py</a> now generates
+<p>The November 16 collector update separates rental GPU measurements from local
+CPU collection. <a href="https://github.com/minnow54426/ntt-gpu/blob/a63f644e585805bcc8009d579b52358ad7002bbd/scripts/gpu_session.py">gpu_session.py</a> generates
 parameter vectors at <strong>30, 50, 55 and 60 bits</strong>, all five dimensions above,
-and K=1/3/8/16/24/32/40 towers: <strong>140 workloads and 420 measurement jobs</strong>, three timing
-scopes per workload. Every scope must match the requested N/K/q/roots/seed
+and K=1/3/8/16/24/32/40 towers: <strong>140 workloads</strong>. Select the measurement scopes:</p>
+<div aria-label="Benchmark collection modes and timing scopes" class="site-table-scroll" role="region" tabindex="0">
+<div style="min-width:42rem">
+<table>
+<thead>
+<tr>
+<th>Session / selection</th>
+<th>Jobs</th>
+<th>Timing scopes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--mode gpu --benchmark-scope gpu</code></td>
+<td>280</td>
+<td>Five-operation GPU public calls, resident events/pinned copies</td>
+</tr>
+<tr>
+<td><code>--mode cpu</code></td>
+<td>140</td>
+<td>Four-operation OpenFHE CPU baseline</td>
+</tr>
+<tr>
+<td><code>--mode gpu --benchmark-scope all</code></td>
+<td>420</td>
+<td>Legacy public calls including scalar CPU forward, events, OpenFHE CPU baseline</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Add <code>--benchmark</code> to collect measurements. Direct GPU collector commands default
+to <code>all</code> for compatibility. The rental helper <code>scripts/autodl_setup.sh</code> defaults
+to <code>gpu</code>; use <code>--benchmark-scope all</code> or <code>NTT_BENCHMARK_SCOPE=all</code> to request its
+previous combined behavior.</p>
+<p>GPU-only collection invokes <code>gpu-bench-jsonl</code> with the distinct
+<code>host_wall_gpu_public_call</code> timing label and <code>*-gpu-public.log</code> filenames.
+Untimed CPU reference preparation/result checks remain necessary. All native
+GPU exactness gates and requested sanitizers still run. Only the separate CPU
+benchmark-protocol sweep is excluded from that session's CTest invocation.</p>
+<p>CPU mode configures <code>NTT_ENABLE_CUDA=OFF</code> and <code>NTT_REQUIRE_CUDA=OFF</code> in its own
+<code>build/native-cpu</code> directory. It requires the pinned OpenFHE host gates and
+never calls <code>nvcc</code>, <code>nvidia-smi</code>, a CUDA executable or a GPU profiler. Omit
+<code>--cuda-root</code>, <code>--architectures</code> and other GPU-only flags. Its report says
+<code>CPU_CHECKS_PASSED</code> with <code>gpu_execution: NOT_RUN</code>; it cannot close a GPU gate.</p>
+<p>Every scope must match the requested N/K/q/roots/seed
 and repetition counts. Thirty-bit parameters still use <code>uint64_t</code> storage;
 no <code>uint32_t</code> specialization or reduced transfer size is claimed.
 It retains <code>benchmark-n65536-k3-b30-public.log</code> and similarly named event/CPU
 JSONL logs, and adds regenerated summaries to <code>report.json</code>. The old <code>bench</code> command
 remains a legacy 46-bit path; the collector no longer uses it.</p>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/03e7f96a237a1b6f6cae73c00daa777eb71f1c8d/scripts/benchmark_report.py">benchmark_report.py</a> rejects truncated output,
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/a63f644e585805bcc8009d579b52358ad7002bbd/scripts/benchmark_report.py">benchmark_report.py</a> rejects truncated output,
 missing operations/samples, wrong scope/width, duplicate indices, nonfinite or
 negative samples, and summaries inconsistent with raw observations. Collector
 failure remains nonzero even if the executable exited zero with malformed
@@ -146,10 +191,20 @@ correctness; those require the native gates and source provenance.</p>
 <p>On the next compatible GPU host, from a reviewed clean checkout:</p>
 <pre><code class="language-sh">python3 scripts/gpu_session.py --mode gpu \
   --cuda-root /path/to/cuda --openfhe-prefix /path/to/openfhe \
-  --architectures native --benchmark --profile \
+  --architectures native --benchmark --benchmark-scope gpu --profile \
   --output-dir bench-results-next \
   --benchmark-warmups 5 --benchmark-samples 100
 </code></pre>
+<p>On the local Linux or macOS CPU host, from the same reviewed source revision:</p>
+<pre><code class="language-sh">python3 scripts/gpu_session.py --mode cpu \
+  --openfhe-prefix /path/to/local/openfhe \
+  --benchmark --output-dir bench-results-cpu
+</code></pre>
+<p>Use the same dimensions, tower counts, prime widths, warm-ups and sample counts
+on both machines. Retain separate record directories and machine/build identities;
+these are cross-platform measurements, not a same-host acceleration claim.
+The new CPU session path is verified locally on Linux. The macOS identity path
+has control-flow tests; a new native M1 run remains pending.</p>
 <p>Offline analysis after that future session:</p>
 <pre><code class="language-sh">python3 scripts/benchmark_report.py /path/to/benchmark-n65536-k3-b30-public.log
 </code></pre>
@@ -157,9 +212,11 @@ correctness; those require the native gates and source provenance.</p>
 while retaining all four prime widths. Defaults use five warm-ups and 100
 samples per operation. Any individual prime count from 1 through 40 can be
 selected with <code>--benchmark-towers</code>; the default is a representative sweep,
-not every integer count. The complete default batch contains 224,000 timed
-operation samples, not 224,000 independent random inputs; rental runtime remains
-unmeasured. Commands have a configurable timeout (default 1,800 seconds each).</p>
+not every integer count. At 100 samples per operation, GPU-only collection has
+154,000 timed samples, CPU-only collection has 56,000 and the legacy combined
+selection has 224,000. Samples reuse fixed seeded operands; they are not that
+many independent random inputs. New collector rental runtime remains unmeasured.
+Commands have a configurable timeout (default 1,800 seconds each).</p>
 <p>Here K means <strong>RNS primes/towers in one polynomial</strong>, not the number of
 ciphertexts or independent polynomials. Benchmark parameter files contain
 zero coefficient placeholders to avoid generating unused, huge CRT integers
@@ -173,13 +230,17 @@ latter selects N=4096/65536, 30/60-bit K=3/40, zero/dense inputs, not the full m
 Non-default integer tower counts get the benchmark's reference checks, but are
 not additional cells of this fixed direct-OpenFHE/sanitizer gate.</p>
 <h3 id="restart-and-preserve-partial-results">Restart and preserve partial results<a class="headerlink" href="#restart-and-preserve-partial-results" title="Permanent link">¶</a></h3>
-<p>Rerun the same command with <code>--resume --output-dir bench-results-next</code> after
-an interrupted/failed attempt. Environment probes, build, exactness and
-sanitizers always rerun. Prior reports are archived and stage logs get unique
+<p>Rerun the same CPU or GPU command with <code>--resume --output-dir &lt;record-directory&gt;</code>
+after an interrupted/failed attempt. Applicable environment probes, build,
+exactness and requested GPU sanitizers always rerun. Prior reports are archived and stage logs get unique
 retry names. Benchmark jobs resume only with the same clean source revision,
-binary and OpenFHE-library hashes, device/driver identity, selection policy,
+selected scope group, measured executable and OpenFHE-library hashes, stable CPU
+identity, applicable GPU/driver identity and selection policy,
 matrix and repetition counts. Completed raw logs must pass SHA-256 and full
-record/parameter validation again. Different contexts require a fresh directory.</p>
+record/parameter validation again. Different contexts require a fresh directory.
+Changing CPU/GPU mode or scope is rejected before the existing report is
+replaced. CPU resumes do not depend on unused CUDA binaries, GPU visibility or
+CUDA architecture settings. Clock/scaling readings are not CPU identity keys.</p>
 <p>Independent measurement jobs continue after a measurement failure, preserving
 successful logs/summary checkpoints; the overall batch still exits nonzero.
 Setup/exactness/sanitizer failures stop before benchmarks. An output hash
@@ -202,7 +263,7 @@ output and line mappings are enabled in native builds and retained in build logs
 counter analysis, active telemetry, deep CKKS levels and ciphertext batch sweeps
 remain future work. Prepared collection commands do not close D14 or P2.</p>
 <h2 id="shared-allocation-ownership-and-injected-failures">Shared allocation ownership and injected failures<a class="headerlink" href="#shared-allocation-ownership-and-injected-failures" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/03e7f96a237a1b6f6cae73c00daa777eb71f1c8d/include/ntt/setup_resources.hpp">SetupResources</a> owns the actual constructor's
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/a63f644e585805bcc8009d579b52358ad7002bbd/include/ntt/setup_resources.hpp">SetupResources</a> owns the actual constructor's
 six allocations, registers ownership immediately after allocation succeeds,
 and releases acquired pointers in reverse order. Four constant uploads cross
 the same runtime adapter. Host tests use a host-memory adapter through this
@@ -239,7 +300,7 @@ unverified CUDA changes. Keep the primary-device and native failure gates open.<
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/03e7f96a237a1b6f6cae73c00daa777eb71f1c8d">03e7f96</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a63f644e585805bcc8009d579b52358ad7002bbd">a63f644</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

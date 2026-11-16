@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Restore the historical portfolio design, then share its Sunlit Paper theme with the NTT notebook while preserving GPU research.">
+<meta name="description" content="Restore and share the Sunlit Paper design, then separate GPU rental measurements from local CPU collection with safe resume.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal/2026-11-16.html">
 <title>Restore the website&#x27;s earlier visual design · ntt-gpu</title>
 
@@ -35,9 +35,9 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/03e7f96a237a1b6f6cae73c00daa777eb71f1c8d/docs/journal/2026-11-16.md">View source</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/a63f644e585805bcc8009d579b52358ad7002bbd/docs/journal/2026-11-16.md">View source</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-16">2026-11-16</time><span>Website maintenance</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="restore-the-websites-earlier-visual-design">Restore the website's earlier visual design<a class="headerlink" href="#restore-the-websites-earlier-visual-design" title="Permanent link">¶</a></h1><p class="site-journal-summary">Restore the historical portfolio design, then share its Sunlit Paper theme with the NTT notebook while preserving GPU research.</p>
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-16">2026-11-16</time><span>Website maintenance / P2 D11 tooling</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="restore-the-websites-earlier-visual-design">Restore the website's earlier visual design<a class="headerlink" href="#restore-the-websites-earlier-visual-design" title="Permanent link">¶</a></h1><p class="site-journal-summary">Restore and share the Sunlit Paper design, then separate GPU rental measurements from local CPU collection with safe resume.</p>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
 <p>Restored the earlier website design from Git history at the user's request.
 The portfolio uses its Sunlit Paper palette, Anton/Space Grotesk typography,
@@ -49,6 +49,10 @@ pages. The notebook now shares Sunlit Paper backgrounds, burnt-orange and
 forest-green accents, Anton headings and Space Grotesk body text. The earlier
 restoration remains recorded above; the original design is also backed up on
 the website repository's <code>backup/old-website-design</code> branch.</p>
+<p>The subsequent engineering increment completes the benchmark collection split:
+GPU-only measurement jobs for rentals, an independent CPU-only session mode,
+and explicit combined collection for compatibility. No GPU was rented and
+D11/P2 remains open.</p>
 <h2 id="reasoning">Reasoning<a class="headerlink" href="#reasoning" title="Permanent link">¶</a></h2>
 <p>The November 11 shared blue/white redesign changed the visual identity beyond
 what the user wanted. Restore the presentation from the preceding revisions
@@ -57,6 +61,10 @@ English text, readable lesson panels, keyboard navigation and current controls.<
 <p>The follow-up explicitly requests a common theme. Keep the portfolio's visual
 identity while tuning type sizes, code surfaces, tables and controls for long
 technical articles. Load the theme from source so exports retain it.</p>
+<p>The next rental should spend time on native checks and GPU measurements, not
+repeat the local CPU timing sweep. Scope-specific manifests and stable machine
+identities prevent mismatched jobs from being reused after a selection change.
+CPU reference preparation and exact-result checks remain part of GPU validation.</p>
 <h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
 <ul>
 <li>Recovered portfolio presentation from website revision <code>0f213f4</code>, the parent
@@ -79,6 +87,22 @@ technical articles. Load the theme from source so exports retain it.</p>
   interactive-lesson colors and typography to the restored portfolio.</li>
 <li>Updated website design guidance to preserve the shared theme during export.</li>
 <li>Preserved research content, formula markup, source citations and algorithms.</li>
+</ul>
+<p>Benchmark collection split:</p>
+<ul>
+<li>Added <code>--mode cpu</code> without a CUDA toolkit requirement; its build explicitly
+  disables CUDA and requires the OpenFHE/host gates.</li>
+<li>Added <code>--benchmark-scope gpu|cpu|all</code>, with 280 GPU-only, 140 CPU-only or
+  420 legacy combined jobs in the default workload matrix.</li>
+<li>Rental GPU selection uses the existing five-operation <code>gpu-bench-jsonl</code>
+  protocol and event/copy measurements, retaining exactness/sanitizer gates.</li>
+<li>The rental helper defaults to GPU-only; direct GPU commands keep their
+  combined default. CPU identity supports Linux and macOS with stable fields.</li>
+<li>Resume records only selected executable hashes and relevant hardware policy;
+  mode/scope changes fail before replacing the original report. CPU collection
+  ignores unused GPU binaries and visibility.</li>
+<li>Updated the handoff, tooling guide, README, results next steps and active task.
+  Roadmap gates and arithmetic/kernel code are unchanged.</li>
 </ul>
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
 <p>All 24 documentation unit tests and 14 Node math/interaction tests passed.
@@ -107,18 +131,51 @@ fonts/paper, math, contrast and layout. Desktop and phone screenshots were
 inspected. No page-wide overflow, script errors or failed HTTP responses were
 observed. Portfolio styles/content are unchanged; notebook font/license files
 match the portfolio assets byte for byte.</p>
+<p>Benchmark-split verification so far: 47 tooling tests pass, including all three
+full synthetic job selections, CPU-only no-CUDA behavior, native-gate retention,
+mode/scope resume rejection, CPU retry history, stable CPU identity and malformed
+record/failure propagation. These synthetic controller tests are not GPU runs.</p>
+<p>A real Linux development run using <code>--mode cpu --allow-dirty</code> built the pinned
+OpenFHE configuration and passed all 22 CPU/OpenFHE CTests in 67.17 seconds,
+including the 140-workload CPU protocol gate. Its bounded N=4096/K=1 batch
+collected four native CPU jobs covering 30/50/55/60 bits and reported
+<code>CPU_CHECKS_PASSED</code>, <code>gpu_execution: NOT_RUN</code>. No CUDA tool or executable was
+invoked. This exploratory report records dirty source explicitly; clean-source
+collection/resume verification follows the implementation commit.</p>
+<p>Clean-source verification at implementation commit
+<a href="https://github.com/minnow54426/ntt-gpu/commit/b7334fc8944cbe692f88ef8823542a90e2571e7a"><code>b7334fc</code></a>
+then passed on Linux/AMD EPYC 9V74. All 22 CPU/OpenFHE CTests passed in 71.63
+seconds, and eight N=65536/K=1,40 jobs covered all four prime widths. A real
+resume reran the 22 gates successfully in 67.29 seconds, reused all eight
+hash-validated jobs from attempt 1 without executing another benchmark, and
+retained the prior report and original logs. Changing <code>CUDA_VISIBLE_DEVICES</code>
+for the retry did not invalidate the CPU-only context. Both reports record
+clean source and <code>gpu_execution: NOT_RUN</code>. One warm-up and two samples were
+used only to verify the collector, not to establish a performance comparison.
+The generated record remains in ignored <code>bench-results-cpu-split-clean/</code>.</p>
+<p>All 24 documentation tests and 14 Node interaction/math tests passed. The
+36-page build validates links/fragments; the seven updated pages passed
+28 browser checks at 1440/1024/375/320px for theme, English text, math,
+layout, text contrast, section navigation and search, with no script or HTTP
+errors. Desktop/phone screenshots were inspected. The new selection table
+also passed keyboard horizontal-scrolling checks on phones. The existing
+website theme and all C++ arithmetic/kernel implementations are unchanged.</p>
 <h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">¶</a></h2>
-<p>None for this restoration. Future content publishing should retain the
-established visual design unless the user explicitly requests a redesign.</p>
+<p>None for the visual work. Future content publishing should retain the
+established design unless the user explicitly requests a redesign. For the
+collector, native M1 and new GPU-only session execution remain unverified;
+primary RTX 5090, native failure handling and full profiling gates stay open.</p>
 <h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
 <p>Publish both repositories and verify the restored website on desktop and phone
 layouts. Continue research from the existing roadmap and measured GPU evidence.</p>
 <p>Following the subsequent theme alignment, publish the shared styling and
-verify the live portfolio/notebook match before continuing engineering work.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li></ol></nav></aside>
+verify the live portfolio/notebook match before continuing engineering work.</p>
+<p>For engineering, prepare the resident operation-chain prototype and complete
+remaining native safety/primary RTX 5090 gates on a later paid session.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/03e7f96a237a1b6f6cae73c00daa777eb71f1c8d">03e7f96</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a63f644e585805bcc8009d579b52358ad7002bbd">a63f644</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
