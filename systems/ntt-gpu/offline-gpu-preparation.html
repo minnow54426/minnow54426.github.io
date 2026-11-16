@@ -23,7 +23,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a><a href="batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html" aria-current="page">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="resident-operation-chain.html">Resident operation chain</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a><a href="batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html" aria-current="page">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -35,7 +35,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/a63f644e585805bcc8009d579b52358ad7002bbd/docs/offline-gpu-preparation.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1/docs/offline-gpu-preparation.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><article class="site-article"><h1 id="before-renting-a-gpu">Before renting a GPU<a class="headerlink" href="#before-renting-a-gpu" title="Permanent link">¶</a></h1>
 <p><strong>D11 preparation complete · hardware verification still pending · N=65536</strong></p>
@@ -114,7 +114,7 @@ python3 scripts/gpu_session.py --mode offline \
 and deliberately builds CPU reference tests with CUDA disabled. Its parallelism
 defaults to two jobs; set <code>NTT_BUILD_JOBS</code> if the machine supports more.
 The session runner selects project-local CMake/CTest from <code>.venv/bin</code> when present.</p>
-<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/a63f644e585805bcc8009d579b52358ad7002bbd/scripts/cuda-toolkit-lock.json">toolkit lock</a> records exact upstream
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1/scripts/cuda-toolkit-lock.json">toolkit lock</a> records exact upstream
 components from NVIDIA's CUDA 13.0.2 redistributable manifest. The compiler's
 component version is 13.0.88. Existing matching installs are reused; conflicting
 or incomplete destinations and checksum mismatches fail visibly.</p>
@@ -153,7 +153,7 @@ lifecycle limitation, not an accepted asynchronous backend implementation.</p>
 <p>The compiler-only checks do not implement the <a href="device-backend-contract.html">D9 backend</a>,
 its caches, or the transactional OpenFHE host adapter.</p>
 <h2 id="4-prepared-native-exactness-matrix">4. Prepared native exactness matrix<a class="headerlink" href="#4-prepared-native-exactness-matrix" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/a63f644e585805bcc8009d579b52358ad7002bbd/tests/cuda_openfhe_tests.cpp">The CUDA/OpenFHE test source</a> is registered as
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1/tests/cuda_openfhe_tests.cpp">The CUDA/OpenFHE test source</a> is registered as
 <code>cuda_openfhe_exact</code>. It compares the CUDA wrapper with the independent CPU reference
 and actual OpenFHE <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/poly-impl.h#L454-L474"><code>NativePoly transforms</code></a>/products at N=65536. Its prepared cases
 include:</p>
@@ -169,10 +169,17 @@ include:</p>
 and dense patterns for the four Compute Sanitizer tools. This is a bounded smoke
 scope, not the complete production sanitizer/parameter matrix. All GPU cases are
 compiled but <strong>unrun</strong> in this workspace.</p>
-<p>The existing <code>cuda_oracle_crosscheck</code>, <code>cuda_matches_ref</code> and <code>cuda_verify</code> gates
-remain. Those four arithmetic gates carry the <code>gpu</code> label; the new setup fault
-probe is a fifth GPU-labelled gate, prepared but not yet run. The wrapper-constructor
-preflight is a separate host test and is safe without a driver.</p>
+<p>The current collector requires seven GPU-labelled gates: <code>cuda_verify</code>,
+<code>cuda_matches_ref</code>, <code>cuda_oracle_crosscheck</code>, <code>cuda_openfhe_exact</code>,
+<code>cuda_setup_fault_injection</code>, <code>cuda_benchmark_matrix_exact</code> and
+<code>resident_cuda_exact</code>. The last two cover the later benchmark matrix and
+<a href="resident-operation-chain.html">resident operation-chain prototype</a>. The wrapper
+constructor and resident factory preflights are separate host tests safe without
+a driver. Earlier native results do not validate these subsequent additions.</p>
+<p>Update 2026-11-16: the resident increment passes 24 CPU/OpenFHE CTests and
+26 host CTests in the CUDA-linked build. CUDA 13 compiles both sm_89 and sm_120;
+all seven current GPU gates remain unrun in this workspace. The original
+preparation counts above remain a historical record.</p>
 <h2 id="5-first-session-on-real-hardware">5. First session on real hardware<a class="headerlink" href="#5-first-session-on-real-hardware" title="Permanent link">¶</a></h2>
 <p>Choose an RTX 5090 image for the primary target. An RTX 4090 can establish the
 control run; label it accordingly and leave primary-device evidence open.
@@ -190,7 +197,7 @@ NTT_OPENFHE_PREFIX=&quot;$PWD/build/openfhe-compat/install&quot; \
 <p>The helper no longer performs an implicit git pull or package installation.
 It records the selected commit, hardware/driver/clocks/power data and toolchain,
 requires a native CUDA build plus all OpenFHE/GPU tests, probes the actual device,
-runs the exact suite and four sanitizer tools on legacy and matrix-smoke scopes,
+runs the exact suite and four sanitizer tools on legacy, matrix and resident smoke scopes,
 then collects the 30/50/55/60-bit N=4096–65536, K=1/3/8/16/24/32/40 GPU-only batch
 in two timing scopes (140 workloads, 280 jobs). The helper now defaults to
 <code>--benchmark-scope gpu</code>; request <code>--benchmark-scope all</code> for the previous
@@ -240,7 +247,7 @@ acceptance criteria.</p></article></div><aside class="site-on-this-page" id="sit
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a63f644e585805bcc8009d579b52358ad7002bbd">a63f644</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1">f9d6ceb</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

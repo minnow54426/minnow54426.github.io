@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Restore and share the Sunlit Paper design, then separate GPU rental measurements from local CPU collection with safe resume.">
+<meta name="description" content="Restore Sunlit Paper, separate rental and CPU collection, and prepare a bounded resident NTT chain with host exactness and CUDA compilation checks.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal/2026-11-16.html">
 <title>Restore the website&#x27;s earlier visual design · ntt-gpu</title>
 
@@ -23,7 +23,7 @@
   <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a><a href="../gpu-rental-market-survey.html">GPU rental market</a><a href="../first-native-analysis.html">First GPU run: analysis</a><a href="../batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../offline-gpu-preparation.html">Before renting a GPU</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="../offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../resident-operation-chain.html">Resident operation chain</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a><a href="../gpu-rental-market-survey.html">GPU rental market</a><a href="../first-native-analysis.html">First GPU run: analysis</a><a href="../batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../offline-gpu-preparation.html">Before renting a GPU</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="../offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -35,9 +35,9 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/a63f644e585805bcc8009d579b52358ad7002bbd/docs/journal/2026-11-16.md">View source</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1/docs/journal/2026-11-16.md">View source</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-16">2026-11-16</time><span>Website maintenance / P2 D11 tooling</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="restore-the-websites-earlier-visual-design">Restore the website's earlier visual design<a class="headerlink" href="#restore-the-websites-earlier-visual-design" title="Permanent link">¶</a></h1><p class="site-journal-summary">Restore and share the Sunlit Paper design, then separate GPU rental measurements from local CPU collection with safe resume.</p>
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-16">2026-11-16</time><span>Website maintenance / P2 D11 tooling</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="restore-the-websites-earlier-visual-design">Restore the website's earlier visual design<a class="headerlink" href="#restore-the-websites-earlier-visual-design" title="Permanent link">¶</a></h1><p class="site-journal-summary">Restore Sunlit Paper, separate rental and CPU collection, and prepare a bounded resident NTT chain with host exactness and CUDA compilation checks.</p>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
 <p>Restored the earlier website design from Git history at the user's request.
 The portfolio uses its Sunlit Paper palette, Anton/Space Grotesk typography,
@@ -53,6 +53,11 @@ the website repository's <code>backup/old-website-design</code> branch.</p>
 GPU-only measurement jobs for rentals, an independent CPU-only session mode,
 and explicit combined collection for compatibility. No GPU was rented and
 D11/P2 remains open.</p>
+<p>The next increment implements a bounded resident operation-chain prototype:
+upload two inputs, transform, multiply, inverse and download. The deferred host
+transport passes exact OpenFHE comparisons; the CUDA adapter and matching native
+fixture compile for sm_89 and sm_120. No native execution or speedup is claimed,
+and D11/P2 remains open.</p>
 <h2 id="reasoning">Reasoning<a class="headerlink" href="#reasoning" title="Permanent link">¶</a></h2>
 <p>The November 11 shared blue/white redesign changed the visual identity beyond
 what the user wanted. Restore the presentation from the preceding revisions
@@ -65,6 +70,11 @@ technical articles. Load the theme from source so exports retain it.</p>
 repeat the local CPU timing sweep. Scope-specific manifests and stable machine
 identities prevent mismatched jobs from being reused after a selection change.
 CPU reference preparation and exact-result checks remain part of GPU validation.</p>
+<p>Keep the new runtime separate from the full proposed backend. Immutable fresh
+outputs and one stream make lifetimes and dependencies testable before a paid
+session. Retain queued resources whenever failed submission cannot prove a
+drain; production recovery, cache admission and the OpenFHE adapter remain later
+work. Preserve the website's shared theme when publishing the new article.</p>
 <h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
 <ul>
 <li>Recovered portfolio presentation from website revision <code>0f213f4</code>, the parent
@@ -103,6 +113,23 @@ CPU reference preparation and exact-result checks remain part of GPU validation.
   ignores unused GPU binaries and visibility.</li>
 <li>Updated the handoff, tooling guide, README, results next steps and active task.
   Roadmap gates and arithmetic/kernel code are unchanged.</li>
+</ul>
+<p>Resident-chain increment:</p>
+<ul>
+<li>Added <code>resident.hpp</code>, an internal transport interface and the host runtime:
+  private handle provenance, owned upload/download staging, whole-tower views,
+  implicit/explicit dependencies, per-session budgets and a bounded journal.</li>
+<li>Added a CUDA transport reusing the original kernels on one explicit stream;
+  existing synchronous launcher callers retain their default behavior.</li>
+<li>Added completion retirement, poisoned admission, explicit close and retained
+  resource quarantine when quiescence cannot be proved. Final destructor errors
+  and actual failed-context behavior remain limitations needing native review.</li>
+<li>Added a deferred CPU transport with injection before/after submission and
+  asynchronous failures, a shared full-size OpenFHE fixture, CUDA preflights,
+  required collector gates and a dense resident scope for all four sanitizers.</li>
+<li>Published the <a href="../resident-operation-chain.html">implementation and limits</a>,
+  linked real OpenFHE source, and updated the backlog and next native task.
+  No roadmap phase or hardware gate is closed by this preparation.</li>
 </ul>
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
 <p>All 24 documentation unit tests and 14 Node math/interaction tests passed.
@@ -160,22 +187,53 @@ layout, text contrast, section navigation and search, with no script or HTTP
 errors. Desktop/phone screenshots were inspected. The new selection table
 also passed keyboard horizontal-scrolling checks on phones. The existing
 website theme and all C++ arithmetic/kernel implementations are unchanged.</p>
+<p>Resident-chain verification: all 24 CPU/OpenFHE CTests passed in 69.45 seconds.
+The CUDA-linked build passed all 26 host CTests in 69.76 seconds and compiled
+the native resident fixture for sm_89 and sm_120 using stock CUDA 13.0.88.
+All seven GPU-labelled tests were excluded and remain unrun in this workspace.</p>
+<p>The control suite passes 293 checks, including independent small negacyclic
+convolution, immutable inputs, staging ownership, nested views, dependencies,
+closed/foreign handles, budgets, every synchronous transport step, partial
+enqueue, asynchronous failure, abandoned output and quarantine recovery.
+AddressSanitizer, UndefinedBehaviorSanitizer and leak detection also pass.
+The deferred host transport matches pinned OpenFHE on 4,456,448 residues at
+N=65536 with unsorted 55/50/60-bit primes across zero, bounds, monomial and dense
+patterns, forward, independent inverse, roundtrip, product and tower views.
+Five CUDA-linked factory preflights reject invalid input without a driver.
+All 47 tooling tests pass, including the added resident sanitizer selection.
+These are host, simulation and compiler observations, not CUDA arithmetic results.</p>
+<p>Publication checks: all 24 documentation tests pass; the build validates local
+links and fragments for 37 notebook pages, including 12 journals. Chromium
+passes 224 page/width checks across all 56 website pages at 1440/1024/375/320px
+for English text, rendered math and layout, with no script/HTTP errors. All
+notebook pages pass computed text-contrast checks and retain the shared paper
+palette and fonts. Photo/painting controls, the twiddle calculator, section
+navigation and search also pass. New article desktop/phone screenshots were
+inspected. Publication will pin these pages to the source commit.</p>
 <h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">¶</a></h2>
 <p>None for the visual work. Future content publishing should retain the
 established design unless the user explicitly requests a redesign. For the
 collector, native M1 and new GPU-only session execution remain unverified;
 primary RTX 5090, native failure handling and full profiling gates stay open.</p>
+<p>For the resident runtime, actual device execution, cleanup under a failed CUDA
+context and performance costs remain unverified. Permanent quarantine retains
+resources conservatively; automatic recovery, pooling, cross-stream scheduling,
+thread safety and production adapter/cache behavior are outside this prototype.</p>
 <h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
 <p>Publish both repositories and verify the restored website on desktop and phone
 layouts. Continue research from the existing roadmap and measured GPU evidence.</p>
 <p>Following the subsequent theme alignment, publish the shared styling and
 verify the live portfolio/notebook match before continuing engineering work.</p>
 <p>For engineering, prepare the resident operation-chain prototype and complete
-remaining native safety/primary RTX 5090 gates on a later paid session.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li></ol></nav></aside>
+remaining native safety/primary RTX 5090 gates on a later paid session.</p>
+<p>That prototype is now prepared. Next, run the current seven native gates,
+resident smoke under all four sanitizers, failure checks and profiling on an
+actual RTX 5090. Publish evidence with the source and hardware identity before
+closing D11/P2 or making performance claims.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/a63f644e585805bcc8009d579b52358ad7002bbd">a63f644</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1">f9d6ceb</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
