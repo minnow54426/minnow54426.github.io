@@ -31,13 +31,13 @@
   <header class="site-topbar">
     <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
     <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Plans</div>
-    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
+
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1/docs/offline-test-tooling.md">View source</a></div>
-    <div class="site-reading-layout">
-      <div class="site-page-content"><article class="site-article"><h1 id="prepare-the-next-gpu-session-offline">Prepare the next GPU session offline<a class="headerlink" href="#prepare-the-next-gpu-session-offline" title="Permanent link">¶</a></h1>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/docs/offline-test-tooling.md">View source</a></div>
+    <div class="site-reading-layout site-wide">
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Offline test tooling</h1><ul><li>Run GPU timings on the rental and CPU timings locally.</li><li>Keep fixed inputs, validated raw samples and separate platform provenance.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h1 id="prepare-the-next-gpu-session-offline">Prepare the next GPU session offline<a class="headerlink" href="#prepare-the-next-gpu-session-offline" title="Permanent link">¶</a></h1>
 <p><strong>2026-11-14 · host checks complete; new CUDA code uncompiled/unrun locally</strong></p>
 <p>Freeze update: <a href="https://github.com/minnow54426/ntt-gpu/actions/runs/43599616970">compiler-only CI for f1ecff1</a>
 now passes for <strong>sm_89 and sm_120</strong>, including driverless host checks. Local
@@ -92,7 +92,7 @@ OpenFHE comparator below avoids conflating them.</p>
 input seed/policy, warm-ups, sample count and timing/setup scope. Raw samples
 survive in JSONL, with mean, median and p5/p95 using linear interpolation at
 <code>(count−1)*fraction</code>. Output ends with an explicit completion marker.</p>
-<p>The host-only <a href="https://github.com/minnow54426/ntt-gpu/blob/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1/include/ntt/measurement.hpp">measurement helper</a> is tested
+<p>The host-only <a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/include/ntt/measurement.hpp">measurement helper</a> is tested
 with a fake clock: reset occurs outside timing, each operation sees a reset
 input, warm-up calls are distinct, and percentile/JSON escaping checks pass.
 These tests are not performance observations.</p>
@@ -129,7 +129,7 @@ HEXL or end-to-end CKKS baseline. Library-internal allocations remain included;
 unlike GPU public multiplication it does not include a by-value return copy.</p>
 <h2 id="collector-and-validation">Collector and validation<a class="headerlink" href="#collector-and-validation" title="Permanent link">¶</a></h2>
 <p>The November 16 collector update separates rental GPU measurements from local
-CPU collection. <a href="https://github.com/minnow54426/ntt-gpu/blob/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1/scripts/gpu_session.py">gpu_session.py</a> generates
+CPU collection. <a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/scripts/gpu_session.py">gpu_session.py</a> generates
 parameter vectors at <strong>30, 50, 55 and 60 bits</strong>, all five dimensions above,
 and K=1/3/8/16/24/32/40 towers: <strong>140 workloads</strong>. Select the measurement scopes:</p>
 <div aria-label="Benchmark collection modes and timing scopes" class="site-table-scroll" role="region" tabindex="0">
@@ -182,7 +182,7 @@ no <code>uint32_t</code> specialization or reduced transfer size is claimed.
 It retains <code>benchmark-n65536-k3-b30-public.log</code> and similarly named event/CPU
 JSONL logs, and adds regenerated summaries to <code>report.json</code>. The old <code>bench</code> command
 remains a legacy 46-bit path; the collector no longer uses it.</p>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1/scripts/benchmark_report.py">benchmark_report.py</a> rejects truncated output,
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/scripts/benchmark_report.py">benchmark_report.py</a> rejects truncated output,
 missing operations/samples, wrong scope/width, duplicate indices, nonfinite or
 negative samples, and summaries inconsistent with raw observations. Collector
 failure remains nonzero even if the executable exited zero with malformed
@@ -271,7 +271,7 @@ output and line mappings are enabled in native builds and retained in build logs
 counter analysis, active telemetry, deep CKKS levels and ciphertext batch sweeps
 remain future work. Prepared collection commands do not close D14 or P2.</p>
 <h2 id="shared-allocation-ownership-and-injected-failures">Shared allocation ownership and injected failures<a class="headerlink" href="#shared-allocation-ownership-and-injected-failures" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1/include/ntt/setup_resources.hpp">SetupResources</a> owns the actual constructor's
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/include/ntt/setup_resources.hpp">SetupResources</a> owns the actual constructor's
 six allocations, registers ownership immediately after allocation succeeds,
 and releases acquired pointers in reverse order. Four constant uploads cross
 the same runtime adapter. Host tests use a host-memory adapter through this
@@ -304,11 +304,11 @@ ctest --test-dir build --output-on-failure
 <p>These run real host ownership, timing/statistics and collector/report logic,
 not an emulated GPU arithmetic backend. Historical native results in the
 <a href="journal/2026-11-14.html">session record</a> apply to source 19cc285, <strong>not</strong> the new
-unverified CUDA changes. Keep the primary-device and native failure gates open.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#raw-measurement-protocol">Raw measurement protocol</a></li><li><a href="#resident-events-and-cpu-baseline">Resident events and CPU baseline</a></li><li><a href="#collector-and-validation">Collector and validation</a></li><li><a href="#shared-allocation-ownership-and-injected-failures">Shared allocation ownership and injected failures</a></li><li><a href="#verify-without-renting">Verify without renting</a></li></ol></nav></aside>
+unverified CUDA changes. Keep the primary-device and native failure gates open.</p></article></details></div>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1">f9d6ceb</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/e795f033f741ab95f76e8c6ee993e3f7234a41e3">e795f03</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

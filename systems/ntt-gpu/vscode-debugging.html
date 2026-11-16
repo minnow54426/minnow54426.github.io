@@ -31,13 +31,13 @@
   <header class="site-topbar">
     <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
     <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Learn</div>
-    <button class="site-contents-button" type="button" aria-controls="site-section-nav" aria-expanded="false">Sections</button>
+
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1/docs/vscode-debugging.md">View source</a></div>
-    <div class="site-reading-layout">
-      <div class="site-page-content"><article class="site-article"><h1 id="run-and-debug-the-ntt-in-vs-code">Run and debug the NTT in VS Code<a class="headerlink" href="#run-and-debug-the-ntt-in-vs-code" title="Permanent link">¶</a></h1>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/docs/vscode-debugging.md">View source</a></div>
+    <div class="site-reading-layout site-wide">
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Run &amp; debug</h1><ul><li>Start with the N=8 debug example and step through one butterfly.</li><li>Use the existing VS Code launch configuration; the full instructions are below.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h1 id="run-and-debug-the-ntt-in-vs-code">Run and debug the NTT in VS Code<a class="headerlink" href="#run-and-debug-the-ntt-in-vs-code" title="Permanent link">¶</a></h1>
 <p>Run the N=8 CPU example on macOS, then step through its butterflies in VS Code.
 CUDA hardware is not required.</p>
 <h2 id="one-time-setup">One-time setup<a class="headerlink" href="#one-time-setup" title="Permanent link">¶</a></h2>
@@ -96,11 +96,11 @@ CUDA build is available.</p>
 <p>The recorded CodeLLDB 1.11.4 / LLDB 19.1.7 setup crashed with <code>SIGBUS</code> on
 AppleClang symbols. Xcode <code>lldb-dap</code> stopped correctly at <code>main</code>. If an old
 <code>lldb</code> configuration appears, run <strong>Developer: Reload Window</strong> and select
-the <code>lldb-dap</code> configuration.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#one-time-setup">One-time setup</a></li><li><a href="#run-the-small-example">Run the small example</a></li><li><a href="#debug-it-step-by-step">Debug it step by step</a></li><li><a href="#other-shared-commands">Other shared commands</a></li><li><a href="#codelldb-crash-on-current-macosxcode">CodeLLDB crash on current macOS/Xcode</a></li></ol></nav></aside>
+the <code>lldb-dap</code> configuration.</p></article></details></div>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/f9d6cebf06f2cbd3507e28114f6a000d1959a8d1">f9d6ceb</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/e795f033f741ab95f76e8c6ee993e3f7234a41e3">e795f03</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
