@@ -75,8 +75,8 @@ Edit NTT-GPU source documents rather than the generated website copy.
 All published text and accessible labels use English. On November 16, 2026,
 the historical visual design was restored from Git: the portfolio uses Sunlit
 Paper colors, local Anton/Space Grotesk fonts, photo-filled lettering and
-edge-to-edge photography. The NTT notebook uses its earlier green/paper theme
-with section navigation and an expanded directory. Current research, GPU
+edge-to-edge photography. The NTT notebook shares the same palette and typography,
+with readable math/code, section navigation and an expanded directory. Current research, GPU
 results, native photo viewing and accessible media controls are preserved.
 The current website has 55 HTML pages: 19 portfolio/collection pages and
 36 generated notebook pages. Content updates should preserve this design.

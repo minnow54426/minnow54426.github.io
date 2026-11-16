@@ -15,8 +15,9 @@ November 11 shared blue/white redesign.
   English descriptions and the original image links.
 - Painting folders retain real disclosure buttons, inert collapsed content and
   accessible video controls with the historical card presentation.
-- The NTT notebook restores its earlier green/paper theme, section navigation
-  and expanded page directory. Current English research and GPU results remain.
+- The NTT notebook shares the portfolio's Sunlit Paper colors, Anton headings
+  and Space Grotesk body font. Preserve readable math/code, section navigation
+  and the expanded directory. Current English research and GPU results remain.
 - The 36 NTT pages are generated from `/workspace/ntt-gpu` source. Change the
   source articles and `docs/site-assets`, then export; do not edit generated HTML.
 - Review all 55 pages at desktop and phone widths. Preserve existing publication

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Recover the historical portfolio and notebook styles while preserving current English content and GPU research.">
+<meta name="description" content="Restore the historical portfolio design, then share its Sunlit Paper theme with the NTT notebook while preserving GPU research.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal/2026-11-16.html">
 <title>Restore the website&#x27;s earlier visual design · ntt-gpu</title>
 
@@ -13,6 +13,7 @@
 <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
 <script defer src="../math-rendering.js"></script>
 <link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/sunlit-paper.css">
 <script defer src="../search-index.js"></script>
 <script defer src="../assets/site.js"></script>
 </head>
@@ -34,20 +35,28 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/d40df793f6811c9e7c548b4c186c24bf7d58776e/docs/journal/2026-11-16.md">View source</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/03e7f96a237a1b6f6cae73c00daa777eb71f1c8d/docs/journal/2026-11-16.md">View source</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-16">2026-11-16</time><span>Website maintenance</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="restore-the-websites-earlier-visual-design">Restore the website's earlier visual design<a class="headerlink" href="#restore-the-websites-earlier-visual-design" title="Permanent link">¶</a></h1><p class="site-journal-summary">Recover the historical portfolio and notebook styles while preserving current English content and GPU research.</p>
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-16">2026-11-16</time><span>Website maintenance</span><a href="../journal.html">← All entries</a></div><article class="site-article"><h1 id="restore-the-websites-earlier-visual-design">Restore the website's earlier visual design<a class="headerlink" href="#restore-the-websites-earlier-visual-design" title="Permanent link">¶</a></h1><p class="site-journal-summary">Restore the historical portfolio design, then share its Sunlit Paper theme with the NTT notebook while preserving GPU research.</p>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
 <p>Restored the earlier website design from Git history at the user's request.
 The portfolio uses its Sunlit Paper palette, Anton/Space Grotesk typography,
 photo-filled lettering and full-width photo grids. The research notebook
 returns to its earlier green and paper theme with an expanded page directory.
 Current articles, journals, native GPU results and roadmap state are preserved.</p>
+<p>Later the same day, the user asked to apply the portfolio theme to the NTT-GPU
+pages. The notebook now shares Sunlit Paper backgrounds, burnt-orange and
+forest-green accents, Anton headings and Space Grotesk body text. The earlier
+restoration remains recorded above; the original design is also backed up on
+the website repository's <code>backup/old-website-design</code> branch.</p>
 <h2 id="reasoning">Reasoning<a class="headerlink" href="#reasoning" title="Permanent link">¶</a></h2>
 <p>The November 11 shared blue/white redesign changed the visual identity beyond
 what the user wanted. Restore the presentation from the preceding revisions
 without reverting the repository or losing later engineering work. Keep the
 English text, readable lesson panels, keyboard navigation and current controls.</p>
+<p>The follow-up explicitly requests a common theme. Keep the portfolio's visual
+identity while tuning type sizes, code surfaces, tables and controls for long
+technical articles. Load the theme from source so exports retain it.</p>
 <h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
 <ul>
 <li>Recovered portfolio presentation from website revision <code>0f213f4</code>, the parent
@@ -60,6 +69,16 @@ English text, readable lesson panels, keyboard navigation and current controls.<
 <li>Restored the notebook's green/paper CSS and expanded directory, retaining
   current page destinations, GPU status, source citations and interactive math.</li>
 <li>Retained the later lesson contrast repairs with the historical colors.</li>
+</ul>
+<p>Follow-up theme alignment:</p>
+<ul>
+<li>Added a shared <code>sunlit-paper.css</code> theme and locally hosted Anton/Space Grotesk
+  fonts with their original OFL licenses in the notebook source assets.</li>
+<li>Load the theme on every generated page and in standalone lesson previews.</li>
+<li>Matched sidebar, section navigation, search, journal, table, code and
+  interactive-lesson colors and typography to the restored portfolio.</li>
+<li>Updated website design guidance to preserve the shared theme during export.</li>
+<li>Preserved research content, formula markup, source citations and algorithms.</li>
 </ul>
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
 <p>All 24 documentation unit tests and 14 Node math/interaction tests passed.
@@ -78,16 +97,28 @@ corrected without changing its restored visual design.</p>
 photo image/link inventories and all media files are unchanged. This is a
 presentation change; no new GPU execution or roadmap gate is claimed. Source
 commit, website export and deployment follow these local checks.</p>
+<p>Follow-up verification: all 24 documentation and 14 Node tests passed again.
+The shared theme passed 220 page/width checks across the complete website at
+1440/1024/375/320px, including warm background and Anton/Space Grotesk assertions
+on all 36 notebook pages. Every notebook page passed computed text-contrast
+checks at all four widths after darkening small orange lesson labels. The three
+standalone lesson previews passed nine checks at 1440/375/320px for the shared
+fonts/paper, math, contrast and layout. Desktop and phone screenshots were
+inspected. No page-wide overflow, script errors or failed HTTP responses were
+observed. Portfolio styles/content are unchanged; notebook font/license files
+match the portfolio assets byte for byte.</p>
 <h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">¶</a></h2>
 <p>None for this restoration. Future content publishing should retain the
 established visual design unless the user explicitly requests a redesign.</p>
 <h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
 <p>Publish both repositories and verify the restored website on desktop and phone
-layouts. Continue research from the existing roadmap and measured GPU evidence.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li></ol></nav></aside>
+layouts. Continue research from the existing roadmap and measured GPU evidence.</p>
+<p>Following the subsequent theme alignment, publish the shared styling and
+verify the live portfolio/notebook match before continuing engineering work.</p></article></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#outcome">Outcome</a></li><li><a href="#reasoning">Reasoning</a></li><li><a href="#changes">Changes</a></li><li><a href="#verification">Verification</a></li><li><a href="#open-questions">Open questions</a></li><li><a href="#next-step">Next step</a></li></ol></nav></aside>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/d40df793f6811c9e7c548b4c186c24bf7d58776e">d40df79</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/03e7f96a237a1b6f6cae73c00daa777eb71f1c8d">03e7f96</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
