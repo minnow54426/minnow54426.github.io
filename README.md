@@ -63,8 +63,8 @@ Edit NTT-GPU source documents rather than the generated website copy.
 
 ### Frontend
 - HTML5/CSS3
-- Shared blue/white design system (`assets/css/theme.css`)
-- Locally hosted Newsreader and Source Sans 3 (licenses in `assets/fonts/`)
+- Restored Sunlit Paper design (`assets/css/theme.css`)
+- Locally hosted Anton and Space Grotesk (licenses in `assets/fonts/`)
 - Native dialog photo viewer with arrow-key navigation and focus restoration
 - Keyboard-accessible painting folders and playback controls
 - Font Awesome
@@ -72,12 +72,14 @@ Edit NTT-GPU source documents rather than the generated website copy.
 
 ## Design and language
 
-All published text and accessible labels use English. The portfolio and
-research notebook share a restrained blue/white palette, serif headings,
-and a readable sans-serif body. Photography, mathematical diagrams, and
-painting studies supply the visual content. Navigation stays visible on phones.
-The current website has 49 HTML pages: 19 portfolio/collection pages and
-30 generated notebook pages. Browser review covers 1440, 1024, 375, and 320px.
+All published text and accessible labels use English. On November 16, 2026,
+the historical visual design was restored from Git: the portfolio uses Sunlit
+Paper colors, local Anton/Space Grotesk fonts, photo-filled lettering and
+edge-to-edge photography. The NTT notebook uses its earlier green/paper theme
+with section navigation and an expanded directory. Current research, GPU
+results, native photo viewing and accessible media controls are preserved.
+The current website has 55 HTML pages: 19 portfolio/collection pages and
+36 generated notebook pages. Content updates should preserve this design.
 
 ## Deployment
 

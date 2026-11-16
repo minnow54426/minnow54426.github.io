@@ -1,25 +1,26 @@
 # Current design notes
 
-The active design was updated in November 2026. These notes supersede the
-historical theme and gallery descriptions below:
+The historical visual design was restored on November 16, 2026 at the user's
+request. Preserve this design during content updates; do not reapply the
+November 11 shared blue/white redesign.
 
 - All public text, titles, and accessible labels must be English.
-- `assets/css/theme.css` uses a blue/white palette: #f5f7fa background,
-  #26384b ink, #355a7a accent, #617183 secondary text, #d7dfe7 rules.
-- Local Newsreader headings and Source Sans 3 body fonts live in `assets/fonts/`
-  with OFL licenses. Avoid adding remote font requests.
-- The home page uses a photograph beside a plain serif title. No grain,
-  masked display words, or automatic content reveals are active.
-- All 15 photography pages use the native dialog viewer in `photos/gallery.js`.
-  Keep original image links as the no-JavaScript fallback; preserve Escape,
-  arrow keys, focus trapping, focus restoration, and English accessible names.
-  Legacy jQuery/Poptrox assets are retained on disk but no longer loaded.
-- Painting folder headers are real disclosure buttons with aria-expanded and
-  inert collapsed content. Preserve the IDs used by the existing video script.
-- The 30 NTT pages are generated from `/workspace/ntt-gpu` source. Change the
+- `assets/css/theme.css` restores the Sunlit Paper palette: #efe4cd paper,
+  #2b1d10 ink, #b5421a burnt orange, and #1f5d3e forest green.
+- Local Anton and Space Grotesk fonts live in `assets/fonts/` with OFL licenses.
+  Preserve large display headings, photo-filled lettering and the warm texture.
+- The home page restores the historical full-height wordmark and section art.
+- Photo collections use the historical edge-to-edge grid with the current native
+  dialog in `photos/gallery.js`. Preserve keyboard controls, focus restoration,
+  English descriptions and the original image links.
+- Painting folders retain real disclosure buttons, inert collapsed content and
+  accessible video controls with the historical card presentation.
+- The NTT notebook restores its earlier green/paper theme, section navigation
+  and expanded page directory. Current English research and GPU results remain.
+- The 36 NTT pages are generated from `/workspace/ntt-gpu` source. Change the
   source articles and `docs/site-assets`, then export; do not edit generated HTML.
-- Review all 49 pages at desktop and phone widths. The publication workflow
-  and existing media assets remain in place.
+- Review all 55 pages at desktop and phone widths. Preserve existing publication
+  workflows, media assets, content and measured engineering results.
 
 ---
 
