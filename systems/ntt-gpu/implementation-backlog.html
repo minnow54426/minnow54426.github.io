@@ -35,7 +35,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/fe8379af0dfb9d26827a43165369ccd74f20ba35/docs/implementation-backlog.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/docs/implementation-backlog.md">View source</a></div>
     <div class="site-reading-layout site-wide">
       <div class="site-page-content"><section class="site-article site-brief"><h1>Implementation backlog</h1><ul><li>Verify the native baseline, then build resident NTT, conversion, key switching and the adapter in dependency order.</li><li>Each task records evidence and a completion criterion. Host preparation alone does not complete a native GPU milestone.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="implementation-backlog-after-d10" aria-hidden="true"></div>
 
@@ -95,8 +95,8 @@ provision or rent hardware as part of D10.</p>
 recorded native execution on a machine reporting RTX 4080 SUPER. It is neither
 the primary RTX 5090 nor the planned RTX 4090 control.</p>
 <h3 id="b02-native-build-and-baseline-safety">B02 — native build and baseline safety<a class="headerlink" href="#b02-native-build-and-baseline-safety" title="Permanent link">¶</a></h3>
-<p>Work in <a href="https://github.com/minnow54426/ntt-gpu/blob/fe8379af0dfb9d26827a43165369ccd74f20ba35/include/ntt/cuda_ntt.hpp">cuda_ntt.hpp</a> and
-<a href="https://github.com/minnow54426/ntt-gpu/blob/fe8379af0dfb9d26827a43165369ccd74f20ba35/src/cuda/ntt_kernels.cu">ntt_kernels.cu</a>. Replace raw constructor ownership
+<p>Work in <a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/include/ntt/cuda_ntt.hpp">cuda_ntt.hpp</a> and
+<a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/src/cuda/ntt_kernels.cu">ntt_kernels.cu</a>. Replace raw constructor ownership
 with exception-safe RAII, retain the owning device, use a device guard, and
 validate checked extents and supported canonical inputs before enqueue.
 Resolve compiler/architecture blockers exposed by the first native build.
@@ -110,7 +110,7 @@ separates these scopes.</p>
 <p><strong>Acceptance:</strong> native build and smoke run; injected failures at each allocation
 and constant upload unwind all prior allocations; invalid inputs submit no work;
 normal/destructor cleanup uses the owning device and does not throw. Update the
-<a href="https://github.com/minnow54426/ntt-gpu/blob/fe8379af0dfb9d26827a43165369ccd74f20ba35/tests/docs/test_cuda_dataflow.py">D5 source-contract tests</a> and buffer map to
+<a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/tests/docs/test_cuda_dataflow.py">D5 source-contract tests</a> and buffer map to
 match the actual fix. Static source checks alone cannot complete this item.</p>
 <h3 id="b03-exact-cuda-matrix">B03 — exact CUDA matrix<a class="headerlink" href="#b03-exact-cuda-matrix" title="Permanent link">¶</a></h3>
 <p><strong>Evidence so far:</strong> the older Ada batch passed the direct OpenFHE matrix,
@@ -146,8 +146,8 @@ transfer-inclusive wall time, and explicit synchronization. Add raw samples,
 warm-up, median/p5/p95, workload metadata and <code>ptxas</code> resource reports. Profile
 the strided column pass's sectors/requested byte, L2/DRAM traffic, bank conflicts,
 occupancy, registers/spills and launch gaps.</p>
-<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/fe8379af0dfb9d26827a43165369ccd74f20ba35/scripts/gpu_session.py">session collector</a>, called by the
-<a href="https://github.com/minnow54426/ntt-gpu/blob/fe8379af0dfb9d26827a43165369ccd74f20ba35/scripts/autodl_setup.sh">AutoDL helper</a>, now requires CUDA/OpenFHE coverage,
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/scripts/gpu_session.py">session collector</a>, called by the
+<a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/scripts/autodl_setup.sh">AutoDL helper</a>, now requires CUDA/OpenFHE coverage,
 retains logs and propagates failed stages, including benchmarks. Host
 control-flow tests exercise those failure classifications. Expanded
 batch tests cover partial completion, strict input/scope matching, and hashed
@@ -278,7 +278,7 @@ calendar day's journal together. Leave unexecuted items visibly open.</p></artic
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/fe8379af0dfb9d26827a43165369ccd74f20ba35">fe8379a</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1">06fa951</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
