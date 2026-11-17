@@ -142,7 +142,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/docs/ntt-65536-work-distribution.html">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/c753a41167d1f1f559fcfcd86721533ffe3afb3f/docs/ntt-65536-work-distribution.html">View source</a></div>
     <div class="site-reading-layout site-wide">
       <div class="site-page-content"><section class="site-article site-brief"><h1>65536: work distribution</h1><ul><li>View one tower as a 256×256 array. Columns own the first eight forward stages; rows own the last eight.</li><li>Try block 3 and thread 5 in the explorer. Inverse reverses the passes and scales by the modular inverse of N.</li></ul></section><details class="site-full-notes"><summary>Open interactive lesson</summary><div class="site-legacy">
 <div class="ntt-lesson" id="ntt65536-distribution">
@@ -232,7 +232,7 @@
     </figure>
     <p>In pass 1, adjacent loading threads access global addresses <strong>2048 bytes apart</strong> (256 × 8 bytes), but write adjacent 8-byte entries in shared memory. The scatter reverses this mapping. In pass 2, adjacent threads read and write adjacent 8-byte global entries. Each block loads once, reuses shared memory across all its stages, and stores once.</p>
     <p class="note">Two reads and two writes of the value array give a logical minimum of 4 × N × 8 bytes per forward transform: 2 MiB at N=65536, excluding twiddle/modulus reads and host transfers. This is requested array traffic, <strong>not measured DRAM traffic</strong>. Strided accesses, caches, registers, and occupancy need real-GPU profiling; 128 active butterfly threads out of 256 is not a hardware occupancy measurement.</p>
-    <p class="note">Source map: <a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/src/cuda/ntt_kernels.cu">CUDA kernels and launchers</a> define the grid and gather/scatter; <a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/include/ntt/transform_stage.hpp">the shared stage helper</a> maps threads to pairs and applies the twiddle. Each stage touches every position once.</p>
+    <p class="note">Source map: <a href="https://github.com/minnow54426/ntt-gpu/blob/c753a41167d1f1f559fcfcd86721533ffe3afb3f/src/cuda/ntt_kernels.cu">CUDA kernels and launchers</a> define the grid and gather/scatter; <a href="https://github.com/minnow54426/ntt-gpu/blob/c753a41167d1f1f559fcfcd86721533ffe3afb3f/include/ntt/transform_stage.hpp">the shared stage helper</a> maps threads to pairs and applies the twiddle. Each stage touches every position once.</p>
   </section>
 
   <section id="column-proof">
@@ -259,7 +259,7 @@
     <p>The inverse visits the same pairs in reverse stage order. It selects the reciprocal from the inverse table at the same index m+g. For forward outputs x=a+ζb and y=a−ζb, the inverse butterfly produces:</p>
     <div class="math derivation">\[x+y=2a,\qquad (x-y)\zeta^{-1}=2b\pmod q.\]</div>
     <p>Each stage contributes a factor of two, so the final scaling kernel multiplies by N⁻¹ once. Forward runs columns then rows; inverse runs rows then columns then scaling. The forward output is already in bit-reversed evaluation order, and the inverse consumes that layout directly.</p>
-    <p><a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/src/device_sim.cpp">The schedule simulator</a> shares the CUDA stage helpers and checks forward arrays, independent inverse arrays and products against the CPU reference. With OpenFHE enabled, it also compares forward and independent inverse arrays directly with OpenFHE. These are host checks, not GPU measurements.</p>
+    <p><a href="https://github.com/minnow54426/ntt-gpu/blob/c753a41167d1f1f559fcfcd86721533ffe3afb3f/src/device_sim.cpp">The schedule simulator</a> shares the CUDA stage helpers and checks forward arrays, independent inverse arrays and products against the CPU reference. With OpenFHE enabled, it also compares forward and independent inverse arrays directly with OpenFHE. These are host checks, not GPU measurements.</p>
   </section>
 
   <section id="tile-proof">
@@ -291,7 +291,7 @@
     <p>Each tile loads <code>values[Lb+t]</code> into <code>shared[t]</code>. All threads reach the load barrier and every stage barrier. Threads 0…127 compute butterflies at L=256, while all 256 threads participate in loading/storing and synchronization. The block stores its tile once after the last stage. Within a stage, pair endpoints do not overlap; between stages, the shared-memory barrier makes the preceding writes visible.</p>
     <p>Between passes, scatter must finish before the next gather. Same-stream kernel order provides that boundary. Gather/scatter changes block ownership; it does not transpose the stored array or perform another transform.</p>
     <h3 style="margin-top:24px">5. Executable evidence</h3>
-    <p><a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/tests/tile_mapping_tests.cpp">tile_mapping_check</a> checks the shared pair geometry and the legacy twiddle lookup with tagged inputs. <code>device_schedule_check</code> exercises the default group-twiddle arithmetic on CPU using the same helper as CUDA.</p>
+    <p><a href="https://github.com/minnow54426/ntt-gpu/blob/c753a41167d1f1f559fcfcd86721533ffe3afb3f/tests/tile_mapping_tests.cpp">tile_mapping_check</a> checks the shared pair geometry and the legacy twiddle lookup with tagged inputs. <code>device_schedule_check</code> exercises the default group-twiddle arithmetic on CPU using the same helper as CUDA.</p>
     <p>The same test checks forward and inverse stage lists and per-stage global endpoint coverage at N=65536, plus the small-size boundaries. Existing real-root schedule and inverse-normalization gates remain complementary checks. This is not a CUDA compile, barrier/race check, or GPU performance measurement.</p>
     <pre class="derivation">cmake -S . -B build
 cmake --build build
@@ -453,7 +453,7 @@ ctest --test-dir build --output-on-failure</pre>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1">06fa951</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/c753a41167d1f1f559fcfcd86721533ffe3afb3f">c753a41</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

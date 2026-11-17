@@ -35,7 +35,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/docs/openfhe-hybrid-operation-graph.md">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/c753a41167d1f1f559fcfcd86721533ffe3afb3f/docs/openfhe-hybrid-operation-graph.md">View source</a></div>
     <div class="site-reading-layout site-wide">
       <div class="site-page-content"><section class="site-article site-brief"><h1>Hybrid operation graph</h1><ul><li>Hybrid key switching extends digit arrays from Q to QP, accumulates two key products, then reduces them to Q.</li><li>The order and integer representatives matter. This page has exact CPU comparisons; GPU key switching is still future work.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="openfhe-hybrid-key-switching-the-exact-operation-graph" aria-hidden="true"></div>
 
@@ -50,10 +50,10 @@ Read the <a href="openfhe-representation-contract.html">representation guide</a>
 a tower is one prime-modulus array, and its format determines whether it
 contains coefficients or NTT evaluations. Q is the active data basis; P is
 the auxiliary prime basis used during switching.</p>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/tests/openfhe_hybrid_tests.cpp">The CPU tests</a> compare real OpenFHE PKE
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/c753a41167d1f1f559fcfcd86721533ffe3afb3f/tests/openfhe_hybrid_tests.cpp">The CPU tests</a> compare real OpenFHE PKE
 arrays with an independent unreduced-CRT formula. They establish this graph,
 not a GPU key-switch implementation. Source excerpts are © 2022 OpenFHE,
-under <a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/docs/site-assets/licenses/OpenFHE-BSD-2-Clause.txt">BSD 2-Clause</a>.</p>
+under <a href="https://github.com/minnow54426/ntt-gpu/blob/c753a41167d1f1f559fcfcd86721533ffe3afb3f/docs/site-assets/licenses/OpenFHE-BSD-2-Clause.txt">BSD 2-Clause</a>.</p>
 <h2 id="1-read-the-complete-path">1. Read the complete path<a class="headerlink" href="#1-read-the-complete-path" title="Permanent link">¶</a></h2>
 <p>The ordinary path starts at <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/pke/lib/keyswitch/keyswitch-hybrid.cpp#L295-L298"><code>KeySwitchCore(c,key)</code></a>. Its output is two
 <strong>contributions</strong> in the active Q basis, ordered <strong>B first, A second</strong>.
@@ -463,7 +463,7 @@ modulus/root order and outer/child format. Intermediate conversion states are
 observed by calling the same public primitive separately; the tests do not
 instrument or modify OpenFHE's implementation. Full-core equality checks the
 composition against the independent formulas.</p>
-<p>Run the opt-in gate after <a href="https://github.com/minnow54426/ntt-gpu/blob/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1/scripts/openfhe_setup.sh">installing pinned OpenFHE</a>:</p>
+<p>Run the opt-in gate after <a href="https://github.com/minnow54426/ntt-gpu/blob/c753a41167d1f1f559fcfcd86721533ffe3afb3f/scripts/openfhe_setup.sh">installing pinned OpenFHE</a>:</p>
 <pre><code class="language-sh">cmake -S . -B build/openfhe-compat/ntt-build \
   -DCMAKE_BUILD_TYPE=Release -DNTT_ENABLE_OPENFHE_COMPAT=ON \
   -DCMAKE_PREFIX_PATH=&quot;$PWD/build/openfhe-compat/install&quot;
@@ -512,7 +512,7 @@ performance result, or complete CKKS encryption/decryption integration gate.</p>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/06fa9515a3d0fa6ffc7a976f59eb957f4b973eb1">06fa951</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/c753a41167d1f1f559fcfcd86721533ffe3afb3f">c753a41</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
