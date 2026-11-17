@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Prepare offline and bundle required RTX 5090 work into one rental.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/next-gpu-rental.html">
+<title>Next GPU rental queue · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/sunlit-paper.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Plans</p><a href="next-gpu-rental.html" aria-current="page">Next GPU rental queue</a><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="resident-operation-chain.html">Resident operation chain</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a><a href="batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Plans</div>
+
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/533e6190ca490369155f6f3e4b53efd0a52d45f6/docs/next-gpu-rental.md">View source</a></div>
+    <div class="site-reading-layout site-wide">
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Next GPU rental queue</h1><ul><li>Prepare both NTT builds, resident-chain timing, and CPU basis-conversion fixtures before renting.</li><li>On the 5090, run exactness and sanitizers first, then matched timings and profiling.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="bundle-the-next-rtx-5090-session">Bundle the next RTX 5090 session<a class="headerlink" href="#bundle-the-next-rtx-5090-session" title="Permanent link">¶</a></h2>
+<p><strong>Status: local preparation complete. Run the compiler-only CI matrix before
+provisioning.</strong> The native RTX 5090 gates are still open.</p>
+<ul>
+<li>The paired collector validates separate group-twiddle and legacy builds
+  and matches inputs, device identity, and output records.</li>
+<li>The resident benchmark checks each result against an exact CPU product.
+  The deferred host driver exercises the protocol and labels its output as
+  simulation. The native collector rejects that output.</li>
+<li>The standalone CPU oracle passed pinned OpenFHE ApproxModUp and
+  ApproxModDown at N=65,536 with one through five active Q towers and three P
+  towers. This prepares B09. A GPU base-conversion kernel is outside this
+  rental batch.</li>
+</ul>
+<h2 id="one-rental-ordered-gpu-work">One rental, ordered GPU work<a class="headerlink" href="#one-rental-ordered-gpu-work" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Order</th>
+<th>GPU-only item</th>
+<th>Evidence to bring home</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Preflight the actual RTX 5090, toolkit, driver, and profiler tools</td>
+<td>Device identity, commit, build options and tool versions</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Verify the new default CUDA path and resident chain</td>
+<td>Native exactness against pinned OpenFHE, lifecycle/failure checks, and the three smoke scopes under all four sanitizers</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Verify the legacy control build before timing</td>
+<td>Native exactness and appropriate sanitizer smoke, with separate binary hashes and logs</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Compare legacy versus group twiddles on matched inputs</td>
+<td>Raw paired resident forward/inverse samples first; public-call timings reported separately</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Measure the resident operation chain and capture a selected profile</td>
+<td>End-to-end chain versus an intentionally host-roundtripped chain; device timeline and hardware counters if permitted</td>
+</tr>
+</tbody>
+</table>
+<p>Use a small first timing block: N=4,096 and 65,536; K=3 and 40 towers;
+30- and 60-bit primes. That gives eight shapes per build. Keep geometry,
+reduction, input seed, warmups and sample counts identical. Log clocks during
+the run. Reverse run order in a follow-up repetition if thermal drift affects
+the comparison. Expand to 50/55-bit primes and
+the remaining dimensions only after the required block is saved. The small
+timing block does not replace the full native exactness matrix.</p>
+<h3 id="commands-to-prepare-before-provisioning">Commands to prepare before provisioning<a class="headerlink" href="#commands-to-prepare-before-provisioning" title="Permanent link">¶</a></h3>
+<p>The compiler-only CI matrix builds both schedules for sm_89 and sm_120 with
+no driver. For a local dry run that also links pinned OpenFHE, use a Linux
+host with the toolkit installed:</p>
+<pre><code class="language-sh">python3 scripts/gpu_session.py --mode offline --compare-ntt \
+  --architectures 120 --cuda-root /path/to/cuda \
+  --openfhe-prefix /path/to/openfhe \
+  --build-dir build/ntt-ab-offline --output-dir bench-results-ntt-ab-offline
+</code></pre>
+<p>On the rented GPU, confirm that the selected device is the RTX 5090
+(compute capability 12.0) and that the driver and toolkit work before timing:</p>
+<pre><code class="language-sh">nvidia-smi --query-gpu=index,name,compute_cap,driver_version --format=csv
+nvcc --version
+compute-sanitizer --version
+nsys --version
+ncu --version
+</code></pre>
+<p>In a separate terminal, record clock and temperature readings while the
+collector runs. Stop the clock log when the collector finishes.</p>
+<pre><code class="language-sh">nvidia-smi --query-gpu=timestamp,index,temperature.gpu,clocks.sm,clocks.mem,power.draw \
+  --format=csv -l 2 &gt; bench-results-ntt-ab-5090-clocks.csv
+</code></pre>
+<p>From a clean checkout of the verified revision, use fresh directories for
+the native eight-shape sweep:</p>
+<pre><code class="language-sh">python3 scripts/gpu_session.py --mode gpu --compare-ntt --benchmark \
+  --architectures 120 --cuda-root /path/to/cuda \
+  --openfhe-prefix /path/to/openfhe \
+  --build-dir build/ntt-ab-5090 --output-dir bench-results-ntt-ab-5090 \
+  --benchmark-dimensions 4096 65536 --benchmark-towers 3 40 \
+  --benchmark-prime-bits 30 60 --benchmark-scope gpu-chain \
+  --benchmark-warmups 2 --benchmark-samples 10
+</code></pre>
+<p>Both child runs must pass their exactness and sanitizer gates before their
+own timings. <code>comparison.json</code> only reports matched runs when the two
+manifests agree on the environment and the actual workload records match
+(including the roots and seed). The two sets of raw records stay separate.
+The first run uses the default schedule, the second the legacy schedule.
+They are not interleaved, so order and thermal drift are still confounders.
+Use <code>--ntt-schedule</code> to collect separately controlled repeats or a separate
+profiler capture. The combined command takes fresh directories and does not
+resume or profile. One failed child does not erase the other child's results.</p>
+<h3 id="capture-the-resident-timeline-and-export-evidence">Capture the resident timeline and export evidence<a class="headerlink" href="#capture-the-resident-timeline-and-export-evidence" title="Permanent link">¶</a></h3>
+<p>After the default branch of the paired run passes, reuse its build and
+N=65,536/K=3/60-bit vector. Run the timeline and hardware-counter captures
+independently so a counter permission failure cannot cost the timeline.
+Use fresh output names if you repeat a capture.</p>
+<pre><code class="language-sh">records=bench-results-ntt-ab-5090
+binary=build/ntt-ab-5090/group_twiddle_ct/ntt_resident_bench
+vector=&quot;$records/group_twiddle_ct/benchmark-vector-n65536-k3-b60.txt&quot;
+timeout 180 nsys profile --trace=cuda --sample=none --cpuctxsw=none \
+  --output &quot;$records/resident-timeline&quot; &quot;$binary&quot; &quot;$vector&quot; 1 2 \
+  &gt; &quot;$records/resident-nsys.log&quot; 2&gt;&amp;1 || echo &quot;$?&quot; &gt; &quot;$records/resident-nsys.exit&quot;
+timeout 180 ncu --set basic --launch-count 8 \
+  --export &quot;$records/resident-counters&quot; &quot;$binary&quot; &quot;$vector&quot; 1 2 \
+  &gt; &quot;$records/resident-ncu.log&quot; 2&gt;&amp;1 || echo &quot;$?&quot; &gt; &quot;$records/resident-ncu.exit&quot;
+</code></pre>
+<p>Profile timings stay separate from benchmark samples. On the Linux host,
+move the clock log into the record directory, then archive it:</p>
+<pre><code class="language-sh">mv &quot;$records-clocks.csv&quot; &quot;$records/clocks.csv&quot;
+tar -czf &quot;$records.tar.gz&quot; &quot;$records&quot;
+sha256sum &quot;$records.tar.gz&quot; &gt; &quot;$records.tar.gz.sha256&quot;
+</code></pre>
+<p>Copy both files to the M1 Pro and verify before ending the rental:</p>
+<pre><code class="language-sh">shasum -a 256 -c bench-results-ntt-ab-5090.tar.gz.sha256
+tar -tzf bench-results-ntt-ab-5090.tar.gz &gt; /dev/null
+</code></pre>
+<h2 id="when-to-rent-and-when-to-stop">When to rent, and when to stop<a class="headerlink" href="#when-to-rent-and-when-to-stop" title="Permanent link">¶</a></h2>
+<p>The driverless sm_120 compile is the remaining pre-rental check. Confirm a
+time budget and profiling permissions before provisioning.</p>
+<p>Run correctness before timing. If a required gate fails, save the failure
+evidence and skip timing that build. If counters are unavailable,
+record that limitation separately and continue independent checks or timings.
+End the session after the planned work (or budget cutoff) once raw logs,
+measurements and profiles are copied locally and their hashes verified.
+Review results offline, then choose which NTT path to carry into GPU base
+conversion. See <a href="offline-test-tooling.html">collector details</a> and the
+<a href="openfhe-integration-plan.html">integration roadmap</a>.</p></article></details><p class="site-article site-read-next"><a href="offline-test-tooling.html">Next: Offline test tooling →</a></p></div>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/533e6190ca490369155f6f3e4b53efd0a52d45f6">533e619</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

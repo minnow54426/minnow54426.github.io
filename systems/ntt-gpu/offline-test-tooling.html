@@ -23,7 +23,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="resident-operation-chain.html">Resident operation chain</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a><a href="batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html" aria-current="page">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Plans</p><a href="next-gpu-rental.html">Next GPU rental queue</a><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html" aria-current="page">Offline test tooling</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="resident-operation-chain.html">Resident operation chain</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a><a href="batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -35,7 +35,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/b2dbe2798d975b976043327e22f384b79b9d3b40/docs/offline-test-tooling.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/533e6190ca490369155f6f3e4b53efd0a52d45f6/docs/offline-test-tooling.md">View source</a></div>
     <div class="site-reading-layout site-wide">
       <div class="site-page-content"><section class="site-article site-brief"><h1>Offline test tooling</h1><ul><li>Use GPU-only measurements on the rental and collect the OpenFHE CPU timings locally with matching parameters.</li><li>The collector keeps raw samples, provenance and failures. Resume reuses only matching, hash-checked records and reruns the required gates.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="prepare-the-next-gpu-session-offline" aria-hidden="true"></div>
 
@@ -105,20 +105,24 @@ K=1/3/8/16/24/32/40: <strong>140 workloads</strong>.</p>
 <p>Add <code>--benchmark</code> to collect timings. Direct GPU collector commands default to
 <code>all</code>; the rental helper <code>scripts/autodl_setup.sh</code> defaults to <code>gpu</code>.
 Set <code>--benchmark-scope all</code> or <code>NTT_BENCHMARK_SCOPE=all</code> for a combined rental run.
-GPU-only selection retains untimed reference checks, native exactness and
-requested sanitizers; it excludes only the separate CPU timing-protocol sweep.</p>
+GPU-only selection runs the native CTest group with its OpenFHE references
+and fixtures, followed by the requested sanitizers. Run standalone CPU
+checks and CPU timing on the local host.</p>
 <p>Use <code>--benchmark-dimensions 65536 --benchmark-towers 3 40</code> for a bounded
 batch. Any K from 1 through 40 is selectable; the default samples seven counts.
 Match dimensions, tower counts, widths, warmups and samples across machines.
 Different platforms are not a same-host acceleration comparison.</p>
+<p>Use <code>--benchmark-prime-bits 30 60</code> to limit widths. For the matched default
+versus legacy GPU experiment, use <code>--compare-ntt</code> and the fresh-directory
+commands in the <a href="next-gpu-rental.html">rental queue</a>.</p>
 <p>At 100 samples per operation, the default GPU selection records 154,000 timed
 samples; CPU records 56,000; combined records 224,000. These repeat fixed
 operands, not that many independent random inputs. Thirty-bit primes still use
 <code>uint64_t</code> buffers and arithmetic. Parameter files contain zero placeholders;
 the executables generate the seeded dense operands used for timings.</p>
 <h3 id="validate-and-retain-records">Validate and retain records<a class="headerlink" href="#validate-and-retain-records" title="Permanent link">¶</a></h3>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/b2dbe2798d975b976043327e22f384b79b9d3b40/scripts/gpu_session.py">The collector</a> keeps parameter files, raw JSONL,
-logs, hashes and <code>report.json</code>. <a href="https://github.com/minnow54426/ntt-gpu/blob/b2dbe2798d975b976043327e22f384b79b9d3b40/scripts/benchmark_report.py">The report validator</a>
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/533e6190ca490369155f6f3e4b53efd0a52d45f6/scripts/gpu_session.py">The collector</a> keeps parameter files, raw JSONL,
+logs, hashes and <code>report.json</code>. <a href="https://github.com/minnow54426/ntt-gpu/blob/533e6190ca490369155f6f3e4b53efd0a52d45f6/scripts/benchmark_report.py">The report validator</a>
 rejects missing/truncated samples, duplicate indices, wrong parameters/scopes,
 nonfinite or negative times, and summaries inconsistent with the raw samples.
 A malformed record fails even if the executable exits zero.</p>
@@ -181,11 +185,24 @@ explicit completion marker. Percentiles use linear interpolation at
 <td>Resident forward, inverse, pointwise and product; separate pinned H2D/D2H copies</td>
 </tr>
 <tr>
+<td><code>ntt_resident_bench parameters.txt 2 10</code></td>
+<td>Host-wall time for the device-resident chain, public host boundary, and explicit host-roundtrip control</td>
+</tr>
+<tr>
 <td><code>ntt_openfhe_bench parameters.txt 5 100</code></td>
 <td>Four OpenFHE NativeVector/CRT-FTT CPU operations</td>
 </tr>
 </tbody>
 </table>
+<p>Select <code>--benchmark-scope gpu-chain</code> to add the resident prototype timings
+to the GPU public and CUDA-event records. For the device chain, inputs are
+uploaded once and the timer ends when the coefficient output is ready on the
+device. The exact coefficient check downloads it after the timer. The host
+boundary times both input uploads and the final download. The roundtrip
+control also downloads and re-uploads each intermediate. All three scopes
+include prototype allocations, copies and synchronization inside their measured
+interval. Each checks every result and excludes one-time plan setup. Keep
+warmups and samples at 200 combined or fewer.</p>
 <p>Public GPU calls include validation, guards, transfers and the multiply
 interface's by-value input allocation/copy. Result retention/destruction is
 outside the repeated timer. Last results are checked against the reference
@@ -193,7 +210,7 @@ outside timing; the full exactness suite remains a separate check.
 <code>gpu-bench-jsonl</code> uses <code>host_wall_gpu_public_call</code>; legacy <code>bench-jsonl</code>
 retains its distinct protocol. The old <code>bench</code> command is a 46-bit legacy path
 and is no longer used by the collector.</p>
-<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/b2dbe2798d975b976043327e22f384b79b9d3b40/include/ntt/measurement.hpp">measurement helper</a> has fake-clock tests
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/533e6190ca490369155f6f3e4b53efd0a52d45f6/include/ntt/measurement.hpp">measurement helper</a> has fake-clock tests
 for reset order, warmups, summaries and JSON escaping. They test control logic,
 not performance.</p>
 <h2 id="resident-events-and-cpu-baseline">Resident events and CPU baseline<a class="headerlink" href="#resident-events-and-cpu-baseline" title="Permanent link">¶</a></h2>
@@ -231,7 +248,7 @@ include <code>resident_runtime_host</code> and <code>resident_openfhe_host</code
 <code>resident_cuda_preflight</code> and GPU-labelled <code>resident_cuda_exact</code>.
 Host/compiler success does not close these native gates.</p>
 <h2 id="shared-allocation-ownership-and-injected-failures">Shared allocation ownership and injected failures<a class="headerlink" href="#shared-allocation-ownership-and-injected-failures" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/b2dbe2798d975b976043327e22f384b79b9d3b40/include/ntt/setup_resources.hpp">SetupResources</a> registers each of the
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/533e6190ca490369155f6f3e4b53efd0a52d45f6/include/ntt/setup_resources.hpp">SetupResources</a> registers each of the
 wrapper constructor's six allocations immediately and releases them in reverse
 order. Its four constant uploads use the same adapter boundary. Host tests
 exercise this actual ownership code with a host-memory adapter.</p>
@@ -257,7 +274,7 @@ older results cannot establish correctness of later runtime changes.</p></articl
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/b2dbe2798d975b976043327e22f384b79b9d3b40">b2dbe27</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/533e6190ca490369155f6f3e4b53efd0a52d45f6">533e619</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
