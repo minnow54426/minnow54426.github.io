@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Workload matrix, profiling evidence, and per-device kernel selection.">
+<meta name="description" content="Design fair comparisons before changing kernels or publishing speedups.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/benchmark-tuning-plan.html">
 <title>Benchmarks &amp; tuning · ntt-gpu</title>
 
@@ -35,19 +35,19 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/docs/benchmark-tuning-plan.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/docs/benchmark-tuning-plan.md">View source</a></div>
     <div class="site-reading-layout site-wide">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>Benchmarks &amp; tuning</h1><ul><li>Benchmark dimensions 4,096–65,536, up to 40 prime towers and 30/50/55/60-bit primes.</li><li>Keep public-call, resident-device, transfer and CPU timing scopes separate.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h1 id="gpu-ntt-benchmark-and-tuning-plan">GPU NTT benchmark and tuning plan<a class="headerlink" href="#gpu-ntt-benchmark-and-tuning-plan" title="Permanent link">¶</a></h1>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Benchmarks &amp; tuning</h1><ul><li>Match inputs, widths, tower counts and hardware. Separate setup, public-call, device-event and CPU timing boundaries.</li><li>Tune one major cost at a time, then accept a variant only with exact results and complete-workload measurements.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="gpu-ntt-benchmark-and-tuning-plan">GPU NTT benchmark and tuning plan<a class="headerlink" href="#gpu-ntt-benchmark-and-tuning-plan" title="Permanent link">¶</a></h2>
 <p><strong>Primary target:</strong> NVIDIA RTX 5090 (<code>sm_120</code>)<br>
 <strong>Cross-architecture control:</strong> NVIDIA RTX 4090 (<code>sm_89</code>)<br>
 <strong>Workload target:</strong> OpenFHE 1.6.1 CKKS with Hybrid key switching<br>
 <strong>Primary ring dimension:</strong> <code>65536</code>; regression/benchmark sweep: <code>4096</code>–<code>65536</code></p>
 <p>Choose kernels using exact checks and measured latency or throughput at
 N=65536. Record the GPU, CKKS parameters, batch shape, and transfer boundary.</p>
-<p>The <a href="first-native-analysis.html">first native-run analysis</a> audits the saved
-2026-11-14 Ada diagnostic. Missing raw samples, inverse warm-up/reset, timing
-separation and production-parameter performance are explicit. No measured
-bottleneck or RTX 5090 result is claimed.</p>
+<p>The <a href="batch40-native-analysis.html">full-matrix report</a> records the temporary Ada
+baseline. The <a href="first-native-analysis.html">earlier diagnostic analysis</a> explains
+why its single averaged row was insufficient. Neither supplies an RTX 5090
+result or an accepted hardware-counter bottleneck diagnosis.</p>
 <h2 id="1-implementations-to-compare">1. Implementations to compare<a class="headerlink" href="#1-implementations-to-compare" title="Permanent link">¶</a></h2>
 <p>Each implementation must preserve the same transform convention and pass the
 same exact correctness gates.</p>
@@ -116,31 +116,48 @@ and <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965
 Three-limb synthetic fixtures alone are insufficient.</p>
 <p>The next rental's bounded baseline batch uses all five dimensions, all four
 prime widths, and K=1/3/8/16/24/32/40: <strong>140 workloads</strong>, with separate public
-GPU, resident event/pinned-copy, and OpenFHE CPU jobs (<strong>420 jobs</strong>). Any K from 1 to 40 can
-be selected explicitly; K is primes per polynomial, not ciphertext batch size.
-Defaults are five warm-ups and 100 timed samples per operation. This does not
-yet sweep actual production CKKS parameter sets, ciphertext batches or
-alternative implementations. Thirty-bit
-primes currently use the same <code>uint64_t</code> buffers/arithmetic; this is not a
-specialized <code>uint32_t</code> implementation or a four-byte storage benchmark.
+GPU, resident event/pinned-copy, and OpenFHE CPU jobs (<strong>420 combined jobs</strong>).
+The rental helper defaults to 280 GPU-only jobs; collect the 140 CPU jobs
+locally with the split collector. Select any K from 1 to 40; K counts primes
+per polynomial, not ciphertexts. Defaults are five warmups and 100 samples.</p>
+<p>This baseline does not sweep production CKKS parameter sets, ciphertext
+batches or alternative implementations. Thirty-bit primes use the same
+<code>uint64_t</code> storage/arithmetic; there is no specialized <code>uint32_t</code> kernel or
+four-byte transfer path yet.
 See the <a href="offline-test-tooling.html">batch protocol</a> for restart and timing limits.</p>
 <h2 id="3-gpu-and-kernel-parameters-to-tune">3. GPU and kernel parameters to tune<a class="headerlink" href="#3-gpu-and-kernel-parameters-to-tune" title="Permanent link">¶</a></h2>
-<p>Tune or record all of the following:</p>
-<ul>
-<li>threads per block and blocks per transform;</li>
-<li>values and butterflies per thread;</li>
-<li>radix and number of stages fused per kernel;</li>
-<li>tile/split dimensions and transpose shape;</li>
-<li>register count per thread and register spilling;</li>
-<li>static/dynamic shared memory per block and bank conflicts;</li>
-<li>active blocks and warps per SM;</li>
-<li>warp-shuffle versus shared-memory exchange boundaries;</li>
-<li>twiddle layout, Shoup table layout, and on-the-fly twiddle generation;</li>
-<li>lazy-reduction range and reduction frequency;</li>
-<li>RNS limb, ciphertext, and operation batch layout;</li>
-<li>CUDA stream count, asynchronous copies, and CUDA Graph replay;</li>
-<li>scratch-buffer reuse and allocator behavior.</li>
-</ul>
+<p>Group experiments by the cost they change:</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Variables to test or record</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Thread work</td>
+<td>Block size, butterflies/values per thread, radix, register staging and spills</td>
+</tr>
+<tr>
+<td>Memory</td>
+<td>Split/transpose shape, shared-memory padding, bank conflicts, warp exchange and coalescing</td>
+</tr>
+<tr>
+<td>Arithmetic</td>
+<td>Shoup/Barrett policy, lazy range, reduction frequency and twiddle representation</td>
+</tr>
+<tr>
+<td>Workload</td>
+<td>RNS tower layout, ciphertext/digit batch layout and active blocks/warps</td>
+</tr>
+<tr>
+<td>Runtime</td>
+<td>Streams, allocation/scratch reuse, asynchronous copies and CUDA Graph replay</td>
+</tr>
+</tbody>
+</table>
+<p>Change one major factor at a time before combining winners.</p>
 <p>Retain <code>ptxas -v</code> reports and Nsight occupancy. Select by end-to-end performance,
 not register count alone.</p>
 <h2 id="4-measurements">4. Measurements<a class="headerlink" href="#4-measurements" title="Permanent link">¶</a></h2>
@@ -207,11 +224,11 @@ comparison tables.</p>
 <li>Full Hybrid key-switch and inference results accompany NTT microbenchmarks.</li>
 <li>The HTML explainer identifies which schedule is the correctness baseline and
   which implementation the tuner selected for each workload class.</li>
-</ul></article></details></div>
+</ul></article></details><p class="site-article site-read-next"><a href="offline-test-tooling.html">Next: Offline test tooling →</a></p></div>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/e795f033f741ab95f76e8c6ee993e3f7234a41e3">e795f03</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/65af78ecfc20faa6dbb32d3f87032a8267500f68">65af78e</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

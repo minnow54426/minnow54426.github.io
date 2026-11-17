@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="D6: canonical residues, overflow proofs, bigint checks, full-size adversarial cases, and remaining exactness gates.">
+<meta name="description" content="Understand safe integer ranges and the tests that check exact arithmetic.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/modular-arithmetic-contract.html">
 <title>Arithmetic bounds &amp; tests · ntt-gpu</title>
 
@@ -35,15 +35,20 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/docs/modular-arithmetic-contract.md">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/docs/modular-arithmetic-contract.md">View source</a></div>
     <div class="site-reading-layout site-wide">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>Arithmetic bounds &amp; tests</h1><ul><li>Keep residues canonical and prove overflow bounds before changing a reduction routine.</li><li>Check arithmetic against a bigint oracle and compare transforms exactly.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h1 id="modular-arithmetic-bounds-and-exactness-gates">Modular arithmetic: bounds and exactness gates<a class="headerlink" href="#modular-arithmetic-bounds-and-exactness-gates" title="Permanent link">¶</a></h1>
-<p>D6 connects the butterfly formulas to the integer operations they actually
-execute. The current target is <strong>N=65536, with 50–60-bit prime towers stored
-in uint64_t</strong>. This is a correctness contract, not a GPU performance result.</p>
-<p>Read <a href="cuda-buffer-dataflow.html">the buffer/dataflow map</a> first for where the
-arrays live. The implementation is in <a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/include/ntt/mod_arith.hpp">mod_arith.hpp</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/include/ntt/ntt.hpp">ntt.hpp</a>, and <a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/include/ntt/dev_core.hpp">dev_core.hpp</a>.</p>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Arithmetic bounds &amp; tests</h1><ul><li>Canonical means a value from 0 to q−1. Each current butterfly keeps that range.</li><li>A 60-bit value fits in uint64_t, but its product needs a wider temporary. Independent bigint checks test these operations.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="modular-arithmetic-bounds-and-exactness-gates" aria-hidden="true"></div>
+
+<h2 id="keep-every-modular-operation-exact">Keep every modular operation exact<a class="headerlink" href="#keep-every-modular-operation-exact" title="Permanent link">¶</a></h2>
+<p>For a prime q, a <strong>canonical residue</strong> is an integer from 0 to q−1. For example,
+−1 is stored as 16 modulo 17. Every butterfly in this implementation starts
+and ends with canonical values.</p>
+<p>The main target is N=65536 with 50–60-bit primes in <code>uint64_t</code>. A 60-bit
+value fits in that type; multiplying two such values does not. This page
+explains the temporary widths, input assumptions and independent checks.
+Read the <a href="cuda-buffer-dataflow.html">buffer map</a> for where arrays live.
+Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/include/ntt/mod_arith.hpp">mod_arith.hpp</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/include/ntt/ntt.hpp">ntt.hpp</a> and <a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/include/ntt/dev_core.hpp">dev_core.hpp</a>.</p>
 <h2 id="1-what-callers-must-supply">1. What callers must supply<a class="headerlink" href="#1-what-callers-must-supply" title="Permanent link">¶</a></h2>
 <p>Canonical means an integer in <span class="site-math">\([0,q)\)</span>. None of the hot arithmetic functions
 validates this range at runtime.</p>
@@ -91,10 +96,11 @@ and the same primitive 2N-th root ψ as the comparison implementation. At the
 target N, <span class="site-math">\(2N=131072\)</span> and q&gt;N. Forward consumes canonical coefficients in
 natural order; inverse consumes canonical evaluations in bit-reversed order.
 There is no Montgomery representation or lazy residue format in this code.</p>
-<p>The constructor checks size shape, divisibility and <span class="site-math">\(\psi^N=q-1\)</span>, but <strong>does not
-test primality or the advertised modulus-width limit</strong>. Public array methods
-check length, not residue bounds. Trusted parameter selection and canonical
-input are caller obligations today, not rejection guarantees.</p>
+<p>The raw CPU <code>NegacyclicNtt</code> constructor checks size, divisibility and
+ψᴺ=q−1, but assumes primality and the documented width. Its array methods
+check length, not residue bounds. The <a href="cuda-buffer-dataflow.html">CUDA wrapper</a>
+and resident runtime add their own validation; do not assume the raw hot
+arithmetic functions reject invalid inputs.</p>
 <h2 id="2-why-intermediates-fit">2. Why intermediates fit<a class="headerlink" href="#2-why-intermediates-fit" title="Permanent link">¶</a></h2>
 <p>For canonical a,b:</p>
 <ul>
@@ -142,7 +148,7 @@ that comment without changing the algorithms. <code>__uint128_t</code> remainder
 the correctness baseline. Its CUDA lowering and cost must be checked in a
 native build/profile, not inferred as one hardware division instruction.</p>
 <h2 id="4-executable-adversarial-coverage">4. Executable adversarial coverage<a class="headerlink" href="#4-executable-adversarial-coverage" title="Permanent link">¶</a></h2>
-<p>Two new gates run in the normal CPU CTest suite:</p>
+<p>Two gates run in the normal CPU CTest suite:</p>
 <table>
 <thead>
 <tr>
@@ -186,8 +192,8 @@ cmake --build build -j 8
 ctest --test-dir build --output-on-failure
 ctest --test-dir build -R 'arithmetic_' -V
 </code></pre>
-<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/tests/arithmetic_contract_tests.cpp">C++ probe and full-size tests</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/tests/oracle/test_arithmetic.py">independent primitive oracle</a>.</p>
+<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/tests/arithmetic_contract_tests.cpp">C++ probe and full-size tests</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/tests/oracle/test_arithmetic.py">independent primitive oracle</a>.</p>
 <h2 id="5-exactness-ladder-do-not-substitute-one-gate-for-another">5. Exactness ladder: do not substitute one gate for another<a class="headerlink" href="#5-exactness-ladder-do-not-substitute-one-gate-for-another" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -226,7 +232,7 @@ ctest --test-dir build -R 'arithmetic_' -V
 <tr>
 <td>Native CUDA oracle/reference gates (when CUDA is available)</td>
 <td>Actual kernel outputs versus reference/oracle</td>
-<td>Must be run on named hardware; not verified on this Mac</td>
+<td>Run on named hardware; see the dated Ada report for exercised cases</td>
 </tr>
 </tbody>
 </table>
@@ -241,7 +247,7 @@ for these exact per-index comparisons.</p>
 <li><strong>P2/P3, real GPU:</strong> repeat the 50/55/60-bit patterns through actual kernels,
   compare each forward/inverse/pointwise result and canonical range, then run
   compute-sanitizer race/memory checks and test launch failures. CPU success
-  does not establish nvcc support, device reduction correctness, or timing.</li>
+  does not establish device reduction correctness or timing for a new variant.</li>
 <li><strong>API hardening:</strong> D9/D10 define the contracts. Later
   <a href="offline-gpu-preparation.html">offline preparation</a> adds baseline rejection of
   noncanonical residues, invalid roots, composite moduli, unsafe dimensions
@@ -266,11 +272,11 @@ of a hardened production API or GPU/OpenFHE integration. The
 <a href="openfhe-hybrid-operation-graph.html">D8 Hybrid graph</a> and
 <a href="device-backend-contract.html">D9 buffer/stream/cache contract</a> are complete.
 <a href="architecture-decision.html">D10's ADR</a> closes P1's design gate; native hardening
-and implementation are tracked in the <a href="implementation-backlog.html">backlog</a>.</p></article></details></div>
+and implementation are tracked in the <a href="implementation-backlog.html">backlog</a>.</p></article></details><p class="site-article site-read-next"><a href="openfhe-representation-contract.html">Next: OpenFHE representation →</a></p></div>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/e795f033f741ab95f76e8c6ee993e3f7234a41e3">e795f03</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/65af78ecfc20faa6dbb32d3f87032a8267500f68">65af78e</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

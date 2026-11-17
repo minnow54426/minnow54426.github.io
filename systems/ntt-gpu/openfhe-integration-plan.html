@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="The tracked 95-working-day plan through exact OpenFHE Hybrid integration.">
+<meta name="description" content="Track completed evidence, the current native gate and later integration phases.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/openfhe-integration-plan.html">
 <title>Integration roadmap · ntt-gpu</title>
 
@@ -35,18 +35,22 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/docs/openfhe-integration-plan.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/docs/openfhe-integration-plan.md">View source</a></div>
     <div class="site-reading-layout site-wide">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>Integration roadmap</h1><ul><li>The sequence is NTT → base conversion → Hybrid key switching → OpenFHE integration.</li><li>Keep the temporary Ada baseline separate from the pending RTX 5090 acceptance gate.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h1 id="ckks-gpu-to-openfhe-integration-plan">CKKS GPU-to-OpenFHE integration plan<a class="headerlink" href="#ckks-gpu-to-openfhe-integration-plan" title="Permanent link">¶</a></h1>
-<p><strong>Target:</strong> OpenFHE 1.6.1 CKKS with Hybrid key switching<br>
-<strong>Primary arithmetic:</strong> 30/50/55/60-bit RNS benchmark primes stored in <code>uint64_t</code>, with
-<code>uint32_t</code> indexing/control paths where safe<br>
-<strong>Ring dimension:</strong> primary <code>65536</code>; baseline sweep <code>4096</code>–<code>65536</code><br>
-<strong>Estimate:</strong> 95 planned working days + 15 risk-reserve days<br>
-<strong>Last updated:</strong> 2026-11-16 (Asia/Shanghai)</p>
-<p>Follow the live tracker, then open the phase you need from the section sidebar.
-The sequence is NTT → base conversion → Hybrid key switching → OpenFHE.
-Update this tracker only when a deliverable passes its gate.</p>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Integration roadmap</h1><ul><li>The order is NTT → base conversion → Hybrid key switching → OpenFHE. Working-day labels are milestones, not calendar dates.</li><li>D11/P2 remains open: the temporary Ada baseline is measured, while primary RTX 5090 and remaining runtime/profiling acceptance are pending.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="ckks-gpu-to-openfhe-integration-plan" aria-hidden="true"></div>
+
+<h2 id="roadmap-to-openfhe-integration">Roadmap to OpenFHE integration<a class="headerlink" href="#roadmap-to-openfhe-integration" title="Permanent link">¶</a></h2>
+<p>Build in this order: <strong>NTT → base conversion → Hybrid key switching → OpenFHE</strong>.
+NTT accelerates polynomial multiplication. Base conversion changes the set of
+prime moduli; Hybrid key switching combines those operations to change a
+ciphertext's key representation.</p>
+<p>The estimate is <strong>95 working days plus 15 reserve days</strong>. D labels a working-day
+milestone and P labels a phase; neither is a calendar date or a continuous
+rental period. Preparation may happen early, but a phase closes only after its
+acceptance checks pass.</p>
+<p>Target OpenFHE 1.6.1, N=65536, RTX 5090 primary and RTX 4090 control. Baseline
+benchmarks also span N=4096–65536 and 30/50/55/60-bit primes in <code>uint64_t</code>.
+Last reviewed: 2026-11-17 (Asia/Shanghai).</p>
 <h2 id="live-tracker">Live tracker<a class="headerlink" href="#live-tracker" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -177,7 +181,7 @@ the fixed generated key is part of the test input. The concrete upstream path is
 <li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> Exact public OpenFHE 1.6.1 transform compatibility for all target <code>N</code>.</li>
 <li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> RTX 4090/5090 build targets and rented-GPU setup script.</li>
 <li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> Benchmark and tuning methodology.</li>
-<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Execution of CUDA gates on real hardware; this belongs to P2.</li>
+<li class="site-task"><input type="checkbox" disabled aria-label="Task status"> Primary-device native acceptance; tracked separately in P2.</li>
 </ul>
 <h2 id="p1-contract-and-architecture-freeze-d1d10">P1 — contract and architecture freeze (D1–D10)<a class="headerlink" href="#p1-contract-and-architecture-freeze-d1d10" title="Permanent link">¶</a></h2>
 <p><strong>Status: DONE.</strong> <a href="architecture-decision.html">ADR 0001</a> accepts the contracts
@@ -243,82 +247,21 @@ and implementation backlog; native runtime gates remain in later phases.</p>
 </tr>
 </tbody>
 </table>
-<p>D1 complete: the <a href="ntt-65536-work-distribution.html">interactive work-distribution map</a>
-covers N=65536, gather/scatter and shared-memory indices, launch geometry,
-active thread ranges, and requested memory-access patterns. This is a source
-analysis and CPU-schedule check, not evidence of real-GPU correctness or speed.</p>
-<p>D2 complete: the same page's <a href="ntt-65536-work-distribution.html#column-proof">column proof</a>
-derives CPU group/offset equivalence, both global exponents, coverage, bounds,
-and three worked examples. <code>column_mapping_check</code> runs the production stage
-body with two tagged-table probes for every column butterfly at N=65536;
-the separate schedule gate checks real-root arrays. Real-GPU validation is
-still a P2 deliverable.</p>
-<p>D3 complete: the <a href="ntt-65536-work-distribution.html#inverse-proof">inverse proof</a>
-derives the factor of 2 per butterfly and final N-inverse normalization,
-documents row→column→scale ordering, and provides worked examples.
-<code>inverse_column_check</code> probes every inverse column pair and inactive thread
-at N=65536, then checks real-root stage composition and full normalization
-for two 46-bit primes. These are CPU-side checks of shared helpers,
-not actual GPU execution.</p>
-<p>D4 complete: the <a href="ntt-65536-work-distribution.html#tile-proof">row-kernel and coverage proof</a>
-derives tile-local/global group equivalence and global twiddle exponents,
-proves the far/near stage partition and legal block-local stage fusion, and
-provides worked examples. <code>tile_mapping_check</code> probes every near-stage pair
-in both directions at N=65536 and checks stage/endpoint coverage
-for N=65536 plus N=2,64,256,512. Hardware races and CUDA
-launch behavior remain P2 work.</p>
-<p>D5 complete: <a href="cuda-buffer-dataflow.html">CUDA buffers and dataflow</a> maps the
-constructor, all six device allocations, normal destruction, per-method
-copies, launch composition, representation ownership and missing integration
-contracts. Static source checks pin this map and byte-count arithmetic; they
-are not CUDA-runtime tests. D5 identified a raw-Impl constructor exception gap.
-Later <a href="offline-gpu-preparation.html">offline preparation</a> changes it to unique
-ownership, adds device guards and checks host inputs, and compiles the wrapper.
-Native failure-path verification and the production resident runtime remain open.</p>
-<p>D6 complete: <a href="modular-arithmetic-contract.html">Arithmetic bounds and tests</a>
-records canonical-range induction, integer-width bounds, parameter preconditions,
-the exactness ladder and deferred adversarial cases. Two CPU gates compare
-14,956 primitive results against Python big integers and exercise six patterns
-in both transform directions plus a closed-form negacyclic product at N=65536
-with 50/55/60-bit primes. The multiplication-count comment is corrected;
-arithmetic algorithms are unchanged. Native GPU and invalid-input hardening
-remain explicit later gates, not evidence claimed by this review.</p>
-<p>D7 complete: the <a href="openfhe-representation-contract.html">OpenFHE representation contract</a>
-traces pinned NativePoly/DCRTPoly format conversion, exact odd-root evaluation
-indices, minimum-root selection and its cache constraint, canonical residues,
-ordered tower packing/import, and active-prefix behavior. A new opt-in core-only
-gate checks full-size formulas and three-tower operations with 50/55/60-bit
-primes against OpenFHE 1.6.1. The OpenFHE-enabled Release suite passes 14 tests
-on this Linux CPU environment. No CUDA execution or Hybrid rounding graph is
-claimed by that D7 result. D8 and D10's later architecture acceptance are documented below.</p>
-<p>D8 complete: the <a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a>
-traces digit splitting, partial partitions, coefficient/evaluation transitions,
-noncanonical approximate CRT, full-key P offsets at reduced levels, B/A MAC
-ordering, exact CKKS ModDown, wrapper updates, and delayed QP operations.
-<code>openfhe_hybrid_graph</code> checks 18 full-size cases and 117,571,584 residue
-comparisons against independent unreduced-CRT and scalar formulas, including
-real generated keys and negative alternatives. The opt-in Release suite now
-has 15 CPU tests. Rotation automorphisms and higher-degree relinearization are
-source-traced but remain later end-to-end gates; production matrix coverage,
-GPU execution and performance are not claimed.</p>
-<p>D9 complete: the <a href="device-backend-contract.html">device backend contract</a> proposes
-immutable parameter snapshots, checked whole-tower views, device/session and
-generation identities, explicit stream/event dependencies, pinned resource
-lifetimes, cache identities, and an opt-in transactional DCRT format adapter.
-The portable metadata prototype is checked by <code>backend_contract_check</code> and a
-bridge to actual D8 OpenFHE output/key parameters. The opt-in Release suite
-has 16 CPU tests. Abstract interfaces compile without a CUDA dependency;
-CUDA resource management, event execution, caches and the adapter are not
-implemented. D10's acceptance is recorded below.</p>
-<p>D10 complete: <a href="architecture-decision.html">ADR 0001</a> accepts the D7–D9 behavioral
-contracts and the <a href="implementation-backlog.html">dependency-ordered implementation backlog</a>.
-It freezes the explicit DCRT adapter, validated no-op and preflight-only fallback,
-immutable outputs, registry/lease ownership, partial-submission quarantine,
-separate configurable memory budgets and fail-fast admission. The review accepts
-P1's architecture; it does not promote the abstract API to a runtime backend.
-The existing CUDA constructor gap, native build, exactness, profiling and all
-later implementation gates remain open backlog items. D11 is next; P2 has not
-started because a native GPU environment has not been provisioned here.</p>
+<p>Completed evidence is documented in the linked lessons and dated journal:</p>
+<ul>
+<li>D1–D4: <a href="ntt-65536-work-distribution.html">block/thread mapping and stage proofs</a>,
+  with exhaustive CPU probes of shared CUDA stage helpers.</li>
+<li>D5–D6: <a href="cuda-buffer-dataflow.html">buffer/copy map</a> and
+  <a href="modular-arithmetic-contract.html">integer bounds</a>, including bigint tests.</li>
+<li>D7: <a href="openfhe-representation-contract.html">OpenFHE roots, formats and tower packing</a>.</li>
+<li>D8: <a href="openfhe-hybrid-operation-graph.html">Hybrid graph</a>, with 18 CPU cases and
+  117,571,584 residue comparisons.</li>
+<li>D9–D10: <a href="device-backend-contract.html">checked backend metadata</a>, the
+  <a href="architecture-decision.html">accepted ADR</a> and <a href="implementation-backlog.html">implementation tasks</a>.</li>
+</ul>
+<p>These complete P1's design work. They do not replace native CUDA lifetime,
+failure, exactness or performance checks. Historical test counts and intermediate
+tracker states remain in the <a href="journal/2026-11-12.html">journal</a>.</p>
 <p>P1 exit gate:</p>
 <ul>
 <li class="site-task"><input type="checkbox" disabled checked aria-label="Task status"> NTT/DCRT (D7) and Hybrid (D8) representation, ordering, and active-tower transitions are explicit.</li>
@@ -332,24 +275,20 @@ started because a native GPU environment has not been provisioned here.</p>
   observable acceptance criteria and explicit remaining runtime gates.</li>
 </ul>
 <h2 id="p2-first-real-gpu-baseline-d11d15">P2 — first real GPU baseline (D11–D15)<a class="headerlink" href="#p2-first-real-gpu-baseline-d11d15" title="Permanent link">¶</a></h2>
-<p><a href="journal/2026-11-14.html">First native diagnostic, 2026-11-14</a>: the supplied
-machine reports RTX 4080 SUPER/compute 8.9. All 23 native CTests and four
-sanitizer smoke tools passed, with a saved 46-bit transfer-inclusive sample.
-This is additional Ada evidence, not the planned RTX 5090 primary or RTX 4090
-control. D11's primary-device gate and B02/B04's failure/profiling gates remain
-open; the working-day tracker does not advance automatically.</p>
-<p><a href="first-native-analysis.html">Offline analysis</a> audits this sample's exactness
-scope and measurement limitations. Next prepare raw samples, matched input
-protocols and failure injection before another rental. No measured bottleneck
-or completed B04/D15 acceptance is claimed from the existing averaged row.</p>
-<p><a href="offline-test-tooling.html">Offline tooling</a> now implements the host protocol,
-strict JSONL validation and shared ownership failure tests. New CUDA code and
-the native setup probe remain uncompiled/unrun locally; existing native evidence
-applies only to 19cc285. B02/B04 and the working-day gate remain open.</p>
-<p><a href="offline-gpu-preparation.html">Offline preparation is complete</a>: stock nvcc builds
-sm_89/sm_120 binaries, 19 host/OpenFHE CTests pass with GPU tests excluded, and
-the native fixture/collection path is prepared. This starts P2 preparation but
-does not complete D11's actual GPU environment record or any later native gate.</p>
+<p>The <a href="batch40-native-analysis.html">November 14 temporary Ada batch</a> passed 29
+native CTests, eight sanitizer runs and 280 GPU timing jobs. A separate M1 Pro
+baseline covered 140 CPU jobs. The reported GPU was RTX 4080 SUPER/compute 8.9,
+not the primary RTX 5090 or planned RTX 4090 control. Hardware counters were
+blocked by the provider.</p>
+<p>Later <a href="offline-gpu-preparation.html">offline preparation</a> and the
+<a href="resident-operation-chain.html">resident-chain prototype</a> pass host tests and
+sm_89/sm_120 compilation. Native execution of the new runtime, primary-device
+acceptance, actual driver/context failure handling and full profiling remain
+open. Existing results establish only their recorded source and workload.</p>
+<p>Next session: run the current native checks, resident sanitizer scope and
+per-pass profiling on an actual RTX 5090. Use the
+<a href="offline-test-tooling.html#collector-and-validation">split collector</a> for GPU-only
+measurements and collect the CPU baseline locally.</p>
 <table>
 <thead>
 <tr>
@@ -386,12 +325,10 @@ does not complete D11's actual GPU environment record or any later native gate.<
 </tr>
 </tbody>
 </table>
-<p>Follow <a href="implementation-backlog.html#2-p2-establish-the-native-baseline">backlog B01–B04</a>.
-Constructor RAII, device ownership and input-validation blockers must be fixed
-and fault-tested before the native baseline is accepted. The updated collector
-requires CUDA/OpenFHE coverage and propagates stage failures. Its 46-bit
-transfer-inclusive benchmark still does not replace 50–60-bit performance,
-CUDA-event timing or Nsight collection.</p>
+<p><a href="implementation-backlog.html#2-p2-establish-the-native-baseline">B01–B04</a> define
+the acceptance criteria. Native ownership/failure tests and exact arrays must
+pass before accepting timings. Event timings and a captured timeline are useful,
+but do not replace the missing memory-sector, L2/DRAM and occupancy evidence.</p>
 <p>Minimum cases: zero, one, <code>q-1</code>, alternating bounds, deterministic random,
 forward, inverse, round-trip, evaluation-domain inverse, and polynomial
 multiplication. Record 50-, 55-, and 59/60-bit OpenFHE-compatible primes.</p>
@@ -779,6 +716,8 @@ cache-budget and admission rules. Production integration remains a P8 gate.</p>
 P8 is green; it is a separate plan covering model operators, rescaling,
 rotations, graph scheduling, accuracy, and end-to-end latency.</p>
 <h2 id="progress-log">Progress log<a class="headerlink" href="#progress-log" title="Permanent link">¶</a></h2>
+<details>
+<summary>Dated milestones and their original evidence</summary>
 <table>
 <thead>
 <tr>
@@ -880,11 +819,12 @@ rotations, graph scheduling, accuracy, and end-to-end latency.</p>
 <td><a href="journal/2026-11-14.html">Native session</a>; local <code>report.json</code>: <code>GPU_CHECKS_PASSED</code></td>
 </tr>
 </tbody>
-</table></article></details></div>
+</table>
+</details></article></details><p class="site-article site-read-next"><a href="implementation-backlog.html">Next: Implementation backlog →</a></p></div>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/e795f033f741ab95f76e8c6ee993e3f7234a41e3">e795f03</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/65af78ecfc20faa6dbb32d3f87032a8267500f68">65af78e</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

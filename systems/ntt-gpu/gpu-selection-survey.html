@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Compare hardware for exact u32/u64 modular arithmetic and CKKS workloads.">
+<meta name="description" content="Choose hardware using modular arithmetic, memory and complete-workload measurements.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/gpu-selection-survey.html">
 <title>Choosing the GPU · ntt-gpu</title>
 
@@ -35,11 +35,12 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/docs/gpu-selection-survey.md">View source</a></div>
+    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/docs/gpu-selection-survey.md">View source</a></div>
     <div class="site-reading-layout site-wide">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>Choosing the GPU</h1><ul><li>Select hardware for integer modular arithmetic, memory behavior and profiling access.</li><li>RTX 5090 is the target; the temporary Ada run does not rank it against other GPUs.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h1 id="choosing-a-gpu-for-ckks">Choosing a GPU for CKKS<a class="headerlink" href="#choosing-a-gpu-for-ckks" title="Permanent link">¶</a></h1>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Choosing the GPU</h1><ul><li>RTX 5090 is the primary target and RTX 4090 the planned control. Larger cards need a measured capacity or performance reason.</li><li>Peak bandwidth and Tensor throughput cannot predict this exact integer workload. Compare matched operations on named hardware.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="choosing-a-gpu-for-ckks">Choosing a GPU for CKKS<a class="headerlink" href="#choosing-a-gpu-for-ckks" title="Permanent link">¶</a></h2>
 <p>Hardware assessment recorded on 2026-11-06. The RTX 5090 choice is provisional;
-production selection requires the benchmark gate below. Specifications and
+production selection requires the benchmark gate below. The working set means
+all arrays, keys and scratch that must stay resident together. Specifications and
 historical prices are reference values, not current quotes or kernel timings.</p>
 <h2 id="decision">Decision<a class="headerlink" href="#decision" title="Permanent link">¶</a></h2>
 <table>
@@ -75,7 +76,9 @@ historical prices are reference values, not current quotes or kernel timings.</p
 </table>
 <p>Use the 5090 for development. Select a production GPU only after measuring
 resident memory and end-to-end Hybrid key switching.</p>
-<h2 id="why-fp8-and-fp16-marketing-does-not-answer-our-question">Why FP8 and FP16 marketing does not answer our question<a class="headerlink" href="#why-fp8-and-fp16-marketing-does-not-answer-our-question" title="Permanent link">¶</a></h2>
+<div id="why-fp8-and-fp16-marketing-does-not-answer-our-question" aria-hidden="true"></div>
+
+<h2 id="measure-integer-arithmetic-and-memory">Measure integer arithmetic and memory<a class="headerlink" href="#measure-integer-arithmetic-and-memory" title="Permanent link">¶</a></h2>
 <p>These kernels perform exact modular <code>u32</code>/<code>u64</code> arithmetic and move RNS data.
 Tensor TOPS do not measure that workload. NVIDIA's
 <a href="https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/compute-capabilities.html#features-and-technical-specifications">Tensor Core type table</a>
@@ -289,13 +292,16 @@ latency is within 15% of the fastest tested card. If only capacity blocks it,
 compare RTX PRO 6000 with H200 rental and deployment costs. Use profiling to
 separate memory-layout limits from modular-multiply limits before redesigning
 arithmetic or selecting hardware.</p>
-<h2 id="bottom-line">Bottom line<a class="headerlink" href="#bottom-line" title="Permanent link">¶</a></h2>
-<p>RTX 5090 is the development choice. Production hardware remains an open,
-measured decision; FP8/FP16 Tensor figures do not settle it.</p></article></details></div>
+<div id="bottom-line" aria-hidden="true"></div>
+
+<h2 id="decision-to-revisit">Decision to revisit<a class="headerlink" href="#decision-to-revisit" title="Permanent link">¶</a></h2>
+<p>Keep RTX 5090 as the development target. Revisit production hardware after
+measuring the complete workload, memory footprint and cost. Tensor throughput
+alone cannot rank exact modular arithmetic.</p></article></details><p class="site-article site-read-next"><a href="gpu-rental-market-survey.html">Next: GPU rental market →</a></p></div>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/e795f033f741ab95f76e8c6ee993e3f7234a41e3">e795f03</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/65af78ecfc20faa6dbb32d3f87032a8267500f68">65af78e</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

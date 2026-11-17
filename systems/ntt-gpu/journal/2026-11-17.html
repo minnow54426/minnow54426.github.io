@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Reviewed every notebook page, simplified explanations and reading paths, and separated current guidance from dated evidence.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal/2026-11-17.html">
+<title>Make the notebook easier to read · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="../vendor/katex/katex.min.css">
+<script defer src="../vendor/katex/katex.min.js"></script>
+<script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="../math-rendering.js"></script>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/sunlit-paper.css">
+<script defer src="../search-index.js"></script>
+<script defer src="../assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="../search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../resident-operation-chain.html">Resident operation chain</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a><a href="../gpu-rental-market-survey.html">GPU rental market</a><a href="../first-native-analysis.html">First GPU run: analysis</a><a href="../batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Plans</p><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../offline-gpu-preparation.html">Before renting a GPU</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="../offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="../index.html">Notebook</a><span>/</span>Daily journal</div>
+
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/docs/journal/2026-11-17.md">View source</a></div>
+    <div class="site-reading-layout site-wide">
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-17">2026-11-17</time><span>Documentation maintenance / P2 D11 unchanged</span><a href="../journal.html">← All entries</a></div><section class="site-article site-brief"><h1>Make the notebook easier to read</h1><p>Reviewed every notebook page, simplified explanations and reading paths, and separated current guidance from dated evidence.</p><p>This is a dated record. Test counts and next steps describe that day.</p></section><details class="site-full-notes"><summary>Read full entry</summary><article class="site-article"><h2 id="make-the-notebook-easier-to-read">Make the notebook easier to read<a class="headerlink" href="#make-the-notebook-easier-to-read" title="Permanent link">¶</a></h2>
+<h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
+<p>Reviewed all 37 existing notebook pages: the overview, 23 topic guides,
+12 dated entries and the journal index. The guides now define unfamiliar
+terms earlier, use shorter explanations and point to a useful next page.
+The Sunlit Paper theme, interactive examples and exact engineering results
+are retained.</p>
+<p>The review also corrects stale execution notes. The temporary Ada baseline
+has measured results; later resident-runtime changes still need native GPU
+verification. D11/P2 remains open.</p>
+<h2 id="reasoning">Reasoning<a class="headerlink" href="#reasoning" title="Permanent link">¶</a></h2>
+<p>Two opening bullets cannot make a dense technical reference easy to read on
+their own. Edit the explanations as well: put purpose and prerequisites first,
+remove repeated status history, and separate commands from measurement details.
+Keep the short default view and full notes for readers who need the proof or
+reproduction record.</p>
+<p>Dated journal bodies remain historical evidence. Their shorter editorial titles
+and summaries describe the day's overall outcome without changing recorded
+commands, counts, source revisions or follow-up chronology. Each entry links
+to the current roadmap so an old next step is not mistaken for today's task.</p>
+<h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
+<ul>
+<li>Reworked all 23 topic guides, including the three interactive lessons.</li>
+<li>Added plain-language definitions of NTT, tower, format, canonical residue,
+  buffer layout, completion and resource ownership where they are first needed.</li>
+<li>Shortened repeated survey recommendations, completed-phase descriptions and
+  collector history. Put current CPU/GPU commands and scope choices first.</li>
+<li>Corrected the GPU lesson's overstatement about CPU simulation and clarified
+  that code snippets use abbreviated names. Preserved the executable scripts,
+  formulas, controls and upstream source excerpts.</li>
+<li>Added a short beginner reading path to the overview and a next-guide link
+  to each topic. Retained full notes, source links, search and deep-link reveal.</li>
+<li>Reviewed all 12 journal entries, simplified their titles/summaries and retained
+  their original dated bodies. Clarified calendar dates versus milestones.</li>
+</ul>
+<details>
+<summary>Page-by-page review</summary>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Reading change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://minnow54426.github.io/systems/ntt-gpu/index.html">Overview</a></td>
+<td>Added definitions and a three-step beginner path; retained the checkpoint and complete directory</td>
+</tr>
+<tr>
+<td><a href="../project.html">Project &amp; setup</a></td>
+<td>CPU build first; compact OpenFHE checks and accurate current native status</td>
+</tr>
+<tr>
+<td><a href="../butterfly-explained.html">NTT &amp; butterflies</a></td>
+<td>Shorter root/evaluation explanations; clarified fixed-ring multiplication</td>
+</tr>
+<tr>
+<td><a href="../gpu-ntt-explained.html">From CPU to CUDA</a></td>
+<td>Replaced repeated metaphors with thread/block explanations; separated simulation from native verification</td>
+</tr>
+<tr>
+<td><a href="../ntt-65536-work-distribution.html">65536 work distribution</a></td>
+<td>Defined towers and shortened ownership/dependency prose; retained the index proofs</td>
+</tr>
+<tr>
+<td><a href="../cuda-buffer-dataflow.html">CUDA buffers</a></td>
+<td>Shortened setup/cleanup and distinguished the synchronous wrapper from resident handles</td>
+</tr>
+<tr>
+<td><a href="../modular-arithmetic-contract.html">Arithmetic</a></td>
+<td>Added a canonical-residue example and distinguished raw CPU assumptions from wrapper validation</td>
+</tr>
+<tr>
+<td><a href="../openfhe-representation-contract.html">OpenFHE representation</a></td>
+<td>Defined NativePoly, DCRTPoly and format before the exact array rules</td>
+</tr>
+<tr>
+<td><a href="../openfhe-hybrid-operation-graph.html">Hybrid graph</a></td>
+<td>Explained key switching, Q/P and towers before the source-level graph</td>
+</tr>
+<tr>
+<td><a href="../device-backend-contract.html">Backend contract</a></td>
+<td>Explained layouts/completions; separated the full proposal from the implemented subset</td>
+</tr>
+<tr>
+<td><a href="../resident-operation-chain.html">Resident chain</a></td>
+<td>Lead with the chain and limits; simplified failure wording while preserving guarantees</td>
+</tr>
+<tr>
+<td><a href="../vscode-debugging.html">Run &amp; debug</a></td>
+<td>Added a terminal path, fewer initial watch variables and an optional recorded workaround</td>
+</tr>
+<tr>
+<td><a href="../gpu-ntt-survey.html">GPU NTT survey</a></td>
+<td>One actionable recommendation per library; removed duplicated measurement lists</td>
+</tr>
+<tr>
+<td><a href="../gpu-selection-survey.html">GPU selection</a></td>
+<td>Defined the resident working set and kept the decision tied to measurements</td>
+</tr>
+<tr>
+<td><a href="../gpu-rental-market-survey.html">Rental market</a></td>
+<td>Shorter provider comparison; retained dated prices, billing and permissions evidence</td>
+</tr>
+<tr>
+<td><a href="../openfhe-integration-plan.html">Roadmap</a></td>
+<td>Explained D/P labels, compressed completed work and corrected current P2 context</td>
+</tr>
+<tr>
+<td><a href="../architecture-decision.html">Architecture decision</a></td>
+<td>Shorter accepted-design opening; linked current implementation separately</td>
+</tr>
+<tr>
+<td><a href="../implementation-backlog.html">Backlog</a></td>
+<td>Consolidated evidence for B01–B04; retained every task's acceptance criteria</td>
+</tr>
+<tr>
+<td><a href="../offline-gpu-preparation.html">Before renting</a></td>
+<td>Current host/compiler scope first; older counts remain in dated history</td>
+</tr>
+<tr>
+<td><a href="../benchmark-tuning-plan.html">Benchmark plan</a></td>
+<td>Grouped tuning variables and clarified GPU-only versus combined job counts</td>
+</tr>
+<tr>
+<td><a href="../first-native-analysis.html">First GPU analysis</a></td>
+<td>Labelled the historical source and linked the later full-matrix evidence</td>
+</tr>
+<tr>
+<td><a href="../batch40-native-analysis.html">Full GPU matrix</a></td>
+<td>Defined towers and led with the measured result and next implementation boundary</td>
+</tr>
+<tr>
+<td><a href="../offline-test-tooling.html">Collection tooling</a></td>
+<td>Commands and scope selection first; removed superseded split-runner instructions</td>
+</tr>
+<tr>
+<td><a href="../contributing-docs.html">Writing &amp; publishing</a></td>
+<td>One editing/check/export workflow; linked specialist checks instead of repeating them</td>
+</tr>
+<tr>
+<td><a href="https://minnow54426.github.io/systems/ntt-gpu/journal.html">Journal index</a></td>
+<td>Explained historical status and linked the live tracker</td>
+</tr>
+<tr>
+<td><a href="2026-11-05.html">November 5</a></td>
+<td>Shorter outcome summary; preserved reconstructed evidence</td>
+</tr>
+<tr>
+<td><a href="2026-11-06.html">November 6</a></td>
+<td>Plain-language roadmap summary; preserved the original gate state</td>
+</tr>
+<tr>
+<td><a href="2026-11-07.html">November 7</a></td>
+<td>Clear debugger/derivation summary; preserved recorded CPU/formula checks</td>
+</tr>
+<tr>
+<td><a href="2026-11-08.html">November 8</a></td>
+<td>Short publishing summary; retained deployment history</td>
+</tr>
+<tr>
+<td><a href="2026-11-09.html">November 9</a></td>
+<td>Summary covers final column-proof outcome, not only the early 4096 example</td>
+</tr>
+<tr>
+<td><a href="2026-11-10.html">November 10</a></td>
+<td>Summary covers D3–D6; retained all intermediate updates and counts</td>
+</tr>
+<tr>
+<td><a href="2026-11-11.html">November 11</a></td>
+<td>Summary includes both D7 and D8 plus teaching follow-ups</td>
+</tr>
+<tr>
+<td><a href="2026-11-12.html">November 12</a></td>
+<td>Clear design/offline-build outcome; preserved the review and citation records</td>
+</tr>
+<tr>
+<td><a href="2026-11-13.html">November 13</a></td>
+<td>Plain-language rental/counter summary; retained dated research</td>
+</tr>
+<tr>
+<td><a href="2026-11-14.html">November 14</a></td>
+<td>Summary includes the completed matrix as well as the first diagnostic</td>
+</tr>
+<tr>
+<td><a href="2026-11-15.html">November 15</a></td>
+<td>Short benchmark/UI outcome; retained host-only scope</td>
+</tr>
+<tr>
+<td><a href="2026-11-16.html">November 16</a></td>
+<td>Summary covers the theme, collector split and resident preparation</td>
+</tr>
+</tbody>
+</table>
+</details>
+<h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
+<p>All 27 documentation unit tests and 14 Node interaction/math tests pass. The
+three lesson script blocks are byte-for-byte unchanged, as are the original
+bodies of all twelve earlier journal entries. Existing heading anchors are
+preserved, including aliases for renamed headings. The build validates routes,
+links and fragments for 38 pages, including this new entry and 13 journal dates.</p>
+<p>Chromium passes 228 page/width checks across all 57 website pages at
+1440/1024/375/320px, including compact and expanded notes. After refining the
+new next-link theme and reference-title hierarchy, all 38 notebook pages pass
+another 152 page/width checks. Each pass includes 144 expanded source-page
+checks. English text, math, contrast, unique IDs and page width pass without
+script or HTTP errors. The three standalone lessons pass nine additional
+desktop/phone checks.</p>
+<p>Keyboard disclosure, the beginner reading path, next-guide/current-roadmap
+links, existing deep links, search, twiddle calculator, 16-point input validation
+and stage controls, and the original arithmetic/network widgets all pass.
+Portfolio photo/painting interactions remain intact. Desktop and phone
+screenshots were inspected. This change does not run CUDA or advance a
+hardware milestone; source CI and live deployment are checked after pushing.</p>
+<h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">¶</a></h2>
+<p>The remaining engineering questions are unchanged: actual RTX 5090 execution,
+current resident failure/lifetime checks on hardware, and complete profiling.
+Dated provider rates and historical test counts are not current availability or
+new execution evidence.</p>
+<h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
+<p>Publish the reviewed source and website, verify the live pages and preserve the
+short reading path in future updates. Continue engineering with the current
+native acceptance checks rather than another documentation-driven phase change.</p></article></details><p class="site-article site-read-next"><a href="../openfhe-integration-plan.html">Current roadmap →</a></p></div>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/65af78ecfc20faa6dbb32d3f87032a8267500f68">65af78e</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

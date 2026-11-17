@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Saved native evidence, exactness scope, benchmark caveats, transfer accounting, bottleneck hypotheses and next offline experiments.">
+<meta name="description" content="Audit the first diagnostic run and understand its limited timing sample.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/first-native-analysis.html">
 <title>First GPU run: analysis · ntt-gpu</title>
 
@@ -35,16 +35,18 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/docs/first-native-analysis.md">View source</a></div>
+    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/docs/first-native-analysis.md">View source</a></div>
     <div class="site-reading-layout site-wide">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>First GPU run: analysis</h1><ul><li>The first native run established exactness on the tested temporary GPU cases.</li><li>Its limited timing sample could not isolate kernel arithmetic from transfer and wrapper costs.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h1 id="first-native-run-analysis-and-next-experiments">First native run: analysis and next experiments<a class="headerlink" href="#first-native-run-analysis-and-next-experiments" title="Permanent link">¶</a></h1>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>First GPU run: analysis</h1><ul><li>The first Ada run passed its selected native checks and saved one averaged 46-bit timing row.</li><li>That row cannot isolate kernels, transfers or variability. The later full-matrix report adds raw samples and a separate OpenFHE CPU baseline.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="first-native-run-analysis-and-next-experiments">First native run: analysis and next experiments<a class="headerlink" href="#first-native-run-analysis-and-next-experiments" title="Permanent link">¶</a></h2>
 <p><strong>2026-11-14 · offline analysis · source 19cc285 · N=65536</strong></p>
-<p>The supplied Ada machine passed the prepared correctness tests. This makes the
-current CUDA code a verified baseline <strong>for the executed cases</strong>, not a
+<p>The supplied Ada machine passed the prepared correctness tests. This establishes a
+CUDA baseline <strong>for the executed cases</strong>, not a
 production backend or a measured RTX 5090 implementation. Prepare better
 measurement and failure-path tooling offline before paying for another session.</p>
-<p>The user reports the rental is stopped. This analysis uses only exported logs
-and pinned source; no reconnection, new GPU execution or implementation changes.
+<p>This is the historical analysis of source <code>19cc285</code>, using exported logs.
+The later <a href="batch40-native-analysis.html">full-matrix report</a> adds raw samples and
+a separate OpenFHE CPU baseline. Read that report for the newer measurements.
+No reconnection or new GPU run was made for this analysis.
 See the <a href="journal/2026-11-14.html">session record</a> for environment, commands,
 archive checksum and local report paths.</p>
 <h2 id="1-exactness-what-the-comparison-count-means">1. Exactness: what the comparison count means<a class="headerlink" href="#1-exactness-what-the-comparison-count-means" title="Permanent link">¶</a></h2>
@@ -52,7 +54,7 @@ archive checksum and local report paths.</p>
 checkout, native compilation and <code>GPU_CHECKS_PASSED</code>. The complete log confirms
 23/23 CTests passed; <strong>four execute GPU work</strong>, not 23 separate GPU tests.</p>
 <p>The strongest native check is
-<a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/tests/cuda_openfhe_tests.cpp">cuda_openfhe_tests.cpp</a>:</p>
+<a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/tests/cuda_openfhe_tests.cpp">cuda_openfhe_tests.cpp</a>:</p>
 <table>
 <thead>
 <tr>
@@ -139,7 +141,7 @@ operation. The code preserves means, not individual samples.</p>
 </tr>
 </tbody>
 </table>
-<p>Source: <a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/src/cuda/ntt_kernels.cu">run_bench and synchronous wrapper</a>.
+<p>Source: <a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/src/cuda/ntt_kernels.cu">run_bench and synchronous wrapper</a>.
 Device allocations and table construction/upload precede timing. Validation,
 device guards, launches, operand transfers and blocking download are included.</p>
 <p><code>47.4496 / 0.786293 ≈ 60.35</code>: the recorded public GPU forward is about 60×
@@ -318,11 +320,11 @@ and troubleshooting and is not total rental duration or cost.</p>
 </ol>
 <p>This is partial B04/D15 analysis, not a completed bottleneck/performance gate.
 Primary-device evidence, failure verification, production coverage and later
-GPU base conversion/Hybrid/inference remain open.</p></article></details></div>
+GPU base conversion/Hybrid/inference remain open.</p></article></details><p class="site-article site-read-next"><a href="batch40-native-analysis.html">Next: Full GPU matrix: analysis →</a></p></div>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/e795f033f741ab95f76e8c6ee993e3f7234a41e3">e795f03</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/65af78ecfc20faa6dbb32d3f87032a8267500f68">65af78e</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

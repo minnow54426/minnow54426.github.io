@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="D10: dependency-ordered native GPU, resident runtime, cache, conversion, Hybrid and adapter acceptance gates.">
+<meta name="description" content="Choose the next task and its observable acceptance checks.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/implementation-backlog.html">
 <title>Implementation backlog · ntt-gpu</title>
 
@@ -35,19 +35,20 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/docs/implementation-backlog.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/docs/implementation-backlog.md">View source</a></div>
     <div class="site-reading-layout site-wide">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>Implementation backlog</h1><ul><li>Work through verification, residency, conversion, key switching and integration in dependency order.</li><li>Use the full checklist when accepting an implementation milestone.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h1 id="implementation-backlog-after-d10">Implementation backlog after D10<a class="headerlink" href="#implementation-backlog-after-d10" title="Permanent link">¶</a></h1>
-<p><strong>Accepted by <a href="architecture-decision.html">ADR 0001</a> · 2026-11-12 · N=65536</strong></p>
-<p>P1's contracts are complete. The next working day is <strong>D11</strong>: provision and
-record the native GPU environment. B01–B04 now have
-<a href="offline-gpu-preparation.html">completed offline preparation</a>; their native
-acceptance gates remain open. B06 has bounded offline prototype preparation;
-B05 and B07–B12 production work is <strong>NOT STARTED</strong>. Design acceptance,
-compiler-only builds and portable CPU checks do not satisfy CUDA/runtime gates.</p>
-<p>The <a href="openfhe-integration-plan.html">95-working-day roadmap</a> retains its phase
-boundaries. Each item lists a deliverable, dependencies and acceptance criteria.
-Update its state with reproducible evidence.</p>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Implementation backlog</h1><ul><li>Verify the native baseline, then build resident NTT, conversion, key switching and the adapter in dependency order.</li><li>Each task records evidence and a completion criterion. Host preparation alone does not complete a native GPU milestone.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="implementation-backlog-after-d10" aria-hidden="true"></div>
+
+<h2 id="implementation-tasks-and-acceptance-checks">Implementation tasks and acceptance checks<a class="headerlink" href="#implementation-tasks-and-acceptance-checks" title="Permanent link">¶</a></h2>
+<p>The architecture is accepted; the production backend is still being built.
+Use this checklist to decide whether an implementation is ready. The
+<a href="openfhe-integration-plan.html">roadmap</a> gives phase order; <a href="architecture-decision.html">ADR 0001</a>
+defines the behavior each task must preserve.</p>
+<p><strong>Current state:</strong> D11/P2 remains open. The temporary Ada baseline is measured;
+RTX 5090 acceptance and remaining native failure/profiling checks are pending.
+B01–B04 have offline preparation and partial native evidence. B06 has a bounded
+host-tested, CUDA-compiled prototype. B05 and B07–B12 production work has not
+started. Early preparation does not complete a later phase.</p>
 <h2 id="1-deliverables-and-dependencies">1. Deliverables and dependencies<a class="headerlink" href="#1-deliverables-and-dependencies" title="Permanent link">¶</a></h2>
 <p>Select a task ID for its acceptance criteria. The comparison scrolls horizontally.</p>
 <div class="site-table-scroll" role="region" aria-label="Implementation tasks and dependencies" tabindex="0">
@@ -90,41 +91,33 @@ toolkit (the current configured target starts at CUDA 12.8).</p>
 compiler and driver queries. A CPU machine, toolkit version string alone, or PTX
 fallback without a native build does not complete B01/B02. This task does not
 provision or rent hardware as part of D10.</p>
-<p>Offline status: the compiler/toolchain record and collection scripts are ready.
-Actual GPU/driver discovery and native device execution are still pending.</p>
-<p>Native update 2026-11-14: <a href="journal/2026-11-14.html">an additional Ada diagnostic</a>
-records actual hardware and passed native execution on a machine reporting
-RTX 4080 SUPER. The primary RTX 5090 gate remains open; this is not the
-planned RTX 4090 control.</p>
+<p><strong>Evidence so far:</strong> the November 14 <a href="journal/2026-11-14.html">Ada diagnostic</a>
+recorded native execution on a machine reporting RTX 4080 SUPER. It is neither
+the primary RTX 5090 nor the planned RTX 4090 control.</p>
 <h3 id="b02-native-build-and-baseline-safety">B02 — native build and baseline safety<a class="headerlink" href="#b02-native-build-and-baseline-safety" title="Permanent link">¶</a></h3>
-<p>Work in <a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/include/ntt/cuda_ntt.hpp">cuda_ntt.hpp</a> and
-<a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/src/cuda/ntt_kernels.cu">ntt_kernels.cu</a>. Replace raw constructor ownership
+<p>Work in <a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/include/ntt/cuda_ntt.hpp">cuda_ntt.hpp</a> and
+<a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/src/cuda/ntt_kernels.cu">ntt_kernels.cu</a>. Replace raw constructor ownership
 with exception-safe RAII, retain the owning device, use a device guard, and
 validate checked extents and supported canonical inputs before enqueue.
 Resolve compiler/architecture blockers exposed by the first native build.
 Keep the baseline arithmetic and transform convention intact.</p>
-<p>Offline status: unique ownership, device guards and checked host preflight are
-implemented; sm_89/sm_120 compilation and driverless invalid-constructor checks
-pass. Native allocation/upload fault injection and context-error cleanup remain
-required before B02 is complete.</p>
-<p>Offline tooling update 2026-11-14: <a href="offline-test-tooling.html">shared ownership tests</a>
-cover all six allocations/four uploads with host adapters. A native pre-call
-injection probe is registered but uncompiled/unrun here; real CUDA/context
-failure behavior remains unverified. The old 19cc285 native run does not
-validate this ownership refactor.</p>
+<p><strong>Evidence so far:</strong> unique ownership, device guards and input validation
+are implemented. Host tests cover six allocations and four uploads; the older
+Ada batch passed the native pre-call injection probe. That does not establish
+actual driver OOM, partial-transfer or failed-context cleanup safety. The
+<a href="offline-test-tooling.html#shared-allocation-ownership-and-injected-failures">tooling guide</a>
+separates these scopes.</p>
 <p><strong>Acceptance:</strong> native build and smoke run; injected failures at each allocation
 and constant upload unwind all prior allocations; invalid inputs submit no work;
 normal/destructor cleanup uses the owning device and does not throw. Update the
-<a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/tests/docs/test_cuda_dataflow.py">D5 source-contract tests</a> and buffer map to
+<a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/tests/docs/test_cuda_dataflow.py">D5 source-contract tests</a> and buffer map to
 match the actual fix. Static source checks alone cannot complete this item.</p>
 <h3 id="b03-exact-cuda-matrix">B03 — exact CUDA matrix<a class="headerlink" href="#b03-exact-cuda-matrix" title="Permanent link">¶</a></h3>
-<p>Offline status: <code>cuda_openfhe_exact</code> is compiled and registered with real
-50/55/60-bit OpenFHE and D8 level/basis fixtures. All native cases remain unrun.</p>
-<p>Native update 2026-11-14: the prepared matrix and four sanitizer smoke tools
-passed on the supplied Ada machine, including 169,279,488 direct CUDA-gate
-residue comparisons. See the <a href="journal/2026-11-14.html">evidence and scope</a>.
-Primary-device execution and broader production coverage remain pending;
-the offline paragraph above describes the earlier preparation state.</p>
+<p><strong>Evidence so far:</strong> the older Ada batch passed the direct OpenFHE matrix,
+including 169,279,488 original-gate comparisons, the expanded benchmark matrix
+and bounded sanitizer smoke. <a href="batch40-native-analysis.html">The report</a> records
+the tested workload and limitations. Repeat the current source on the primary
+device; older results do not validate the new resident runtime.</p>
 <p>Extend the native harness to import the exact OpenFHE fixture moduli, roots,
 input arrays and expected arrays. At N=65536 cover 50/55/60-bit primes, active
 Q levels and representative tower counts; include D7's deliberately unsorted
@@ -139,32 +132,22 @@ and no relevant sanitizer errors. The current CLI's generated baseline uses
 46-bit parameters; its success alone does not cover this matrix. Keep the
 existing CPU/OpenFHE and small schedule-boundary gates green.</p>
 <h3 id="b04-timing-and-bottleneck-report">B04 — timing and bottleneck report<a class="headerlink" href="#b04-timing-and-bottleneck-report" title="Permanent link">¶</a></h3>
-<p>The <a href="first-native-analysis.html">first-run offline analysis</a> audits the initial
-Ada sample and prioritizes measurement-protocol work before another session.
-Source-derived hypotheses are not profiler evidence; B04 remains open.
-Harness implementation is tracked separately from its native verification.</p>
-<p>Offline tooling update: the raw-sample/fixed-input host protocol and report
-validator are implemented with host checks. The collector prepares 30/50/55/60-bit
-public-call and resident-event/pinned-copy measurements at N=4096–65536,
-K=1/3/8/16/24/32/40,
-plus an OpenFHE NativeVector CRT-FTT CPU baseline. The CPU comparator passes
-the default matrix's local exact-result/protocol cases. Native CUDA compilation/execution and
-actual event/profile observations remain open; prepared tooling is not evidence.
-See <a href="offline-test-tooling.html">tooling status</a>.</p>
-<p>Collector update 2026-11-16: the normal runner now supports separate GPU-only
-and local CPU sessions with mode/scope-specific resume manifests. CPU mode
-builds with CUDA disabled and has real Linux host/OpenFHE execution evidence;
-macOS identity handling and GPU selection have control-flow tests. The rental
-helper defaults to GPU-only measurements while retaining native correctness
-and requested sanitizer gates. This is tooling completion, not a new RTX 5090
-run or a completed B04 bottleneck gate.</p>
+<p><strong>Evidence so far:</strong> the <a href="batch40-native-analysis.html">full-matrix report</a>
+compares measured public-call and resident-event timings. Raw samples,
+validated reports and a selected CUDA timeline are retained. Hardware counters
+were unavailable, so there is no accepted first bottleneck decision.</p>
+<p>The <a href="offline-test-tooling.html#collector-and-validation">collector</a> now separates
+GPU-only and local CPU collection, with hash-checked resume. Host control-flow
+checks and a real Linux CPU run validate that split. Current GPU-only collector
+and resident-runtime execution still need native verification. Use the
+<a href="first-native-analysis.html">first-run analysis</a> only for its earlier 46-bit sample.</p>
 <p>Separate construction/table upload, device-resident CUDA-event timings,
 transfer-inclusive wall time, and explicit synchronization. Add raw samples,
 warm-up, median/p5/p95, workload metadata and <code>ptxas</code> resource reports. Profile
 the strided column pass's sectors/requested byte, L2/DRAM traffic, bank conflicts,
 occupancy, registers/spills and launch gaps.</p>
-<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/scripts/gpu_session.py">session collector</a>, called by the
-<a href="https://github.com/minnow54426/ntt-gpu/blob/e795f033f741ab95f76e8c6ee993e3f7234a41e3/scripts/autodl_setup.sh">AutoDL helper</a>, now requires CUDA/OpenFHE coverage,
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/scripts/gpu_session.py">session collector</a>, called by the
+<a href="https://github.com/minnow54426/ntt-gpu/blob/65af78ecfc20faa6dbb32d3f87032a8267500f68/scripts/autodl_setup.sh">AutoDL helper</a>, now requires CUDA/OpenFHE coverage,
 retains logs and propagates failed stages, including benchmarks. Host
 control-flow tests exercise those failure classifications. Expanded
 batch tests cover partial completion, strict input/scope matching, and hashed
@@ -278,7 +261,7 @@ or changing the selected toolkit. Configure a separate native build directory;
 reuse the pinned OpenFHE installation produced by <code>scripts/openfhe_setup.sh</code>.
 For example, after setting the install prefix for that machine:</p>
 <pre><code class="language-sh">cmake -S . -B build/native-gpu -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CUDA_ARCHITECTURES=native \
+  -DNTT_REQUIRE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=native \
   -DNTT_ENABLE_OPENFHE_COMPAT=ON \
   -DCMAKE_PREFIX_PATH=&quot;$NTT_OPENFHE_PREFIX&quot;
 cmake --build build/native-gpu -j2
@@ -286,16 +269,16 @@ ctest --test-dir build/native-gpu --output-on-failure
 </code></pre>
 <p>CMake auto-detection can produce a CPU-only build. B02/B03 require an actual
 CUDA compiler, the CUDA targets and their registered CTests, a real GPU, and
-successful native execution. The commands above are a handoff, not an observed
-D10 GPU run or proof that the current source already compiles with nvcc.</p>
+successful native execution. The commands above are a handoff, not evidence of execution on that GPU.
+Compiler-only builds are documented separately in the preparation guide.</p>
 <p>For each completed item, retain the source commit, parameter/fixture identifiers,
 hardware/toolchain record, exact commands, raw logs, failing-case diagnosis where
 relevant, and the final gate result. Update this backlog, the roadmap and that
-calendar day's journal together. Leave unexecuted items visibly open.</p></article></details></div>
+calendar day's journal together. Leave unexecuted items visibly open.</p></article></details><p class="site-article site-read-next"><a href="offline-gpu-preparation.html">Next: Before renting a GPU →</a></p></div>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/e795f033f741ab95f76e8c6ee993e3f7234a41e3">e795f03</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/65af78ecfc20faa6dbb32d3f87032a8267500f68">65af78e</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
