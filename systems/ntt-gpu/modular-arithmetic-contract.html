@@ -35,7 +35,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/533e6190ca490369155f6f3e4b53efd0a52d45f6/docs/modular-arithmetic-contract.md">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/docs/modular-arithmetic-contract.md">View source</a></div>
     <div class="site-reading-layout site-wide">
       <div class="site-page-content"><section class="site-article site-brief"><h1>Arithmetic bounds &amp; tests</h1><ul><li>Canonical means a value from 0 to q−1. Each current butterfly keeps that range.</li><li>A 60-bit value fits in uint64_t, but its product needs a wider temporary. Independent bigint checks test these operations.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="modular-arithmetic-bounds-and-exactness-gates" aria-hidden="true"></div>
 
@@ -47,8 +47,8 @@ and ends with canonical values.</p>
 value fits in that type; multiplying two such values does not. This page
 explains the temporary widths, input assumptions and independent checks.
 Read the <a href="cuda-buffer-dataflow.html">buffer map</a> for where arrays live.
-Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/533e6190ca490369155f6f3e4b53efd0a52d45f6/include/ntt/mod_arith.hpp">mod_arith.hpp</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/533e6190ca490369155f6f3e4b53efd0a52d45f6/include/ntt/ntt.hpp">ntt.hpp</a> and <a href="https://github.com/minnow54426/ntt-gpu/blob/533e6190ca490369155f6f3e4b53efd0a52d45f6/include/ntt/dev_core.hpp">dev_core.hpp</a>.</p>
+Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/include/ntt/mod_arith.hpp">mod_arith.hpp</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/include/ntt/ntt.hpp">ntt.hpp</a> and <a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/include/ntt/dev_core.hpp">dev_core.hpp</a>.</p>
 <h2 id="1-what-callers-must-supply">1. What callers must supply<a class="headerlink" href="#1-what-callers-must-supply" title="Permanent link">¶</a></h2>
 <p>Canonical means an integer in <span class="site-math">\([0,q)\)</span>. None of the hot arithmetic functions
 validates this range at runtime.</p>
@@ -192,8 +192,8 @@ cmake --build build -j 8
 ctest --test-dir build --output-on-failure
 ctest --test-dir build -R 'arithmetic_' -V
 </code></pre>
-<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/533e6190ca490369155f6f3e4b53efd0a52d45f6/tests/arithmetic_contract_tests.cpp">C++ probe and full-size tests</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/533e6190ca490369155f6f3e4b53efd0a52d45f6/tests/oracle/test_arithmetic.py">independent primitive oracle</a>.</p>
+<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/tests/arithmetic_contract_tests.cpp">C++ probe and full-size tests</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/tests/oracle/test_arithmetic.py">independent primitive oracle</a>.</p>
 <h2 id="5-exactness-ladder-do-not-substitute-one-gate-for-another">5. Exactness ladder: do not substitute one gate for another<a class="headerlink" href="#5-exactness-ladder-do-not-substitute-one-gate-for-another" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -276,7 +276,7 @@ and implementation are tracked in the <a href="implementation-backlog.html">back
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/533e6190ca490369155f6f3e4b53efd0a52d45f6">533e619</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141">54e3fba</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

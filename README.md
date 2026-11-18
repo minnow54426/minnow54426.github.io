@@ -78,8 +78,8 @@ Paper colors, local Anton/Space Grotesk fonts, photo-filled lettering and
 edge-to-edge photography. The NTT notebook shares the same palette and typography,
 with readable math/code, section navigation and an expanded directory. Current research, GPU
 results, native photo viewing and accessible media controls are preserved.
-The current website has 57 HTML pages: 19 portfolio/collection pages and
-38 generated notebook pages. Content updates should preserve this design.
+The current website has 59 HTML pages: 19 portfolio/collection pages and
+40 generated notebook pages. Content updates should preserve this design.
 
 ## Deployment
 

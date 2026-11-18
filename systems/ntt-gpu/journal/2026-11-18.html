@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Explained symbols, bit-reversed evaluation order and modular inverse scaling with a verified four-point example.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal/2026-11-18.html">
+<title>Read the NTT evaluation and inverse formulas · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="../vendor/katex/katex.min.css">
+<script defer src="../vendor/katex/katex.min.js"></script>
+<script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="../math-rendering.js"></script>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/sunlit-paper.css">
+<script defer src="../search-index.js"></script>
+<script defer src="../assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="../search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Plans</p><a href="../next-gpu-rental.html">Next GPU rental queue</a><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../offline-gpu-preparation.html">Before renting a GPU</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="../offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../resident-operation-chain.html">Resident operation chain</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a><a href="../gpu-rental-market-survey.html">GPU rental market</a><a href="../first-native-analysis.html">First GPU run: analysis</a><a href="../batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="../index.html">Notebook</a><span>/</span>Daily journal</div>
+
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/docs/journal/2026-11-18.md">View source</a></div>
+    <div class="site-reading-layout site-wide">
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-18">2026-11-18</time><span>Documentation maintenance / P2 unchanged</span><a href="../journal.html">← All entries</a></div><section class="site-article site-brief"><h1>Read the NTT evaluation and inverse formulas</h1><p>Explained symbols, bit-reversed evaluation order and modular inverse scaling with a verified four-point example.</p><p>This is a dated record. Test counts and next steps describe that day.</p></section><details class="site-full-notes"><summary>Read full entry</summary><article class="site-article"><h2 id="read-the-ntt-evaluation-and-inverse-formulas">Read the NTT evaluation and inverse formulas<a class="headerlink" href="#read-the-ntt-evaluation-and-inverse-formulas" title="Permanent link">¶</a></h2>
+<h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
+<p>Expanded <a href="../openfhe-representation-contract.html#3-exact-evaluation-and-inverse-formulas">exact evaluation and inverse formulas</a>
+for beginners. The section now explains the symbols, distinguishes coefficient
+indices from stored evaluation positions, and works through a complete forward
+and inverse example. The transform contract and implementation are unchanged.</p>
+<h2 id="reasoning">Reasoning<a class="headerlink" href="#reasoning" title="Permanent link">¶</a></h2>
+<p>The compact formulas assumed that readers already knew polynomial evaluation,
+fixed-width bit reversal and modular inverses. Explain each operation before
+combining them. A four-point example makes the stored ordering visible without
+requiring a reader to follow a 65536-element calculation.</p>
+<p>Keep the production formulas at N=65536 and label the small example explicitly.
+Put the cancellation proof in optional notes, so readers can follow the
+calculation before studying why it works.</p>
+<h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
+<ul>
+<li>Added a symbol table for coefficients, memory indices, root indices, roots,
+  bit reversal and N-inverse.</li>
+<li>Explained why odd powers are roots of x^N+1 and mapped the first five memory
+  positions to their natural point indices and root exponents.</li>
+<li>Read forward as polynomial substitution and inverse as a weighted sum with
+  modular normalization. Distinguished negative powers from array indices and
+  decimal reciprocals.</li>
+<li>Added N=4, q=17, psi=2 with coefficients <code>[1,2,3,4]</code>, stored evaluations
+  <code>[15,11,13,16]</code>, inverse roots <code>[9,8,15,2]</code> and recovered coefficients.</li>
+<li>Added an optional geometric-sum explanation and retained the existing
+  diagnostic probes, upstream source citations and section anchor.</li>
+</ul>
+<h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
+<p>Direct modular evaluation gives the displayed forward values. Independent
+finite-field Gaussian elimination of the evaluation system recovers the
+original coefficients. The inverse weighted sums modulo 17 are <code>[4,8,12,16]</code>;
+scaling by 4-inverse, 13, returns <code>[1,2,3,4]</code>.</p>
+<p>A temporary C++20 executable using the actual <code>NegacyclicNtt</code> header independently
+checks the forward result and inverse of the literal displayed evaluation array.
+Both pass with compiler warnings treated as errors. All 27 documentation tests
+and 14 Node interaction/math tests pass before the final publication build.
+These are arithmetic, CPU and documentation checks, not a new GPU run.</p>
+<p>The 40-page build, including 14 journal entries, validates local links and
+fragments. Chromium passes four focused checks at 1440/1024/375/320px for the
+symbol guide, original section bookmark, worked arrays, expanded inverse proof,
+formula rendering, contrast and contained table scrolling. All 59 website pages
+also pass desktop and phone layout/math checks (118 page/width checks), without
+script or HTTP errors. Desktop/phone screenshots were inspected; main equations
+use multiple lines and the worked table has compact, explained symbols.
+Publication and live checks follow the source commit.</p>
+<h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">¶</a></h2>
+<p>No transform or roadmap decision changed. The current native RTX 5090 and
+resident-runtime validation work remains tracked separately in the
+<a href="../openfhe-integration-plan.html">roadmap</a> and <a href="../next-gpu-rental.html">next-session guide</a>.</p>
+<h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
+<p>Publish the explanation in both repositories and verify readable formulas,
+wide-table scrolling, source links and the section bookmark on desktop and
+phone layouts.</p></article></details><p class="site-article site-read-next"><a href="../openfhe-integration-plan.html">Current roadmap →</a></p></div>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141">54e3fba</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

@@ -18,9 +18,9 @@ November 11 shared blue/white redesign.
 - The NTT notebook shares the portfolio's Sunlit Paper colors, Anton headings
   and Space Grotesk body font. Preserve readable math/code, section navigation
   and the expanded directory. Current English research and GPU results remain.
-- The 38 NTT pages are generated from `/workspace/ntt-gpu` source. Change the
+- The 40 NTT pages are generated from `/workspace/ntt-gpu` source. Change the
   source articles and `docs/site-assets`, then export; do not edit generated HTML.
-- Review all 57 pages at desktop and phone widths. Preserve existing publication
+- Review all 59 pages at desktop and phone widths. Preserve existing publication
   workflows, media assets, content and measured engineering results.
 
 ---
