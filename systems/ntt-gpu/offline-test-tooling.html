@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Run separate GPU and CPU collections with validated samples and safe resume.">
+<meta name="description" content="Run the measurement scripts and check the records they save.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/offline-test-tooling.html">
 <title>Offline test tooling · ntt-gpu</title>
 
@@ -35,14 +35,15 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/docs/offline-test-tooling.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/docs/offline-test-tooling.md">View source</a></div>
     <div class="site-reading-layout site-wide">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>Offline test tooling</h1><ul><li>Use GPU-only measurements on the rental and collect the OpenFHE CPU timings locally with matching parameters.</li><li>The collector keeps raw samples, provenance and failures. Resume reuses only matching, hash-checked records and reruns the required gates.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="prepare-the-next-gpu-session-offline" aria-hidden="true"></div>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Offline test tooling</h1><ul><li>Collect GPU measurements on the rental and matching OpenFHE CPU measurements locally. Keep each machine’s report separate.</li><li>The collector saves individual times, parameters and failures. Resume reuses only matching records after checking their contents and file fingerprints.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="prepare-the-next-gpu-session-offline" aria-hidden="true"></div>
 
 <h2 id="collect-gpu-and-cpu-measurements-separately">Collect GPU and CPU measurements separately<a class="headerlink" href="#collect-gpu-and-cpu-measurements-separately" title="Permanent link">¶</a></h2>
-<p>Use the rental for GPU checks and timings; collect the OpenFHE CPU baseline
-locally. Both runs use the same polynomial parameters and seeded inputs, while
-retaining their own machine and build records.</p>
+<p>Run GPU tests and timings on the rented machine. Measure OpenFHE on your
+local CPU to provide a baseline for comparison. Both runs use the same
+polynomial parameters and random-number seed, so they generate the same
+inputs. Each report identifies its own machine and build.</p>
 <p>The <a href="batch40-native-analysis.html">November 14 batch</a> exercised an earlier CUDA
 baseline. The November 16 collector and <a href="resident-operation-chain.html">resident runtime</a>
 pass host tests and CUDA compilation; their remaining native checks are still
@@ -51,7 +52,9 @@ and hardware setup.</p>
 <div id="rental-gpu-local-cpu-split" aria-hidden="true"></div>
 
 <h2 id="collector-and-validation">Collector and validation<a class="headerlink" href="#collector-and-validation" title="Permanent link">¶</a></h2>
-<p>From a reviewed clean checkout with pinned OpenFHE installed, run on the GPU:</p>
+<p>A collector is a script that runs checks and saves measurements and logs.
+Before starting, use the intended source revision with no uncommitted changes,
+and install the required OpenFHE version. Then run this on the GPU machine:</p>
 <pre><code class="language-sh">python3 scripts/gpu_session.py --mode gpu \
   --cuda-root /path/to/cuda --openfhe-prefix /path/to/openfhe \
   --architectures native --benchmark --benchmark-scope gpu \
@@ -105,8 +108,9 @@ K=1/3/8/16/24/32/40: <strong>140 workloads</strong>.</p>
 <p>Add <code>--benchmark</code> to collect timings. Direct GPU collector commands default to
 <code>all</code>; the rental helper <code>scripts/autodl_setup.sh</code> defaults to <code>gpu</code>.
 Set <code>--benchmark-scope all</code> or <code>NTT_BENCHMARK_SCOPE=all</code> for a combined rental run.
-GPU-only selection runs the native CTest group with its OpenFHE references
-and fixtures, followed by the requested sanitizers. Run standalone CPU
+The GPU-only selection runs the tests labelled for real GPU execution,
+including their OpenFHE reference calculations and test inputs. It then
+runs the requested memory and threading error checks. Run standalone CPU
 checks and CPU timing on the local host.</p>
 <p>Use <code>--benchmark-dimensions 65536 --benchmark-towers 3 40</code> for a bounded
 batch. Any K from 1 through 40 is selectable; the default samples seven counts.
@@ -121,17 +125,18 @@ operands, not that many independent random inputs. Thirty-bit primes still use
 <code>uint64_t</code> buffers and arithmetic. Parameter files contain zero placeholders;
 the executables generate the seeded dense operands used for timings.</p>
 <h3 id="validate-and-retain-records">Validate and retain records<a class="headerlink" href="#validate-and-retain-records" title="Permanent link">¶</a></h3>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/scripts/gpu_session.py">The collector</a> keeps parameter files, raw JSONL,
-logs, hashes and <code>report.json</code>. <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/scripts/benchmark_report.py">The report validator</a>
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/scripts/gpu_session.py">The collector</a> keeps parameter files, raw JSONL,
+logs, hashes and <code>report.json</code>. <a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/scripts/benchmark_report.py">The report validator</a>
 rejects missing/truncated samples, duplicate indices, wrong parameters/scopes,
 nonfinite or negative times, and summaries inconsistent with the raw samples.
 A malformed record fails even if the executable exits zero.</p>
 <p>To recompute a saved summary:</p>
 <pre><code class="language-sh">python3 scripts/benchmark_report.py /path/to/benchmark-n65536-k3-b30-public.log
 </code></pre>
-<p>Record validation checks consistency; exactness tests establish arithmetic
-correctness. Hashes detect changes or corruption, not fabricated measurements.
-The source and hardware record are still required.</p>
+<p>The report validator checks that the saved records are complete and
+consistent. Separate exact-answer tests check the arithmetic. A hash can
+show that a file changed or was corrupted; it cannot prove that a measurement
+was honestly collected. Keep the source and hardware details too.</p>
 <h3 id="restart-and-preserve-partial-results">Restart and preserve partial results<a class="headerlink" href="#restart-and-preserve-partial-results" title="Permanent link">¶</a></h3>
 <p>Rerun the same command with <code>--resume --output-dir &lt;record-directory&gt;</code>.
 Environment probes, build, exactness and requested sanitizers rerun. Successful
@@ -159,9 +164,10 @@ permissions or capture fail; omit the flag to leave profiling pending.</p>
 production CKKS batches and an evidence-backed bottleneck decision remain
 later work.</p>
 <h2 id="raw-measurement-protocol">Raw measurement protocol<a class="headerlink" href="#raw-measurement-protocol" title="Permanent link">¶</a></h2>
-<p>The CLI protocols use a parameter file's exact N/q/root list and the same
-fixed seed. Reset and packing occur <strong>before</strong> every warmup/sample timer,
-including inverse. Output includes individual samples, summaries and an
+<p>The command-line programs read N, primes and roots from a parameter file.
+They use a fixed random seed to generate repeatable inputs. Before timing
+each warmup or sample, they restore and pack the input arrays. This also
+applies to inverse transforms. Output includes individual samples, summaries and an
 explicit completion marker. Percentiles use linear interpolation at
 <code>(count−1)*fraction</code>.</p>
 <table>
@@ -210,18 +216,22 @@ outside timing; the full exactness suite remains a separate check.
 <code>gpu-bench-jsonl</code> uses <code>host_wall_gpu_public_call</code>; legacy <code>bench-jsonl</code>
 retains its distinct protocol. The old <code>bench</code> command is a 46-bit legacy path
 and is no longer used by the collector.</p>
-<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/measurement.hpp">measurement helper</a> has fake-clock tests
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/include/ntt/measurement.hpp">measurement helper</a> has fake-clock tests
 for reset order, warmups, summaries and JSON escaping. They test control logic,
 not performance.</p>
 <h2 id="resident-events-and-cpu-baseline">Resident events and CPU baseline<a class="headerlink" href="#resident-events-and-cpu-baseline" title="Permanent link">¶</a></h2>
-<p>The event experiment excludes setup, allocation, input upload/reset and output
-download/validation from resident timing. Each iteration drains the default
-stream after reset, records start/stop events and waits for the stop event.
-Results are checked afterward. Multi-launch intervals can include submission
-gaps; they are not isolated per-kernel instruction times.</p>
-<p>Pinned H2D and D2H copies use preallocated host memory and <code>cudaMemcpyAsync</code>.
-Their times are separate experiments, not an additive breakdown of the
-pageable public call. The public wrapper remains synchronous. There is no
+<p>The event experiment times operations while their data are already on the
+GPU. It excludes setup, memory allocation, input upload/reset, result download
+and answer checks. After restoring the input, each iteration waits for
+earlier work on the default stream to finish. It places start/stop events
+around the selected work and waits for the stop event. A multi-kernel
+interval can include gaps between submissions, so it is not a sum of isolated
+kernel instruction times.</p>
+<p>H2D means host-to-device (CPU-to-GPU); D2H is the reverse. The copy experiment
+uses preallocated pinned CPU memory, which the operating system keeps in
+place for transfers, and <code>cudaMemcpyAsync</code>. The public call uses ordinary
+pageable memory. These separate experiments cannot be added or subtracted
+to obtain an exact breakdown of the public call. The public wrapper remains synchronous. There is no
 measured copy/compute overlap or multi-stream throughput here. See NVIDIA's
 <a href="https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__EVENT.html">event API</a>
 and <a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html">timing guidance</a>.</p>
@@ -248,7 +258,7 @@ include <code>resident_runtime_host</code> and <code>resident_openfhe_host</code
 <code>resident_cuda_preflight</code> and GPU-labelled <code>resident_cuda_exact</code>.
 Host/compiler success does not close these native gates.</p>
 <h2 id="shared-allocation-ownership-and-injected-failures">Shared allocation ownership and injected failures<a class="headerlink" href="#shared-allocation-ownership-and-injected-failures" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/setup_resources.hpp">SetupResources</a> registers each of the
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/include/ntt/setup_resources.hpp">SetupResources</a> registers each of the
 wrapper constructor's six allocations immediately and releases them in reverse
 order. Its four constant uploads use the same adapter boundary. Host tests
 exercise this actual ownership code with a host-memory adapter.</p>
@@ -257,8 +267,9 @@ exercise this actual ownership code with a host-memory adapter.</p>
 <code>cuda_setup_fault_injection</code> uses the real constructor at N=65536 with three
 50-bit towers and verifies successful CUDA frees after pre-call injection.
 That probe passed in the older Ada batch.</p>
-<p>Synthetic exceptions do not reproduce driver OOM, a partial DMA failure,
-wrong-device restoration or a destroyed context. Those tests remain open.
+<p>Throwing a test exception does not reproduce a real GPU out-of-memory
+error, a partially completed memory transfer, incorrect device restoration
+or a destroyed GPU context. Those cases still need hardware tests.
 Ordinary destructor cleanup is nonthrowing and cannot report errors to its
 caller; a diagnostic trace is not a production recovery interface.</p>
 <h2 id="verify-without-renting">Verify without renting<a class="headerlink" href="#verify-without-renting" title="Permanent link">¶</a></h2>
@@ -274,7 +285,7 @@ older results cannot establish correctness of later runtime changes.</p></articl
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe">d67d9c0</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/587598a848b4b715b018ee45bcccbf40027ea064">587598a</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

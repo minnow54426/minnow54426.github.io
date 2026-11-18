@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="The temporary Ada batch passed its selected native checks. Saved 280 GPU and 140 M1 CPU jobs; RTX 5090 and hardware-counter gates remained open.">
+<meta name="description" content="The temporary Ada GPU passed its selected checks. Saved 280 GPU and 140 M1 CPU jobs; RTX 5090 tests and hardware-counter collection remained unfinished.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal/2026-11-14.html">
 <title>Native GPU checks and full-matrix timings · ntt-gpu</title>
 
@@ -35,9 +35,9 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/docs/journal/2026-11-14.md">View source</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/docs/journal/2026-11-14.md">View source</a></div>
     <div class="site-reading-layout site-wide">
-      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-14">2026-11-14</time><span>P2 / D11 diagnostic</span><a href="../journal.html">← All entries</a></div><section class="site-article site-brief"><h1>Native GPU checks and full-matrix timings</h1><p>The temporary Ada batch passed its selected native checks. Saved 280 GPU and 140 M1 CPU jobs; RTX 5090 and hardware-counter gates remained open.</p><p>This is a dated record. Test counts and next steps describe that day.</p></section><details class="site-full-notes"><summary>Read full entry</summary><article class="site-article"><h2 id="first-native-gpu-diagnostic-session">First native GPU diagnostic session<a class="headerlink" href="#first-native-gpu-diagnostic-session" title="Permanent link">¶</a></h2>
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-14">2026-11-14</time><span>P2 / D11 diagnostic</span><a href="../journal.html">← All entries</a></div><section class="site-article site-brief"><h1>Native GPU checks and full-matrix timings</h1><p>The temporary Ada GPU passed its selected checks. Saved 280 GPU and 140 M1 CPU jobs; RTX 5090 tests and hardware-counter collection remained unfinished.</p><p>This is a dated record of work on its calendar date. Its test counts, design and next steps describe that time; use the current roadmap for today’s status.</p></section><details class="site-full-notes"><summary>Read full entry</summary><article class="site-article"><h2 id="first-native-gpu-diagnostic-session">First native GPU diagnostic session<a class="headerlink" href="#first-native-gpu-diagnostic-session" title="Permanent link">¶</a></h2>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
 <p>Connected to the user-provided rental machine. It reports <strong>NVIDIA GeForce
 RTX 4080 SUPER</strong>, compute capability 8.9, and 32,760 MiB memory. This is the
@@ -48,9 +48,10 @@ as an additional Ada diagnostic. No primary-device gate advances.</p>
 including all four registered native GPU gates; all four sanitizer smoke tools
 passed. Raw logs and the report have been copied back to the local workspace.</p>
 <h2 id="reasoning">Reasoning<a class="headerlink" href="#reasoning" title="Permanent link">¶</a></h2>
-<p>Use the provided machine to exercise native compilation and exactness, without
-changing its driver or treating compiler-only results as GPU results. Keep all
-project builds, dependencies and evidence on the rental's data disk.</p>
+<p>Use the supplied machine to compile and run the actual CUDA code, then
+compare its answers. Keep its driver unchanged. Store builds, dependencies
+and reports on the rental’s data disk. A successful compile is recorded
+separately from a successful GPU run.</p>
 <h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
 <p>The remote checkout is clean at <code>19cc2854def743ebfa69f3429fe44ac7fe50ae58</code>.
 No project implementation changes have been made.</p>
@@ -60,10 +61,10 @@ No project implementation changes have been made.</p>
 CMake 3.31.6, managed Python 3.12.16, the locked CUDA 13.0.2 redistributables
 (nvcc 13.0.88), and matching Compute Sanitizer 2025.3.1.0. NVIDIA downloads
 are checked against their SHA-256 values.</p>
-<p>The first OpenFHE clone failed with an HTTP/2 transport error. A command-local
-HTTP/1.1 retry also failed with a TLS transport error. Instead, transferred a
-bundle from the clean local pinned checkout, checked its SHA-256 on both hosts,
-and verified commit <code>b59e1f291965f14fbee5172cd83a20f5b856204f</code>. Its four submodules
+<p>Downloading OpenFHE with git failed twice: first with an HTTP/2 error,
+then with a TLS error after retrying that command using HTTP/1.1. Instead,
+transferred a git bundle from the unmodified local checkout. Checked that
+its SHA-256 file fingerprint matched on both machines and verified commit <code>b59e1f291965f14fbee5172cd83a20f5b856204f</code>. Its four submodules
 match the local checkout. No vendor source/header changes were required.</p>
 <h3 id="final-native-evidence">Final native evidence<a class="headerlink" href="#final-native-evidence" title="Permanent link">¶</a></h3>
 <p>The collector ran from 07:02:25 to 07:03:36 UTC (15:02–15:03 Asia/Shanghai)
@@ -92,9 +93,10 @@ off, native optimization off, Release; GCC is 11.3 and glibc is 2.35.</p>
   not locked and are not a continuous benchmark trace.</li>
 </ul>
 <h3 id="initial-latency-sample">Initial latency sample<a class="headerlink" href="#initial-latency-sample" title="Permanent link">¶</a></h3>
-<p>N=65536, three <strong>46-bit</strong> primes; public synchronous wrapper, transfers,
-host validation and device guards included. Constructor/table setup is outside
-the timed region. The implementation uses warmups and averaged repetitions;
+<p>This sample uses N=65536 and three <strong>46-bit</strong> primes. Timings cover a
+complete synchronous call: CPU input checks, selecting the owning device,
+CPU–GPU copies and execution. Creating the transform object and its tables
+happens before timing. The implementation uses warmups and averaged repetitions;
 this is one session's summary, not a raw timing distribution or Nsight profile.</p>
 <table>
 <thead>
@@ -175,10 +177,11 @@ warm-up/reset, different CPU/GPU forward repetition input policies, host-copy
 costs inside multiply timing, and no saved individual samples. These are
 measurement limitations to fix in a separate implementation task, not evidence
 that the executed exactness tests or means are fabricated.</p>
-<p>Transfer accounting confirms 9S versus 3S operand traffic for separate versus
-fused public multiplication, with eight launches in either case. That supports
-the device-resident architecture, but summing unmatched means does not measure
-a fusion speedup. Arithmetic cost, 2,048-byte column-thread strides, partial
+<p>Let S be the bytes in one input polynomial. Separate public calls copy 9S
+bytes between CPU and GPU; the combined multiply call copies 3S. Both launch
+eight kernels. This motivates keeping data on the GPU. To measure the
+speedup, however, time both complete routes with one consistent protocol
+instead of adding means from separate experiments. Arithmetic cost, 2,048-byte column-thread strides, partial
 butterfly-thread participation and host copies are profiling hypotheses only.</p>
 <h3 id="changes-and-verification">Changes and verification<a class="headerlink" href="#changes-and-verification" title="Permanent link">¶</a></h3>
 <ul>
@@ -209,8 +212,9 @@ to the stopped rental was made. <strong>The new CUDA code is uncompiled/unrun he
 the successful native record above applies only to 19cc285, not these changes.
 No working-day or native gate is marked complete.</p>
 <h3 id="reasoning-and-changes">Reasoning and changes<a class="headerlink" href="#reasoning-and-changes" title="Permanent link">¶</a></h3>
-<p>Used one ownership seam for the production CUDA constructor and the host test
-adapter, rather than implementing a separate cleanup algorithm in tests.
+<p>The CUDA constructor and CPU test adapter use the same resource owner.
+This lets CPU failure tests exercise the cleanup logic used by production
+code, instead of a separate test-only cleanup algorithm.
 <code>SetupResources</code> tracks the actual six allocations and four constant uploads;
 host tests cover failures before adapter calls and adapter exceptions, reverse
 cleanup, and cleanup-failure accounting. The GPU-labelled
@@ -264,15 +268,16 @@ and unrun on native hardware.</p>
 <h3 id="reasoning-and-changes_1">Reasoning and changes<a class="headerlink" href="#reasoning-and-changes_1" title="Permanent link">¶</a></h3>
 <p>The user requested 30-bit primes and approved offline batch preparation.
 Keep public-call wall time separate from standalone resident CUDA-event and
-pinned-transfer experiments. A shared seeded-operand helper fixes N/q/root/input
-identity across GPU and OpenFHE CPU jobs. Thirty-bit values still occupy
+pinned-transfer experiments. A shared input generator uses the same N, primes, roots and random seed
+for GPU and OpenFHE CPU jobs, so their operands match. Thirty-bit values still occupy
 <code>uint64_t</code> buffers; no specialized <code>uint32_t</code> kernel or bandwidth reduction
 has been implemented.</p>
 <p>Added event timing of resident forward/inverse/pointwise/fused product and
 pinned H2D/D2H copies, with reset and verification outside the event interval.
 The public wrapper's transfer behavior and mathematical kernels are unchanged.
-Multi-launch event intervals include potential submission gaps and are not
-additive components of pageable public-call latency.</p>
+A GPU-event interval around several launches may include gaps while the
+CPU submits work. These times and the separate copy experiments cannot
+simply be added to reconstruct a public call using ordinary CPU memory.</p>
 <p>Added a real pinned-OpenFHE NativeVector CRT-FTT comparator for forward, inverse,
 pointwise and ring product. It uses preconditioned upstream arithmetic and
 sequential per-tower calls, not our scalar CPU algorithm. Metadata records
@@ -497,9 +502,10 @@ timing breakdown. Source inspection confirms public validation scans remain
 inside timing, so the scope gap cannot be assigned solely to PCIe.</p>
 <p>Thirty-bit primes still take the u64 path. All 35 paired resident forward and
 product comparisons put 60-bit execution below 30-bit in this run (median
-60/30 ratios 0.882 and 0.881). Causation is unproven: operand/prime values,
-runtime remainder behavior and fixed run order are confounded. Public timing
-tails and non-monotonic cells require repeated sessions before dispatch tuning.</p>
+60/30 ratios 0.882 and 0.881). The cause is unknown. Prime and input values differ, remainder arithmetic
+may behave differently, and versions run in a fixed order. Slow outlying
+public-call samples and irregular workload times need repeat measurements
+before we select different implementations for different cases.</p>
 <p>Priority remains split-runner integration and resident-pipeline preparation,
 then individually validated arithmetic/layout candidates. Counters and actual
 RTX 5090 execution remain pending. No roadmap gate advances from this analysis.</p>
@@ -515,7 +521,7 @@ successful Git push.</p></article></details><p class="site-article site-read-nex
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe">d67d9c0</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/587598a848b4b715b018ee45bcccbf40027ea064">587598a</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

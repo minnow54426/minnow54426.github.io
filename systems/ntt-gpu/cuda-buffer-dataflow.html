@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Follow inputs, device buffers and transfers through the synchronous CUDA wrapper.">
+<meta name="description" content="Follow polynomial values from CPU arrays to GPU buffers and back.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/cuda-buffer-dataflow.html">
 <title>CUDA buffers &amp; dataflow · ntt-gpu</title>
 
@@ -35,16 +35,19 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/docs/cuda-buffer-dataflow.md">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/docs/cuda-buffer-dataflow.md">View source</a></div>
     <div class="site-reading-layout site-wide">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>CUDA buffers &amp; dataflow</h1><ul><li>A tower stores one polynomial modulo one prime. At N=65536 it takes 512 KiB in the current uint64 format.</li><li>Fused multiplication uploads two inputs and downloads one result. Separate public calls repeat transfers between operations.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="cuda-buffers-and-hostdevice-dataflow-d5" aria-hidden="true"></div>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>CUDA buffers &amp; dataflow</h1><ul><li>A tower stores one polynomial’s remainders under one prime. Its 65,536 eight-byte values use 512 KiB; three towers use 1.5 MiB.</li><li>One combined multiplication call uploads two inputs and downloads one result. Separate calls copy intermediate arrays between CPU and GPU.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="cuda-buffers-and-hostdevice-dataflow-d5" aria-hidden="true"></div>
 
 <h2 id="where-the-cuda-wrapper-stores-and-moves-data">Where the CUDA wrapper stores and moves data<a class="headerlink" href="#where-the-cuda-wrapper-stores-and-moves-data" title="Permanent link">¶</a></h2>
-<p>The synchronous <code>CudaNttTransform</code> accepts host vectors. Each call uploads
-inputs, runs kernels and downloads the result. Its fused <code>multiply()</code> keeps
-intermediate operations on the device; separate public calls repeat transfers.</p>
-<p>This page maps the <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/cuda_ntt.hpp">interface</a> and
-<a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/src/cuda/ntt_kernels.cu">implementation</a>. It describes the baseline wrapper,
+<p><code>CudaNttTransform</code> accepts arrays in CPU memory, called host vectors. Each
+call copies its inputs to GPU memory, runs GPU functions called kernels,
+and copies the result back before returning. This makes the interface
+synchronous. Its <code>multiply()</code> combines several operations in one call,
+keeping their intermediate arrays on the GPU. Separate calls copy those
+arrays back and forth.</p>
+<p>This page maps the <a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/include/ntt/cuda_ntt.hpp">interface</a> and
+<a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/src/cuda/ntt_kernels.cu">implementation</a>. It describes the baseline wrapper,
 not the newer <a href="resident-operation-chain.html">resident-handle API</a>.
 Use the <a href="ntt-65536-work-distribution.html">work-distribution explorer</a> for the
 kernel schedule. The <a href="batch40-native-analysis.html">Ada report</a> records native
@@ -214,8 +217,8 @@ pointwise product and final inverse result overwrite A.</p>
   These are modular inverses, not floating-point <code>1/N</code> values.</li>
 </ul>
 <p>These constants depend on N, primes, roots and the selected transform schedule,
-not on the input coefficients. The <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/transform_stage.hpp">table builder</a>
-and <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/src/cuda/ntt_kernels.cu">constructor</a> show their actual generation and
+not on the input coefficients. The <a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/include/ntt/transform_stage.hpp">table builder</a>
+and <a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/src/cuda/ntt_kernels.cu">constructor</a> show their actual generation and
 uploads. There is no separate GPU root array; the roots are already encoded
 in the twiddle tables.</p>
 <p>For the small N=4 example, the moduli array is <code>[17, 41, 73]</code> and the inverse
@@ -228,7 +231,7 @@ inverse table: [1, 13, 9, 15, 16]
 <span class="site-math">\(\psi^4\bmod17=16\)</span>. This shows why these arrays contain <strong>constants</strong>, not
 another copy of the coefficient data.</p>
 <h3 id="derive-the-six-buffer-total">Derive the six-buffer total<a class="headerlink" href="#derive-the-six-buffer-total" title="Permanent link">¶</a></h3>
-<p>The current <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/transform_stage.hpp">table allocation</a> retains
+<p>The current <a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/include/ntt/transform_stage.hpp">table allocation</a> retains
 <strong>N+1 words per tower</strong> in both build variants: N indexed entries plus the
 endpoint <span class="site-math">\(\psi^N\)</span> (or its inverse-root counterpart). That extra entry is a
 table convention, not an extra coefficient. Each complete twiddle array uses:</p>
@@ -310,12 +313,13 @@ does <strong>not</strong> preserve a transfer-free pipeline.</p>
    <code>max(1,N/256)</code> row blocks per tower and <code>ceil(K*N/256)</code> elementwise blocks.</li>
 </ol>
 <p>The raw CPU NTT constructor assumes prime q. The CUDA wrapper adds prime/range,
-root and extent checks in <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/cuda_validation.hpp">cuda_validation.hpp</a>.
+root and extent checks in <a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/include/ntt/cuda_validation.hpp">cuda_validation.hpp</a>.
 Temporary host power tables are released after setup; the moduli and CPU
 references remain.</p>
 <h2 id="persistent-allocation-and-ownership-map">Persistent allocation and ownership map<a class="headerlink" href="#persistent-allocation-and-ownership-map" title="Permanent link">¶</a></h2>
-<p>For N=65536/K=3, define S=1,572,864 B, T=1,572,888 B, R=24 B.
-In general, <span class="site-math">\(S=8KN,\ T=8K(N+1),\ R=8K\)</span> bytes.
+<p>To shorten the formulas, use S for one operand’s bytes, T for one twiddle
+table’s bytes, and R for one small constant array’s bytes. At N=65536/K=3,
+S=1,572,864 B, T=1,572,888 B and R=24 B. In general, <span class="site-math">\(S=8KN,\ T=8K(N+1),\ R=8K\)</span> bytes.
 Every stored element is <code>uint64_t</code>.</p>
 <table>
 <thead>
@@ -365,13 +369,13 @@ Every stored element is <code>uint64_t</code>.</p>
 </tr>
 </tbody>
 </table>
-<p><code>CudaNttTransform</code> owns <code>unique_ptr&lt;Impl&gt;</code>; <code>Impl</code> owns a shared-logic
-<code>SetupResources&lt;CudaSetupRuntime&gt;</code> allocation owner. The six named pointers
-are private aliases into that owner's allocation list:
-callers cannot retain a borrowed device-buffer view. Copy construction and
-copy assignment are deleted. No move operations are declared; this class is
-not currently movable either. Do not use one instance concurrently: public
-operations share and overwrite A/B and there is no locking or per-call scratch.</p>
+<p><code>CudaNttTransform</code> keeps its implementation in a <code>unique_ptr&lt;Impl&gt;</code>, which
+ensures one owner. Inside <code>Impl</code>, <code>SetupResources&lt;CudaSetupRuntime&gt;</code> tracks
+the six GPU allocations and releases them. The named pointers refer to
+those privately owned buffers; callers cannot keep direct buffer views.
+The transform object cannot be copied or moved. Use an instance from only
+one caller at a time, because its methods overwrite the same A/B buffers
+without locks or separate scratch space.</p>
 <p>On destruction or constructor failure, the allocation owner releases acquired
 pointers in reverse order while selecting/restoring their owning device.
 Preflight rejection has no allocations to free. A cleanup trace records
@@ -455,12 +459,13 @@ K*N entries and recover the limb by integer division by N.</p>
 </tr>
 </tbody>
 </table>
-<p>Inputs must contain K*N residues in their corresponding <code>[0,q[k])</code> ranges.
-Methods now check lengths and scan canonical residue ranges before upload, then
-select the owning device. They do not store a runtime coefficient/evaluation tag.
-The caller is responsible for representation and
-parameter compatibility. A vector from another modulus set with the same
-length is not rejected merely for having different provenance.</p>
+<p>Each input must contain exactly K×N values. Values in tower k must be from
+0 to q[k]−1. Before uploading, the methods check the length and every value,
+then select the GPU that owns the buffers. They do not record whether an
+array currently contains coefficients or evaluations. The caller must choose
+the correct operation and supply matching primes and roots. An array made
+under a different prime set can pass these checks if its length and values
+happen to fit; the wrapper does not track where it came from.</p>
 <p><code>n()</code> and <code>limbs()</code> return scalar geometry without a device copy. <code>q(k)</code> and
 <code>ref(k)</code> use bounds-checked host vectors; <code>ref(k)</code> is a borrowed const reference
 valid only while the transform object exists. These getters do not expose the
@@ -481,14 +486,16 @@ GPU allocation or transfer data.</p>
 <div class="flow-arrow">↓ D2H · 1 copy · 1.5 MiB</div>
 <div class="flow-host"><strong>HOST · returned left</strong><p>196,608 residues · 1.5 MiB · natural coefficient order</p></div>
 </div>
-<p>For this three-tower example, each transform launch has a 256×3 grid,
+<p>In the diagram, H2D means CPU-to-GPU and D2H means GPU-to-CPU. A block is
+a group of threads that can share a small memory area. For this three-tower
+example, each transform launch has a 256×3 grid,
 256 threads per block, and 2 KiB shared memory per block. The pointwise and
 scale grids each have 768 blocks. A complete multiply uses <strong>eight launches
 and three operand copies, totaling 4,718,592 B (4.5 MiB)</strong>.</p>
 <p>The four constant buffers are read throughout this chain; they are not
-re-uploaded per operation. B is scratch after the call, not a cached operand
-that the next public operation is entitled to reuse. Every new <code>multiply()</code>
-uploads both input operands again.
+re-uploaded per operation. After the call, B is temporary working storage. A later call cannot assume
+it still contains a reusable input. Every <code>multiply()</code> uploads both inputs
+again.
 Passing an lvalue as left creates a host copy; passing a moved vector can
 transfer its host allocation into the by-value parameter instead.</p>
 <p>Each public method uses <code>cudaMemcpy</code>, not <code>cudaMemcpyAsync</code>, and returns the
@@ -557,17 +564,18 @@ native failure/lifetime tests. The
 <a href="modular-arithmetic-contract.html">D6 arithmetic review</a> examines arithmetic
 bounds, parameter assumptions, and adversarial exactness.</p>
 <h2 id="verification-and-limits">Verification and limits<a class="headerlink" href="#verification-and-limits" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/tests/docs/test_cuda_dataflow.py">Source-contract tests</a> check that this map
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/tests/docs/test_cuda_dataflow.py">Source-contract tests</a> check that this map
 matches current allocation sizes, frees, public copy directions, operation
 ordering and host-only interface shape. They also pin the N=65536 arithmetic
-above. These are deliberately <strong>static source checks</strong>, not CUDA-runtime tests
-or proof of constructor failure safety. Existing CTests verify CPU arithmetic
+above. These tests read the source text; they do not execute CUDA. They can catch
+a mismatch between the document and code, but cannot prove that cleanup
+works after a real GPU failure. Existing CTests verify CPU arithmetic
 and shared stage helpers. No new claim of actual GPU support/performance is
 made by completing D5.</p></article></details><p class="site-article site-read-next"><a href="resident-operation-chain.html">Next: Resident operation chain →</a></p></div>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe">d67d9c0</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/587598a848b4b715b018ee45bcccbf40027ea064">587598a</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

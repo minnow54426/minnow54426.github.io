@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Audit the first diagnostic run and understand its limited timing sample.">
+<meta name="description" content="Understand what the first GPU run established and what its timing cannot show.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/first-native-analysis.html">
 <title>First GPU run: analysis · ntt-gpu</title>
 
@@ -35,14 +35,15 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/docs/first-native-analysis.md">View source</a></div>
+    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/docs/first-native-analysis.md">View source</a></div>
     <div class="site-reading-layout site-wide">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>First GPU run: analysis</h1><ul><li>The first Ada run passed its selected native checks and saved one averaged 46-bit timing row.</li><li>That row cannot isolate kernels, transfers or variability. The later full-matrix report adds raw samples and a separate OpenFHE CPU baseline.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="first-native-run-analysis-and-next-experiments">First native run: analysis and next experiments<a class="headerlink" href="#first-native-run-analysis-and-next-experiments" title="Permanent link">¶</a></h2>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>First GPU run: analysis</h1><ul><li>The first Ada run passed its selected device tests and saved one average timing row using 46-bit primes.</li><li>That average cannot separate kernels from copies or show variation. The later matrix report adds individual samples and a separate OpenFHE CPU comparison.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="first-native-run-analysis-and-next-experiments">First native run: analysis and next experiments<a class="headerlink" href="#first-native-run-analysis-and-next-experiments" title="Permanent link">¶</a></h2>
 <p><strong>2026-11-14 · offline analysis · source 19cc285 · N=65536</strong></p>
-<p>The supplied Ada machine passed the prepared correctness tests. This establishes a
-CUDA baseline <strong>for the executed cases</strong>, not a
-production backend or a measured RTX 5090 implementation. Prepare better
-measurement and failure-path tooling offline before paying for another session.</p>
+<p>The supplied GPU uses NVIDIA’s Ada architecture. It passed the prepared
+correctness tests for the cases that were run. This gives us a starting
+CUDA result on that machine; it does not validate a production backend or
+measure an RTX 5090. Prepare better timing and error-handling tests locally
+before paying for another session.</p>
 <p>This is the historical analysis of source <code>19cc285</code>, using exported logs.
 The later <a href="batch40-native-analysis.html">full-matrix report</a> adds raw samples and
 a separate OpenFHE CPU baseline. Read that report for the newer measurements.
@@ -50,11 +51,12 @@ No reconnection or new GPU run was made for this analysis.
 See the <a href="journal/2026-11-14.html">session record</a> for environment, commands,
 archive checksum and local report paths.</p>
 <h2 id="1-exactness-what-the-comparison-count-means">1. Exactness: what the comparison count means<a class="headerlink" href="#1-exactness-what-the-comparison-count-means" title="Permanent link">¶</a></h2>
-<p>The archive checksum matches. Its report contains 17 successful stages, a clean
-checkout, native compilation and <code>GPU_CHECKS_PASSED</code>. The complete log confirms
-23/23 CTests passed; <strong>four execute GPU work</strong>, not 23 separate GPU tests.</p>
+<p>The archive’s file fingerprint matches the supplied checksum. Its report
+records 17 successful collection stages, unmodified source, a CUDA build and
+<code>GPU_CHECKS_PASSED</code>. The full log shows that all 23 CTests passed. Only four
+of those tests execute GPU work; the others run on the CPU.</p>
 <p>The strongest native check is
-<a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/tests/cuda_openfhe_tests.cpp">cuda_openfhe_tests.cpp</a>:</p>
+<a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/tests/cuda_openfhe_tests.cpp">cuda_openfhe_tests.cpp</a>:</p>
 <table>
 <thead>
 <tr>
@@ -93,8 +95,10 @@ checkout, native compilation and <code>GPU_CHECKS_PASSED</code>. The complete lo
 independent inverse, GPU independent inverse, CPU/OpenFHE square, GPU
 pointwise/inverse, GPU complete square and host-source immutability. The total
 is <strong>not 169 million independent random cases</strong>.</p>
-<p>Arbitrary evaluation input tests inverse independently of forward. OpenFHE
-comparison checks actual ordering/root/scaling, not merely mutual invertibility.
+<p>Some inverse tests start with independently chosen evaluation arrays rather
+than output from our forward transform. This prevents matching forward and
+inverse mistakes from hiding each other. Comparison with OpenFHE also checks
+array order, root choice and final scaling.
 The separate <code>cuda_verify</code> also uses distinct left/right operands against the
 CPU reference; the direct OpenFHE product matrix primarily tests squares.</p>
 <p>No mismatch was observed. This supports real native correctness for this
@@ -109,7 +113,8 @@ and hazards. This is kernel smoke coverage, not all 63 combinations, allocation
 failure, failed-context cleanup or asynchronous ownership verification.</p>
 <h2 id="2-latency-useful-baseline-limited-comparison">2. Latency: useful baseline, limited comparison<a class="headerlink" href="#2-latency-useful-baseline-limited-comparison" title="Permanent link">¶</a></h2>
 <p>One session, three synthetic <strong>46-bit</strong> towers, ten timed repetitions per
-operation. The code preserves means, not individual samples.</p>
+operation. The saved output contains only the arithmetic mean for each operation,
+not the ten individual times.</p>
 <table>
 <thead>
 <tr>
@@ -141,7 +146,7 @@ operation. The code preserves means, not individual samples.</p>
 </tr>
 </tbody>
 </table>
-<p>Source: <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/src/cuda/ntt_kernels.cu">run_bench and synchronous wrapper</a>.
+<p>Source: <a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/src/cuda/ntt_kernels.cu">run_bench and synchronous wrapper</a>.
 Device allocations and table construction/upload precede timing. Validation,
 device guards, launches, operand transfers and blocking download are included.</p>
 <p><code>47.4496 / 0.786293 ≈ 60.35</code>: the recorded public GPU forward is about 60×
@@ -227,7 +232,8 @@ this statistically meaningful or attribute it to inverse's extra launch.</p>
 </tr>
 </tbody>
 </table>
-<p>Fusion removes six operand copies, not six kernels. It also reduces public
+<p>Using one fused public call avoids six CPU–GPU operand copies. It still
+launches the same eight GPU kernels. It also reduces public
 validation/guard paths, although multiply has the host-copy cost above. Thus
 1.49319 ms for multiply is plausible even though two separately timed forward
 means sum to 1.572586 ms. It is not evidence that the individual timings fail.</p>
@@ -235,9 +241,10 @@ means sum to 1.572586 ms. It is not evidence that the individual timings fail.</
 standalone pointwise call. Their ratio to multiply is about 1.59, but this is
 <strong>not a measured fusion speedup</strong>: it combines unmatched measurements and omits
 a stage. Benchmark the complete unfused and fused chains under one protocol.</p>
-<p>Architecturally, preserve device-resident chains when adding basis conversion
-and Hybrid operations. Avoid unnecessary host roundtrips; measure residency
-benefits explicitly rather than projecting this scalar ratio onto inference.</p>
+<p>When adding basis conversion and Hybrid operations, keep intermediate
+arrays on the GPU where possible. Measure the benefit for the complete
+chain. The ratio against this simple CPU reference does not predict the
+speedup of encrypted inference.</p>
 <h2 id="4-bottleneck-hypotheses-not-a-measured-winner">4. Bottleneck hypotheses, not a measured winner<a class="headerlink" href="#4-bottleneck-hypotheses-not-a-measured-winner" title="Permanent link">¶</a></h2>
 <p>At N=65536 the code fuses eight far stages into the column pass and eight near
 stages into the row pass. There are 524,288 butterflies per tower.</p>
@@ -281,9 +288,9 @@ forward, 6S for inverse and 17S for multiplication. They omit twiddle/constants,
 shared memory and host/device copies. These are not measured DRAM traffic or
 bandwidth. Do not divide them by full public-call latency to infer utilization.</p>
 <p>The source calls integer remainder slow, but this session contains no
-instruction profile or alternative-reduction comparison. Arithmetic, strided
-memory, transfers and launch overhead cannot yet be ranked. Change one major
-factor at a time after profiling; otherwise a speedup cannot be attributed.</p>
+instruction profile or alternative-reduction comparison. The saved evidence cannot tell us whether arithmetic, widely spaced memory
+accesses, transfers or kernel launches cost the most time. Profile first,
+then change one major factor at a time so an improvement has an identifiable cause.</p>
 <h2 id="5-hardware-and-reproducibility-limits">5. Hardware and reproducibility limits<a class="headerlink" href="#5-hardware-and-reproducibility-limits" title="Permanent link">¶</a></h2>
 <p>Driver/runtime identify compute capability 8.9, name RTX 4080 SUPER, and
 33,796,456,448 device bytes / 32,760 MiB. This is an observed rental identity,
@@ -318,13 +325,14 @@ and troubleshooting and is not total rental duration or cost.</p>
 <li><strong>Then optimize one factor:</strong> choose reduction, coalesced staging or
    residency/launch work from evidence, and retain an exact same-device A/B test.</li>
 </ol>
-<p>This is partial B04/D15 analysis, not a completed bottleneck/performance gate.
-Primary-device evidence, failure verification, production coverage and later
-GPU base conversion/Hybrid/inference remain open.</p></article></details><p class="site-article site-read-next"><a href="batch40-native-analysis.html">Next: Full GPU matrix: analysis →</a></p></div>
+<p>This report completes part of tasks B04 and D15. It does not yet identify
+the dominant performance cost. Remaining work includes tests on the primary
+GPU, real failure handling, production parameters, and GPU base conversion,
+Hybrid key switching and inference.</p></article></details><p class="site-article site-read-next"><a href="batch40-native-analysis.html">Next: Full GPU matrix: analysis →</a></p></div>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe">d67d9c0</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/587598a848b4b715b018ee45bcccbf40027ea064">587598a</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

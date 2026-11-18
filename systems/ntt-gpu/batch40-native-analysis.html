@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Read the measured Ada baseline and the limits of its GPU/CPU comparison.">
+<meta name="description" content="Read the measured GPU results together with their limits.">
 <link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/batch40-native-analysis.html">
 <title>Full GPU matrix: analysis · ntt-gpu</title>
 
@@ -35,14 +35,15 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/docs/batch40-native-analysis.md">View source</a></div>
+    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/docs/batch40-native-analysis.md">View source</a></div>
     <div class="site-reading-layout site-wide">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>Full GPU matrix: analysis</h1><ul><li>Fused multiplication was faster than the unfused public chain in all 140 workloads, with a 2.36× median ratio.</li><li>Device-event time excludes uploads/downloads. The separate M1 CPU and temporary GPU results are not RTX 5090 or end-to-end CKKS measurements.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="gpu-results-what-we-learned">GPU results: what we learned<a class="headerlink" href="#gpu-results-what-we-learned" title="Permanent link">¶</a></h2>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Full GPU matrix: analysis</h1><ul><li>Keeping intermediate arrays on the GPU made the combined public multiplication faster in all 140 workloads, with a median unfused/fused time ratio of 2.36.</li><li>GPU-event times exclude input and output copies. The M1 CPU and temporary Ada GPU results do not measure RTX 5090 or a complete CKKS application.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="gpu-results-what-we-learned">GPU results: what we learned<a class="headerlink" href="#gpu-results-what-we-learned" title="Permanent link">¶</a></h2>
 <p><strong>Measured on November 14, 2026 · temporary sm_89 GPU · M1 Pro CPU baseline</strong></p>
-<p>The tested NTT baseline passes its executed correctness checks. Keeping
-intermediate arrays on the GPU reduces the measured multiplication time.
-Next, validate the newer resident API and measure the remaining public-call
-costs before adding base conversion or key switching.</p>
+<p>The NTT version used in this run passed the tests that were executed.
+Multiplication was faster when intermediate arrays stayed on the GPU.
+The newer resident API, which lets callers chain operations without copying
+those arrays back to the CPU, still needs its own GPU tests. Measure its
+complete cost before adding base conversion or key switching.</p>
 <p>The rental reports <strong>RTX 4080 SUPER, compute capability 8.9</strong>. These are
 <strong>not RTX 5090 results</strong>.</p>
 <h2 id="correctness-and-coverage">Correctness and coverage<a class="headerlink" href="#correctness-and-coverage" title="Permanent link">¶</a></h2>
@@ -93,14 +94,18 @@ switching and encrypted inference are <strong>not implemented or validated by th
 </tr>
 </tbody>
 </table>
-<p>Public calls include host validation and transfers. The resident experiment
-excludes input upload and output validation/download; it is <strong>not end-to-end
-latency</strong>. Its difference from public time is not pure PCIe overhead.</p>
+<p>A public call starts with CPU arrays, checks them, transfers them to the
+GPU, and returns a result to the CPU. The resident experiment times work
+with data already on the GPU; it excludes input upload, result download and
+result validation. It therefore measures a smaller interval. Subtracting the
+two times does not isolate the cost of the PCIe connection.</p>
 <p>M1-versus-GPU numbers compare different platforms, not same-host acceleration
 or the best possible parallel CPU implementation.</p>
 <h2 id="three-findings">Three findings<a class="headerlink" href="#three-findings" title="Permanent link">¶</a></h2>
-<p><strong>1. Keep data on the GPU.</strong> Directly measured fused multiplication beats the
-unfused chain in all 140 workloads: <strong>2.36× median benefit</strong>, ranging from
+<p><strong>1. Keep data on the GPU.</strong> A fused call performs both forward
+transforms, pointwise multiplication and the inverse before returning the
+result. The unfused chain makes a separate public call for each operation.
+The directly measured fused call was faster in all 140 workloads: <strong>2.36× median benefit</strong>, ranging from
 1.77× to 3.03×. At the largest 60-bit workload, it reduces 33.412 ms to
 12.431 ms. It removes repeated host roundtrips, not NTT kernel launches.
 Preserve this residency when adding base conversion and key switching.</p>
@@ -138,12 +143,14 @@ The GPU batch contains 154,000 timed samples; the separate CPU batch contains
 <p>The original mixed batch was cancelled after 366 completed jobs. The fresh
 280-job GPU batch is separate; the cancelled run is not labelled a full pass.
 The archived benchmark-only patch changes timing selection, not device kernels.</p>
-<p>The M1 baseline uses sequential OpenFHE NativeVector/CRT-FTT, OpenMP OFF and
-native optimization OFF. It is not a tuned parallel DCRT or CKKS baseline.</p>
+<p>The M1 baseline runs OpenFHE’s NativeVector arithmetic and CRT-FTT transform
+one tower at a time. OpenMP parallel execution and native compiler
+optimizations are OFF. It does not measure a tuned, parallel multi-tower
+implementation or a complete CKKS application.</p>
 <p>Only one ordered run per workload was collected. At the largest 60-bit workload,
 public product p95 is 20.732 ms versus a 12.431 ms median; close differences and
-non-monotonic public timings need repeated runs. Sample percentiles are not
-confidence intervals.</p>
+non-monotonic public timings need repeated runs. These percentiles describe the collected samples; they do not quantify
+how accurately one run estimates the performance of future runs.</p>
 <p>Large pinned-copy experiments reach approximately 13.0 GB/s H2D and 13.5 GB/s
 D2H payload rates. They do not decompose the pageable public-call measurements.
 A selected Nsight Systems trace was captured. Nsight Compute hardware counters
@@ -156,7 +163,7 @@ exactness scope, source provenance and local evidence locations.</p>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe">d67d9c0</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/587598a848b4b715b018ee45bcccbf40027ea064">587598a</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
