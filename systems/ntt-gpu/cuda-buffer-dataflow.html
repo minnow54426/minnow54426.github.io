@@ -35,7 +35,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/docs/cuda-buffer-dataflow.md">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/docs/cuda-buffer-dataflow.md">View source</a></div>
     <div class="site-reading-layout site-wide">
       <div class="site-page-content"><section class="site-article site-brief"><h1>CUDA buffers &amp; dataflow</h1><ul><li>A tower stores one polynomial modulo one prime. At N=65536 it takes 512 KiB in the current uint64 format.</li><li>Fused multiplication uploads two inputs and downloads one result. Separate public calls repeat transfers between operations.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="cuda-buffers-and-hostdevice-dataflow-d5" aria-hidden="true"></div>
 
@@ -43,18 +43,251 @@
 <p>The synchronous <code>CudaNttTransform</code> accepts host vectors. Each call uploads
 inputs, runs kernels and downloads the result. Its fused <code>multiply()</code> keeps
 intermediate operations on the device; separate public calls repeat transfers.</p>
-<p>This page maps the <a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/include/ntt/cuda_ntt.hpp">interface</a> and
-<a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/src/cuda/ntt_kernels.cu">implementation</a>. It describes the baseline wrapper,
+<p>This page maps the <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/cuda_ntt.hpp">interface</a> and
+<a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/src/cuda/ntt_kernels.cu">implementation</a>. It describes the baseline wrapper,
 not the newer <a href="resident-operation-chain.html">resident-handle API</a>.
 Use the <a href="ntt-65536-work-distribution.html">work-distribution explorer</a> for the
 kernel schedule. The <a href="batch40-native-analysis.html">Ada report</a> records native
 baseline evidence; later runtime changes need their own verification.</p>
 <h2 id="the-big-picture-n65536-three-towers">The big picture: N=65536, three towers<a class="headerlink" href="#the-big-picture-n65536-three-towers" title="Permanent link">¶</a></h2>
-<p>One <code>CudaNttTransform</code> represents one fixed ring size and a fixed list of RNS
-moduli/roots. It owns two reusable operand buffers and four constant buffers.
-The public interface accepts <strong>host vectors</strong>, not device pointers.</p>
-<p>For this page, <strong>N=65536 and K=3</strong>. One polynomial contains 196,608
-64-bit residues: <strong>1,572,864 bytes (1.5 MiB)</strong>. Each tower occupies 512 KiB.</p>
+<p>One <code>CudaNttTransform</code> fixes the polynomial length N and the ordered pairs
+<span class="site-math">\((q_k,\psi_k)\)</span>: a prime modulus and an NTT root for each tower. The caller
+supplies these parameters and packed <strong>host vectors</strong>. One instance can then
+process different polynomials with that same layout.</p>
+<h3 id="what-are-the-three-towers">What are the three towers?<a class="headerlink" href="#what-are-the-three-towers" title="Permanent link">¶</a></h3>
+<p>Write a polynomial as <span class="site-math">\(a(x)=a_0+a_1x+\cdots+a_{N-1}x^{N-1}\)</span>.
+In the Residue Number System (RNS), each coefficient modulo
+<span class="site-math">\(Q=q_0q_1q_2\)</span> is represented by three remainders:</p>
+<p><span class="site-math">\[
+a_i\quad\longrightarrow\quad
+\begin{pmatrix}
+a_i\bmod q_0\\
+a_i\bmod q_1\\
+a_i\bmod q_2
+\end{pmatrix}.
+\]</span></p>
+<p>A <strong>tower</strong> collects all N remainders for one prime. Three towers therefore
+represent <strong>one polynomial under three primes</strong>, not three ciphertexts or three
+unrelated messages. Each prime fits in a machine word even when their product
+Q does not. The NTT runs independently in each tower, using that tower's q and ψ.</p>
+<p>In a CKKS pipeline, a ciphertext commonly contains polynomial components such
+as c₀ and c₁; each component has its own towers. These buffers hold polynomial
+residues, not the user's decoded complex slots. This standalone wrapper takes
+the packed values from its caller; it does not encrypt data or unpack an
+OpenFHE ciphertext automatically.</p>
+<h3 id="see-the-actual-numbers-in-a-small-example">See the actual numbers in a small example<a class="headerlink" href="#see-the-actual-numbers-in-a-small-example" title="Permanent link">¶</a></h3>
+<p>For illustration only, take <strong>N=4</strong>, primes <strong>17, 41, 73</strong>, and
+<span class="site-math">\(a(x)=1-2x+20x^2+100x^3\)</span>. Reduce each coefficient separately. On small screens, scroll wide tables horizontally.</p>
+<div aria-label="Coefficient residues under three primes" class="site-table-scroll" role="region" tabindex="0">
+<div style="min-width:22rem">
+<table>
+<thead>
+<tr>
+<th><span class="site-math">\(a_i\)</span></th>
+<th style="text-align: right;">Mod 17</th>
+<th style="text-align: right;">Mod 41</th>
+<th style="text-align: right;">Mod 73</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>−2</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">71</td>
+</tr>
+<tr>
+<td>20</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td>100</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">27</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>For example, −2 becomes q−2 in each tower, while <span class="site-math">\(100\bmod41=18\)</span>.
+The wrapper receives only these nonnegative, canonical residues. Casting −2
+to an unsigned integer is not the same operation as reducing it modulo q.</p>
+<p>Read down each prime column in the table, then concatenate the columns.
+The input is flattened <strong>tower by tower</strong>, not coefficient by coefficient:</p>
+<pre><code class="language-cpp">std::vector&lt;uint64_t&gt; values{
+    1, 15,  3, 15,   // tower 0: all four coefficients modulo 17
+    1, 39, 20, 18,   // tower 1: all four coefficients modulo 41
+    1, 71, 20, 27    // tower 2: all four coefficients modulo 73
+};
+</code></pre>
+<p>This array has <span class="site-math">\(3\times4=12\)</span> words, or <span class="site-math">\(12\times8=96\)</span> bytes.
+The example's roots can be <code>[2, 3, 10]</code>, respectively; each satisfies
+<span class="site-math">\(\psi_k^4=-1\pmod{q_k}\)</span>. These small parameters illustrate storage, not the
+N=65536 workload. Actual primes and roots come from the chosen context; see
+<a href="openfhe-representation-contract.html">the OpenFHE representation contract</a>.</p>
+<p>In the first tower, forward NTT changes <code>[1, 15, 3, 15]</code> into <code>[10, 16, 3, 9]</code>.
+The first array contains coefficient residues; the second contains evaluations
+in bit-reversed order. Both still occupy four 8-byte words. The
+<a href="openfhe-representation-contract.html#3-exact-evaluation-and-inverse-formulas">evaluation and inverse formulas</a>
+explain what those new values mean.</p>
+<h3 id="scale-the-same-layout-to-n65536">Scale the same layout to N=65536<a class="headerlink" href="#scale-the-same-layout-to-n65536" title="Permanent link">¶</a></h3>
+<p>Now use <strong>N=65536 and K=3</strong>. Here K counts prime towers in one polynomial.
+For tower k and position i:</p>
+<p><span class="site-math">\[
+\begin{aligned}
+\text{word index}&amp;=kN+i,\\
+\text{byte offset}&amp;=8(kN+i).
+\end{aligned}
+\]</span></p>
+<div aria-label="Tower word ranges and byte offsets" class="site-table-scroll" role="region" tabindex="0">
+<div style="min-width:28rem">
+<table>
+<thead>
+<tr>
+<th>Tower</th>
+<th>Word range</th>
+<th style="text-align: right;">Byte offset</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 (q₀)</td>
+<td>0…65535</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>1 (q₁)</td>
+<td>65536…131071</td>
+<td style="text-align: right;">524288</td>
+</tr>
+<tr>
+<td>2 (q₂)</td>
+<td>131072…196607</td>
+<td style="text-align: right;">1048576</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>In coefficient format, <code>values[N + 5]</code> is coefficient 5 modulo q₁.
+After forward NTT, the same location holds evaluation position 5 of that
+tower in bit-reversed order. <strong>The values change meaning, but the array still
+has K×N entries.</strong> Inverse returns coefficient format. Ring multiplication
+also returns N coefficients per tower because the result is reduced modulo
+<span class="site-math">\(x^N+1\)</span>.</p>
+<p>Every entry uses <code>uint64_t</code>: <strong>64 bits ÷ 8 bits per byte = 8 bytes</strong>. A 50- or 60-bit modulus
+does not shrink this implementation's storage word. Therefore:</p>
+<p><span class="site-math">\[
+\begin{aligned}
+\text{One tower}&amp;=65536\times8\\
+&amp;=524288\ \text{bytes}=512\ \text{KiB},\\[0.4em]
+\text{One polynomial}&amp;=3\times65536\times8\\
+&amp;=1572864\ \text{bytes}=1.5\ \text{MiB}.
+\end{aligned}
+\]</span></p>
+<p>KiB means 1024 bytes; MiB means <span class="site-math">\(1024^2=1048576\)</span> bytes. The polynomial
+occupies one contiguous buffer containing all three towers. A host vector and
+its GPU copy have the same numeric payload, but live in separate memory.</p>
+<h3 id="what-else-is-stored-besides-the-polynomial">What else is stored besides the polynomial?<a class="headerlink" href="#what-else-is-stored-besides-the-polynomial" title="Permanent link">¶</a></h3>
+<p>The wrapper allocates <strong>two operand buffers</strong>, A and B, for two different
+polynomial inputs. Each buffer contains all three towers and is 1.5 MiB.
+A forward-only call uses A; the instance still owns both allocations.
+During fused multiplication, A and B hold inputs, then evaluations; the
+pointwise product and final inverse result overwrite A.</p>
+<p>Four more arrays contain parameters and precomputed constants:</p>
+<ul>
+<li><strong>Forward twiddles:</strong> powers of each tower's ψ, used by the butterflies.
+  The default build stores the first N entries in bit-reversed exponent order.</li>
+<li><strong>Inverse twiddles:</strong> corresponding powers of ψ-inverse for the reverse transform.</li>
+<li><strong>Moduli:</strong> one q per tower, so every arithmetic operation reduces by the
+  correct prime. This is <code>[q₀, q₁, q₂]</code>, not the composite product Q.</li>
+<li><strong>Inverse lengths:</strong> one <span class="site-math">\(N^{-1}\bmod q_k\)</span> per tower for final normalization.
+  These are modular inverses, not floating-point <code>1/N</code> values.</li>
+</ul>
+<p>These constants depend on N, primes, roots and the selected transform schedule,
+not on the input coefficients. The <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/transform_stage.hpp">table builder</a>
+and <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/src/cuda/ntt_kernels.cu">constructor</a> show their actual generation and
+uploads. There is no separate GPU root array; the roots are already encoded
+in the twiddle tables.</p>
+<p>For the small N=4 example, the moduli array is <code>[17, 41, 73]</code> and the inverse
+lengths are <code>[13, 31, 55]</code>, since each value times 4 is 1 modulo its prime.
+The first tower, with q=17 and ψ=2, has:</p>
+<pre><code class="language-text">forward table: [1,  4, 2,  8, 16]
+inverse table: [1, 13, 9, 15, 16]
+</code></pre>
+<p>The first four forward exponents are <code>0, 2, 1, 3</code>. The last entry is
+<span class="site-math">\(\psi^4\bmod17=16\)</span>. This shows why these arrays contain <strong>constants</strong>, not
+another copy of the coefficient data.</p>
+<h3 id="derive-the-six-buffer-total">Derive the six-buffer total<a class="headerlink" href="#derive-the-six-buffer-total" title="Permanent link">¶</a></h3>
+<p>The current <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/transform_stage.hpp">table allocation</a> retains
+<strong>N+1 words per tower</strong> in both build variants: N indexed entries plus the
+endpoint <span class="site-math">\(\psi^N\)</span> (or its inverse-root counterpart). That extra entry is a
+table convention, not an extra coefficient. Each complete twiddle array uses:</p>
+<p><span class="site-math">\[
+\begin{aligned}
+3\times(65536+1)&amp;=196611\ \text{words},\\
+196611\times8&amp;=1572888\ \text{bytes}.
+\end{aligned}
+\]</span></p>
+<div aria-label="Six persistent GPU buffers and their sizes" class="site-table-scroll" role="region" tabindex="0">
+<div style="min-width:26rem">
+<table>
+<thead>
+<tr>
+<th>Buffer</th>
+<th style="text-align: right;">Count</th>
+<th style="text-align: right;">Bytes each</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Operands A/B</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1,572,864</td>
+</tr>
+<tr>
+<td>Twiddle tables</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1,572,888</td>
+</tr>
+<tr>
+<td>Moduli</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">24</td>
+</tr>
+<tr>
+<td>Inverse lengths</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">24</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Each small array has three words: <span class="site-math">\(3\times8=24\)</span> bytes.</p>
+<p>Add those six allocations:</p>
+<p><span class="site-math">\[
+\begin{aligned}
+\text{Operands}&amp;=2\times1572864=3145728\ \mathrm B,\\
+\text{Twiddles}&amp;=2\times1572888=3145776\ \mathrm B,\\
+\text{Small constants}&amp;=24+24=48\ \mathrm B,\\
+\text{Total}&amp;=6291552\ \mathrm B.
+\end{aligned}
+\]</span></p>
+<p>That is <strong>6 MiB plus 96 bytes</strong>, not the size of one polynomial. At setup,
+only the four constant arrays are uploaded: <span class="site-math">\(3145776+48=3145824\)</span> bytes.
+A and B receive coefficient/evaluation data later, when an operation uploads
+its host inputs. The sizes below count requested GPU buffer payloads; host
+objects, CUDA context/allocator overhead and per-block shared memory are separate.</p>
 <div class="dataflow-grid">
 <div><strong>① Construct once</strong><p>Allocate six GPU buffers: 6,291,552 B total.</p><p>Upload four constant arrays: 3,145,824 B, four copies.</p></div>
 <div><strong>② Reuse for each call</strong><p>Host inputs → GPU A/B → kernels → host result.</p><p>A and B are each 1.5 MiB. Constants stay on the GPU.</p></div>
@@ -77,7 +310,7 @@ does <strong>not</strong> preserve a transfer-free pipeline.</p>
    <code>max(1,N/256)</code> row blocks per tower and <code>ceil(K*N/256)</code> elementwise blocks.</li>
 </ol>
 <p>The raw CPU NTT constructor assumes prime q. The CUDA wrapper adds prime/range,
-root and extent checks in <a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/include/ntt/cuda_validation.hpp">cuda_validation.hpp</a>.
+root and extent checks in <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/cuda_validation.hpp">cuda_validation.hpp</a>.
 Temporary host power tables are released after setup; the moduli and CPU
 references remain.</p>
 <h2 id="persistent-allocation-and-ownership-map">Persistent allocation and ownership map<a class="headerlink" href="#persistent-allocation-and-ownership-map" title="Permanent link">¶</a></h2>
@@ -181,7 +414,9 @@ vectors, and CPU-reference objects are <strong>not</strong> included. These are 
 not a VRAM measurement or a memory-capacity benchmark.</p>
 <h2 id="public-api-contracts">Public API contracts<a class="headerlink" href="#public-api-contracts" title="Permanent link">¶</a></h2>
 <p>For operands, flat index <code>k*N+i</code> belongs to limb k. Power-table index
-<code>k*(N+1)+e</code> belongs to exponent e of that limb. Transform kernels select limbs
+<code>k*(N+1)+e</code> selects table position e of that limb. For e&lt;N, its exponent is
+bit-reversed in the default build and e in the legacy build; position N holds
+the retained endpoint. Transform kernels select limbs
 with <code>blockIdx.y</code>. Pointwise and scale kernels instead use a flat grid over
 K*N entries and recover the limb by integer division by N.</p>
 <table>
@@ -246,7 +481,6 @@ GPU allocation or transfer data.</p>
 <div class="flow-arrow">↓ D2H · 1 copy · 1.5 MiB</div>
 <div class="flow-host"><strong>HOST · returned left</strong><p>196,608 residues · 1.5 MiB · natural coefficient order</p></div>
 </div>
-
 <p>For this three-tower example, each transform launch has a 256×3 grid,
 256 threads per block, and 2 KiB shared memory per block. The pointwise and
 scale grids each have 768 blocks. A complete multiply uses <strong>eight launches
@@ -323,7 +557,7 @@ native failure/lifetime tests. The
 <a href="modular-arithmetic-contract.html">D6 arithmetic review</a> examines arithmetic
 bounds, parameter assumptions, and adversarial exactness.</p>
 <h2 id="verification-and-limits">Verification and limits<a class="headerlink" href="#verification-and-limits" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/tests/docs/test_cuda_dataflow.py">Source-contract tests</a> check that this map
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/tests/docs/test_cuda_dataflow.py">Source-contract tests</a> check that this map
 matches current allocation sizes, frees, public copy directions, operation
 ordering and host-only interface shape. They also pin the N=65536 arithmetic
 above. These are deliberately <strong>static source checks</strong>, not CUDA-runtime tests
@@ -333,7 +567,7 @@ made by completing D5.</p></article></details><p class="site-article site-read-n
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141">54e3fba</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe">d67d9c0</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

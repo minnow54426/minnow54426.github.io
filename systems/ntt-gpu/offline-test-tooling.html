@@ -35,7 +35,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/docs/offline-test-tooling.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/docs/offline-test-tooling.md">View source</a></div>
     <div class="site-reading-layout site-wide">
       <div class="site-page-content"><section class="site-article site-brief"><h1>Offline test tooling</h1><ul><li>Use GPU-only measurements on the rental and collect the OpenFHE CPU timings locally with matching parameters.</li><li>The collector keeps raw samples, provenance and failures. Resume reuses only matching, hash-checked records and reruns the required gates.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="prepare-the-next-gpu-session-offline" aria-hidden="true"></div>
 
@@ -121,8 +121,8 @@ operands, not that many independent random inputs. Thirty-bit primes still use
 <code>uint64_t</code> buffers and arithmetic. Parameter files contain zero placeholders;
 the executables generate the seeded dense operands used for timings.</p>
 <h3 id="validate-and-retain-records">Validate and retain records<a class="headerlink" href="#validate-and-retain-records" title="Permanent link">¶</a></h3>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/scripts/gpu_session.py">The collector</a> keeps parameter files, raw JSONL,
-logs, hashes and <code>report.json</code>. <a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/scripts/benchmark_report.py">The report validator</a>
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/scripts/gpu_session.py">The collector</a> keeps parameter files, raw JSONL,
+logs, hashes and <code>report.json</code>. <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/scripts/benchmark_report.py">The report validator</a>
 rejects missing/truncated samples, duplicate indices, wrong parameters/scopes,
 nonfinite or negative times, and summaries inconsistent with the raw samples.
 A malformed record fails even if the executable exits zero.</p>
@@ -210,7 +210,7 @@ outside timing; the full exactness suite remains a separate check.
 <code>gpu-bench-jsonl</code> uses <code>host_wall_gpu_public_call</code>; legacy <code>bench-jsonl</code>
 retains its distinct protocol. The old <code>bench</code> command is a 46-bit legacy path
 and is no longer used by the collector.</p>
-<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/include/ntt/measurement.hpp">measurement helper</a> has fake-clock tests
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/measurement.hpp">measurement helper</a> has fake-clock tests
 for reset order, warmups, summaries and JSON escaping. They test control logic,
 not performance.</p>
 <h2 id="resident-events-and-cpu-baseline">Resident events and CPU baseline<a class="headerlink" href="#resident-events-and-cpu-baseline" title="Permanent link">¶</a></h2>
@@ -248,7 +248,7 @@ include <code>resident_runtime_host</code> and <code>resident_openfhe_host</code
 <code>resident_cuda_preflight</code> and GPU-labelled <code>resident_cuda_exact</code>.
 Host/compiler success does not close these native gates.</p>
 <h2 id="shared-allocation-ownership-and-injected-failures">Shared allocation ownership and injected failures<a class="headerlink" href="#shared-allocation-ownership-and-injected-failures" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/include/ntt/setup_resources.hpp">SetupResources</a> registers each of the
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/setup_resources.hpp">SetupResources</a> registers each of the
 wrapper constructor's six allocations immediately and releases them in reverse
 order. Its four constant uploads use the same adapter boundary. Host tests
 exercise this actual ownership code with a host-memory adapter.</p>
@@ -274,7 +274,7 @@ older results cannot establish correctness of later runtime changes.</p></articl
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141">54e3fba</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe">d67d9c0</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

@@ -35,7 +35,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/docs/modular-arithmetic-contract.md">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/docs/modular-arithmetic-contract.md">View source</a></div>
     <div class="site-reading-layout site-wide">
       <div class="site-page-content"><section class="site-article site-brief"><h1>Arithmetic bounds &amp; tests</h1><ul><li>Canonical means a value from 0 to q−1. Each current butterfly keeps that range.</li><li>A 60-bit value fits in uint64_t, but its product needs a wider temporary. Independent bigint checks test these operations.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><div id="modular-arithmetic-bounds-and-exactness-gates" aria-hidden="true"></div>
 
@@ -47,8 +47,8 @@ and ends with canonical values.</p>
 value fits in that type; multiplying two such values does not. This page
 explains the temporary widths, input assumptions and independent checks.
 Read the <a href="cuda-buffer-dataflow.html">buffer map</a> for where arrays live.
-Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/include/ntt/mod_arith.hpp">mod_arith.hpp</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/include/ntt/ntt.hpp">ntt.hpp</a> and <a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/include/ntt/dev_core.hpp">dev_core.hpp</a>.</p>
+Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/mod_arith.hpp">mod_arith.hpp</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/ntt.hpp">ntt.hpp</a> and <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/dev_core.hpp">dev_core.hpp</a>.</p>
 <h2 id="1-what-callers-must-supply">1. What callers must supply<a class="headerlink" href="#1-what-callers-must-supply" title="Permanent link">¶</a></h2>
 <p>Canonical means an integer in <span class="site-math">\([0,q)\)</span>. None of the hot arithmetic functions
 validates this range at runtime.</p>
@@ -122,27 +122,162 @@ arithmetic functions reject invalid inputs.</p>
 Montgomery, 32-bit limbs, or lazy reduction will need their own proofs,
 including quotient error, carries, temporary width, and final correction.</p>
 <h2 id="3-the-invariant-through-every-butterfly">3. The invariant through every butterfly<a class="headerlink" href="#3-the-invariant-through-every-butterfly" title="Permanent link">¶</a></h2>
-<p>Forward and inverse use these canonical modular operations:</p>
+<p>There are two things to preserve: <strong>what each value means</strong> and <strong>how it is
+stored</strong>. A stage must compute the correct partial polynomial evaluations,
+and every stored word must remain in <span class="site-math">\([0,q)\)</span>. The negacyclic merge equations
+explain both. All equations in this section use arithmetic modulo q.</p>
+<h3 id="split-a-negacyclic-polynomial-into-two-smaller-problems">Split a negacyclic polynomial into two smaller problems<a class="headerlink" href="#split-a-negacyclic-polynomial-into-two-smaller-problems" title="Permanent link">¶</a></h3>
+<p>Start with <span class="site-math">\(a(x)\)</span> modulo <span class="site-math">\(x^N+1\)</span>. Set <span class="site-math">\(d=N/2\)</span> and split its coefficient
+array into low and high halves:</p>
 <p><span class="site-math">\[
 \begin{aligned}
-\text{Forward: }&amp;t=cv\bmod q,\quad u&#x27;=u+t\bmod q,\quad v&#x27;=(u-t)w\bmod q,\\
-\text{Inverse: }&amp;t=yw^{-1}\bmod q,\quad u&#x27;=x+t\bmod q,\quad v&#x27;=(x-t)c^{-1}\bmod q.
+a(x)&amp;=U(x)+x^dV(x),\\
+U(x)&amp;=\sum_{i=0}^{d-1}a_i x^i,\\
+V(x)&amp;=\sum_{i=0}^{d-1}a_{i+d}x^i.
 \end{aligned}
 \]</span></p>
-<p>Tables contain canonical powers.
-Every operation above returns canonical values, so induction over all 16
-stages preserves <span class="site-math">\([0,q)\)</span>. Inverse's final multiplication by N-inverse does too.
-Pointwise multiplication has the same invariant.</p>
+<p>Because <span class="site-math">\(\psi^N=-1\)</span>, choose <span class="site-math">\(\alpha=\psi^d\)</span>, so <span class="site-math">\(\alpha^2=-1\)</span>.
+The original modulus factors as</p>
+<p><span class="site-math">\[
+x^N+1=(x^d-\alpha)(x^d+\alpha).
+\]</span></p>
+<p>Inside the first smaller ring, <span class="site-math">\(x^d=\alpha\)</span>; inside the second,
+<span class="site-math">\(x^d=-\alpha\)</span>. Substitution gives the <strong>negacyclic merge</strong>:</p>
+<p><span class="site-math">\[
+\begin{aligned}
+a(x)\bmod(x^d-\alpha)&amp;=U(x)+\alpha V(x),\\
+a(x)\bmod(x^d+\alpha)&amp;=U(x)-\alpha V(x).
+\end{aligned}
+\]</span></p>
+<p>For each coefficient pair <span class="site-math">\(u=a_i\)</span>, <span class="site-math">\(v=a_{i+d}\)</span>, the two output words
+are therefore <span class="site-math">\(u+\alpha v\)</span> and <span class="site-math">\(u-\alpha v\)</span>. One multiplication is shared
+by the plus and minus branches: this is a butterfly. The minus sign comes
+from the two factors of the negacyclic modulus, not from an extra array operation.</p>
+<h3 id="repeat-the-same-merge-through-all-16-stages">Repeat the same merge through all 16 stages<a class="headerlink" href="#repeat-the-same-merge-through-all-16-stages" title="Permanent link">¶</a></h3>
+<p>At a later stage, a block of 2d coefficients represents a remainder modulo
+<span class="site-math">\(x^{2d}-\beta\)</span>. Choose the appropriate <span class="site-math">\(\alpha\)</span> with
+<span class="site-math">\(\alpha^2=\beta\)</span>. The same identity applies:</p>
+<p><span class="site-math">\[
+x^{2d}-\beta=(x^d-\alpha)(x^d+\alpha).
+\]</span></p>
+<p>The block splits into its two child remainders <span class="site-math">\(U+\alpha V\)</span> and
+<span class="site-math">\(U-\alpha V\)</span>. This is the <strong>meaning invariant</strong>: each block is still the
+original polynomial reduced modulo its current factor. At d=1, each factor
+is linear, <span class="site-math">\(x-z\)</span>, and its remainder is exactly <span class="site-math">\(a(z)\)</span>.</p>
+<p>For the default <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/transform_stage.hpp">shared CPU/CUDA stage helper</a>,
+let <span class="site-math">\(m=N/(2d)\)</span> be the number of groups, <span class="site-math">\(g\in[0,m)\)</span> the group index,
+and <span class="site-math">\(\operatorname{rev}_L\)</span> reverse L bits, where <span class="site-math">\(L=\log_2N\)</span>. Its group twiddle is</p>
+<p><span class="site-math">\[
+\alpha_{m,g}=\psi^{\operatorname{rev}_L(m+g)}\bmod q.
+\]</span></p>
+<p>One twiddle applies to every coefficient pair in that group. As d runs from
+N/2 down to 1, these choices select the successive factors above. At the end,
+array position k holds</p>
+<p><span class="site-math">\[
+a\!\left(\psi^{2\operatorname{rev}_L(k)+1}\right)\bmod q.
+\]</span></p>
+<p>Thus the transform produces evaluations at the roots of <span class="site-math">\(x^N+1\)</span>, in
+bit-reversed order. It keeps N words throughout; the intermediate words are
+partial remainders, not final evaluations yet. See the
+<a href="openfhe-representation-contract.html#3-exact-evaluation-and-inverse-formulas">exact evaluation formulas</a>
+for the direct sum that these butterflies compute.</p>
+<h3 id="keep-the-stored-values-canonical-and-reverse-the-merge">Keep the stored values canonical, and reverse the merge<a class="headerlink" href="#keep-the-stored-values-canonical-and-reverse-the-merge" title="Permanent link">¶</a></h3>
+<p>The default forward butterfly implements those child remainders with
+canonical operations:</p>
+<p><span class="site-math">\[
+\begin{aligned}
+t&amp;=\operatorname{mul\_mod}(\alpha,v,q),\\
+p&amp;=\operatorname{add\_mod}(u,t,q),\\
+r&amp;=\operatorname{sub\_mod}(u,t,q).
+\end{aligned}
+\]</span></p>
+<p>The inputs u, v and table entry α are in <span class="site-math">\([0,q)\)</span>. Multiplication reduces
+the full-width product before storing t; addition and subtraction reduce
+before storing p and r. Consequently <strong>each output is again in <span class="site-math">\([0,q)\)</span></strong>,
+even though an unreduced sum could reach 2q−2 or a difference could be negative.
+This proves the range invariant by induction over all 16 stages.</p>
+<p>To reconstruct the parent, add and subtract its two child remainders:</p>
+<p><span class="site-math">\[
+\begin{aligned}
+p+r&amp;\equiv2u\pmod q,\\
+(p-r)\alpha^{-1}&amp;\equiv2v\pmod q.
+\end{aligned}
+\]</span></p>
+<p>The inverse helper forms a canonical difference before multiplying:</p>
+<p><span class="site-math">\[
+\begin{aligned}
+\delta&amp;=\operatorname{sub\_mod}(p,r,q),\\
+\widetilde u&amp;=\operatorname{add\_mod}(p,r,q),\\
+\widetilde v&amp;=\operatorname{mul\_mod}(\delta,\alpha^{-1},q).
+\end{aligned}
+\]</span></p>
+<p>Here <span class="site-math">\(\widetilde u\)</span> and <span class="site-math">\(\widetilde v\)</span> represent 2u and 2v modulo q.
+The helper postpones division by 2: every reversed stage contributes a factor 2,
+so 16 stages contribute <span class="site-math">\(2^{16}=N\)</span>. One final multiplication by
+<span class="site-math">\(N^{-1}\bmod q\)</span> recovers the original coefficients. All these stored
+intermediates are canonical too. Pointwise multiplication preserves the same
+range; its evaluation products correspond to polynomial multiplication modulo
+<span class="site-math">\(x^N+1\)</span>.</p>
+<h3 id="a-complete-four-word-example">A complete four-word example<a class="headerlink" href="#a-complete-four-word-example" title="Permanent link">¶</a></h3>
+<p>For illustration, use N=4, q=17 and ψ=2. Start with canonical coefficients
+<code>[1, 15, 3, 15]</code>, representing <span class="site-math">\(1-2x+3x^2-2x^3\)</span> modulo 17.</p>
+<pre><code class="language-text">Forward, default group-twiddle schedule:
+  d=2, alpha=4:       [1, 15, 3, 15] -&gt; [13, 7, 6, 6]
+  d=1, alphas=2, 8:  [13, 7, 6, 6] -&gt; [10, 16, 3, 9]
+
+Inverse, without the final scale yet:
+  d=1, inverses=9,15: [10, 16, 3, 9] -&gt; [9, 14, 12, 12]
+  d=2, inverse=13:    [9, 14, 12, 12] -&gt; [4, 9, 12, 9]
+  multiply by 4^-1=13 modulo 17:      -&gt; [1, 15, 3, 15]
+</code></pre>
+<p>For example, the first forward pair is
+<span class="site-math">\(t=4\times3\bmod17=12\)</span>, <span class="site-math">\(p=(1+12)\bmod17=13\)</span>,
+<span class="site-math">\(r=(1-12)\bmod17=6\)</span>. Every displayed word stays between 0 and 16.
+The final values evaluate the polynomial at <code>[2, 15, 8, 9]</code>, the odd powers
+of ψ in bit-reversed order. N=4 only makes the arithmetic visible; the project
+workload remains N=65536.</p>
+<details>
+<summary>How the CPU reference folds the same negacyclic twist into its butterflies</summary>
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/include/ntt/ntt.hpp">CPU reference</a> and optional legacy CUDA build use
+a different intermediate layout. Write <span class="site-math">\(b_i=\psi^i a_i\)</span> and
+<span class="site-math">\(\omega=\psi^2\)</span>. The negacyclic evaluation sum becomes a cyclic sum:</p>
+<p><span class="site-math">\[
+a(\psi^{2j+1})=\sum_i a_i\psi^{(2j+1)i}
+=\sum_i b_i\omega^{ji}.
+\]</span></p>
+<p>The reference carries the factors <span class="site-math">\(\psi^i\)</span> implicitly rather than storing
+a separate twisted array. For a pair at local offset i and distance d,
+write the implicit inputs as <span class="site-math">\(\psi^iu\)</span> and <span class="site-math">\(\psi^{i+d}v\)</span>.
+With <span class="site-math">\(c=\psi^d\)</span> and <span class="site-math">\(w=\psi^{iN/d}\)</span>, a cyclic DIF split factors as</p>
+<p><span class="site-math">\[
+\begin{aligned}
+\psi^iu+\psi^{i+d}v&amp;=\psi^i(u+cv),\\
+(\psi^iu-\psi^{i+d}v)w&amp;=\psi^i(u-cv)w.
+\end{aligned}
+\]</span></p>
+<p>After leaving the common <span class="site-math">\(\psi^i\)</span> implicit, the stored pair is
+<span class="site-math">\(p=(u+cv)\bmod q\)</span>, <span class="site-math">\(r=(u-cv)w\bmod q\)</span>.
+The reverse butterfly computes <span class="site-math">\(t=rw^{-1}\bmod q\)</span>, then
+<span class="site-math">\((p+t)\bmod q\)</span> and <span class="site-math">\((p-t)c^{-1}\bmod q\)</span>, giving 2u and 2v.
+It also postpones normalization until the final N-inverse multiply.</p>
+<p>For the example above, the reference's first-stage array is <code>[13, 7, 6, 7]</code>,
+while the default helper's is <code>[13, 7, 6, 6]</code>. Their final evaluations are
+identical. Do not require intermediate arrays from these two schedules to
+match. Each schedule preserves its own partial-transform meaning and the
+same canonical range.</p>
+</details>
 <p>There is <strong>no stage where values are intentionally in <span class="site-math">\([0,2q)\)</span> or <span class="site-math">\([0,4q)\)</span></strong>.
 The upstream <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/math/hal/intnat/transformnat-impl.h#L337-L507"><code>native forward NTT</code></a> uses lazy intermediate arithmetic. Feeding lazy OpenFHE/internal buffers directly into this interface without
 an explicit representation contract would violate its assumptions.</p>
 <h3 id="what-arithmetic-work-is-actually-counted">What arithmetic work is actually counted<a class="headerlink" href="#what-arithmetic-work-is-actually-counted" title="Permanent link">¶</a></h3>
 <p>N=65536 has <span class="site-math">\(32768\times16=524288\)</span> butterflies per direction and per tower.
 The CPU reference uses three modular multiplications per butterfly: two
-for data and one to advance the twiddle. Shared device-stage helpers use
-two, reading precomputed twiddles instead. Thus the loop bodies perform
-1,572,864 and 1,048,576 multiplications respectively; inverse adds 65,536
-normalization multiplies. Setup powers/table generation are additional work.</p>
+for data and one to advance the twiddle. The optional legacy device schedule
+uses two, reading precomputed twiddles instead. The default group-twiddle
+helper uses one, as in the merge equations above. Thus their loop bodies
+perform 1,572,864, 1,048,576 and 524,288 multiplications respectively;
+inverse adds 65,536 normalization multiplies per tower in each schedule.
+Setup powers/table generation are additional work.</p>
 <p>The old arithmetic-header comment counted the CPU loop incorrectly; D6 fixes
 that comment without changing the algorithms. <code>__uint128_t</code> remainder is
 the correctness baseline. Its CUDA lowering and cost must be checked in a
@@ -192,8 +327,8 @@ cmake --build build -j 8
 ctest --test-dir build --output-on-failure
 ctest --test-dir build -R 'arithmetic_' -V
 </code></pre>
-<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/tests/arithmetic_contract_tests.cpp">C++ probe and full-size tests</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141/tests/oracle/test_arithmetic.py">independent primitive oracle</a>.</p>
+<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/tests/arithmetic_contract_tests.cpp">C++ probe and full-size tests</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe/tests/oracle/test_arithmetic.py">independent primitive oracle</a>.</p>
 <h2 id="5-exactness-ladder-do-not-substitute-one-gate-for-another">5. Exactness ladder: do not substitute one gate for another<a class="headerlink" href="#5-exactness-ladder-do-not-substitute-one-gate-for-another" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -276,7 +411,7 @@ and implementation are tracked in the <a href="implementation-backlog.html">back
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/54e3fba65a6c0fe71150c4f21b8d4220dd9ca141">54e3fba</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/d67d9c0a7fd4ab2386f8447c8b6bef8f82f1b3fe">d67d9c0</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
