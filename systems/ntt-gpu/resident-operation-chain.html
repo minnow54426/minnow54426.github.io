@@ -23,7 +23,7 @@
   <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Plans</p><a href="next-gpu-rental.html">Next GPU rental queue</a><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="resident-operation-chain.html" aria-current="page">Resident operation chain</a><a href="vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a><a href="batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Plans</p><a href="next-gpu-rental.html">Next GPU rental queue</a><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="resident-operation-chain.html" aria-current="page">Resident operation chain</a><a href="vscode-debugging.html">Run &amp; debug</a><a href="basis-conversion-preparation.html">Prepare basis conversion</a></div><div class="site-nav-group"><p>Research</p><a href="fhe-gpu-asic-inference-benchmarks.html">GPU 与 ASIC 的密态推理基准</a><a href="fhe-three-topics.html">FHE 的三个进展</a><a href="fhe-progress-2024-2026.html">FHE 近两年进展</a><a href="ckks-fourier-functional-bootstrap.html">OpenFHE 的 CKKS 功能自举</a><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a><a href="batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -35,9 +35,9 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/docs/resident-operation-chain.md">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/docs/resident-operation-chain.md">View source</a></div>
     <div class="site-reading-layout site-wide">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>Resident operation chain</h1><ul><li>Upload two polynomials, transform both, multiply matching evaluations, inverse-transform, then download only the final result.</li><li>The prototype retains buffers until queued work finishes and leaves inputs unchanged. CPU tests and CUDA compilation pass; running this new path on a GPU is pending.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="keep-the-ntt-chain-on-the-device">Keep the NTT chain on the device<a class="headerlink" href="#keep-the-ntt-chain-on-the-device" title="Permanent link">¶</a></h2>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Resident operation chain</h1><ul><li>Upload two polynomials, transform both, multiply matching evaluations, inverse-transform, then download only the final result.</li><li>The prototype preserves inputs and retains queued buffers. Native OpenFHE and sanitizer checks passed on compute 8.9 on November 19.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="keep-the-ntt-chain-on-the-device">Keep the NTT chain on the device<a class="headerlink" href="#keep-the-ntt-chain-on-the-device" title="Permanent link">¶</a></h2>
 <p>Upload two inputs, compose their operations on the GPU and download the final
 result:</p>
 <pre><code class="language-text">upload(a, b) → forward(a), forward(b) → pointwise multiply → inverse → download
@@ -47,13 +47,12 @@ result:</p>
 polynomials. Operations leave their inputs unchanged. Queued work keeps input
 buffers alive even if the caller discards a handle. An upload first copies the
 caller’s array into a temporary CPU buffer owned by the session.</p>
-<p><strong>Status:</strong> a CPU driver simulates delayed work to test array values, buffer
-lifetimes and error handling at N=65536. Those tests agree exactly with
-OpenFHE. The CUDA adapter compiles for the sm_89/sm_120 GPU architectures,
-but has not run on a GPU. This completes only part of
-<a href="implementation-backlog.html#b06-resident-runtime-and-registry">B06 preparation</a>.
-The D11/P2 milestone still requires real GPU checks before this can become
-a production backend or support a speedup claim.</p>
+<p><strong>Status:</strong> CPU tests cover delayed work, ownership and failure handling.
+On November 19, native OpenFHE and sanitizer checks passed on a server
+reporting RTX 4080 SUPER / compute 8.9. Both schedules also compiled for sm_120.
+The <a href="journal/2026-11-19.html#native-gpu-batch-completed">daily record</a> contains the
+measurement and export results. B06 preparation continues with production
+ownership requirements, driver/context failure handling and RTX 5090 acceptance.</p>
 <h2 id="what-is-implemented">What is implemented<a class="headerlink" href="#what-is-implemented" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -65,23 +64,23 @@ a production backend or support a speedup claim.</p>
 <tbody>
 <tr>
 <td>Public prototype</td>
-<td><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/include/ntt/resident.hpp"><code>resident.hpp</code></a>: sessions, immutable polynomial handles, completions and owned host results</td>
+<td><a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/include/ntt/resident.hpp"><code>resident.hpp</code></a>: sessions, immutable polynomial handles, completions and owned host results</td>
 </tr>
 <tr>
 <td>Runtime and registry</td>
-<td><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/src/resident.cpp"><code>resident.cpp</code></a>: private allocation provenance, dependencies, memory reservations, operation journal and cleanup</td>
+<td><a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/src/resident.cpp"><code>resident.cpp</code></a>: private allocation provenance, dependencies, memory reservations, operation journal and cleanup</td>
 </tr>
 <tr>
 <td>Transport boundary</td>
-<td><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/include/ntt/resident_driver.hpp"><code>resident_driver.hpp</code></a>: device buffers/events and a single-stream command interface</td>
+<td><a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/include/ntt/resident_driver.hpp"><code>resident_driver.hpp</code></a>: device buffers/events and a single-stream command interface</td>
 </tr>
 <tr>
 <td>CUDA adapter</td>
-<td><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/src/cuda/resident_adapter.inc"><code>resident_adapter.inc</code></a>, included by <a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/src/cuda/ntt_kernels.cu"><code>ntt_kernels.cu</code></a>, reuses the existing kernels</td>
+<td><a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/src/cuda/resident_adapter.inc"><code>resident_adapter.inc</code></a>, included by <a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/src/cuda/ntt_kernels.cu"><code>ntt_kernels.cu</code></a>, reuses the existing kernels</td>
 </tr>
 <tr>
 <td>Deferred host transport</td>
-<td><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/tests/support/resident_host_driver.hpp"><code>resident_host_driver.hpp</code></a>: queues CPU work for ownership/failure tests; never represents GPU execution</td>
+<td><a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/tests/support/resident_host_driver.hpp"><code>resident_host_driver.hpp</code></a>: queues CPU work for ownership/failure tests; never represents GPU execution</td>
 </tr>
 </tbody>
 </table>
@@ -93,7 +92,7 @@ residue. A subview selects whole prime towers from an existing buffer; it
 keeps that buffer and its completion information alive. Transforms allocate
 new outputs instead of overwriting their inputs.</p>
 <p>Use one host thread per session, including handle access and destruction.
-The API is separate from the abstract <a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/include/ntt/backend_api.hpp">proposed Backend</a>.
+The API is separate from the abstract <a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/include/ntt/backend_api.hpp">proposed Backend</a>.
 It supplies no production OpenFHE adapter, cache, CPU fallback, cross-device
 operation or multi-stream execution.</p>
 <h2 id="compose-a-product">Compose a product<a class="headerlink" href="#compose-a-product" title="Permanent link">¶</a></h2>
@@ -247,12 +246,12 @@ cache or a replacement for <a href="implementation-backlog.html#b07-cache-and-me
   <strong>sm_89 and sm_120</strong>. Five invalid CUDA-linked factory inputs reject without
   requiring a driver. These checks execute no device arithmetic.</li>
 </ul>
-<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/tests/resident_openfhe_tests.cpp">exact fixture</a> uses real OpenFHE
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/tests/resident_openfhe_tests.cpp">exact fixture</a> uses real OpenFHE
 <code>NativePoly</code> format conversion and multiplication. Its transform path reaches
 <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/poly-impl.h#L454-L474"><code>NativePoly::SwitchFormat</code></a>
 through the format API. Root/modulus selection comes from the pinned OpenFHE
 implementation; complete arrays are compared, not approximate CKKS decryptions.
-The CUDA variant uses the same fixture, but is <strong>unrun</strong> here.</p>
+The CUDA variant passed this fixture on reported compute 8.9 on November 19.</p>
 <h2 id="reproduce-and-verify-next">Reproduce and verify next<a class="headerlink" href="#reproduce-and-verify-next" title="Permanent link">¶</a></h2>
 <p>With the pinned OpenFHE install available, on the CPU workspace:</p>
 <pre><code class="language-sh">cmake -S . -B build/native-cpu -DCMAKE_BUILD_TYPE=Release \
@@ -270,12 +269,12 @@ Compute Sanitizer tools. Skipping sanitizers remains an explicit limited run.</p
 <p>On the next RTX 5090 rental, run the current GPU answer and error-handling
 tests, the new resident CUDA test, and the memory/threading sanitizer tools.
 Then use a profiler to measure where execution time goes.
-<a href="openfhe-integration-plan.html">D11/P2</a> remains unfinished until those results
-are recorded; CPU tests and successful compilation do not run this GPU path.</p></article></details><p class="site-article site-read-next"><a href="implementation-backlog.html">Next: Implementation backlog →</a></p></div>
+<a href="openfhe-integration-plan.html">D11/P2</a> remains open for primary-device acceptance,
+driver/context failure handling and hardware-counter profiling.</p></article></details><p class="site-article site-read-next"><a href="implementation-backlog.html">Next: Implementation backlog →</a></p></div>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/587598a848b4b715b018ee45bcccbf40027ea064">587598a</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d">7bf8e6d</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

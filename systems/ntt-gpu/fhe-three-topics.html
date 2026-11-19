@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="可编程自举、可验证求值和机密合约的技术与落地。">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/fhe-three-topics.html">
+<title>FHE 的三个进展 · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/sunlit-paper.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Plans</p><a href="next-gpu-rental.html">Next GPU rental queue</a><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="resident-operation-chain.html">Resident operation chain</a><a href="vscode-debugging.html">Run &amp; debug</a><a href="basis-conversion-preparation.html">Prepare basis conversion</a></div><div class="site-nav-group"><p>Research</p><a href="fhe-gpu-asic-inference-benchmarks.html">GPU 与 ASIC 的密态推理基准</a><a href="fhe-three-topics.html" aria-current="page">FHE 的三个进展</a><a href="fhe-progress-2024-2026.html">FHE 近两年进展</a><a href="ckks-fourier-functional-bootstrap.html">OpenFHE 的 CKKS 功能自举</a><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a><a href="batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Research</div>
+
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/docs/fhe-three-topics.md">View source</a></div>
+    <div class="site-reading-layout site-wide">
+      <div class="site-page-content"><section class="site-article site-brief"><h1>FHE 的三个进展</h1><ul><li>比较整数查表与实数功能自举，并看 ReLU 的误差和成本。</li><li>沿一笔密封报价辨别输入证明、计算正确性与门限解密。</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="fhe">FHE 的三个进展<a class="headerlink" href="#fhe" title="Permanent link">¶</a></h2>
+<p>从可编程自举、可验证求值，到公链上的机密竞拍</p>
+<p><strong>2026 年 11 月 18 日</strong></p>
+<p>一次同态计算可以拆成三个问题。密文上能高效算什么？谁能检查执行是否正确？真实应用如何决定哪些值可以解密？本文沿着这三个问题，比较论文基准和 OpenFHE 实现，再追踪一笔主网密封报价。</p>
+<h2 id="01">01 · 可编程自举<a class="headerlink" href="#01" title="Permanent link">¶</a></h2>
+<p>普通自举刷新密文并近似恢复原值。功能自举在刷新时对输入求函数。OpenFHE 先后加入了整数查表和近似实函数两条路线。</p>
+<table>
+<thead>
+<tr>
+<th>路线</th>
+<th>代表论文</th>
+<th>首次 OpenFHE 发布</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>整数 LUT</td>
+<td>Alexandru、Kim、Polyakov，<a href="https://eprint.iacr.org/2024/1623">General Functional Bootstrapping using CKKS</a>，CRYPTO 2025。用三角 Hermite 插值支持批量整数查表。</td>
+<td><a href="https://github.com/openfheorg/openfhe-development/releases/tag/v1.4.0">v1.4.0</a>，2025 年 8 月。</td>
+</tr>
+<tr>
+<td>实数 Fourier extension</td>
+<td>Bian 等，<a href="https://eprint.iacr.org/2026/367">High-Precision Functional Bootstrapping for CKKS from Fourier Extension</a>，EUROCRYPT 2026。对有界区间的实数槽逐槽近似求值。</td>
+<td><a href="https://github.com/openfheorg/openfhe-development/releases/tag/v1.6.0">v1.6.0</a>，2026 年 9 月。</td>
+</tr>
+</tbody>
+</table>
+<p>整数路线可以精确表达量化 ReLU 的查表规则。实数路线由 <code>EvalFEFuncBootstrap</code> 接收离线生成的 Fourier 系数。它沿用 SlotsToCoeffs、ModRaise 和 CoeffsToSlots，再用复指数的周期性消除升模溢出，并在复指数上求 Fourier 多项式。官方例程包含指数、sigmoid 和 tanh 形式的 GELU。见 <a href="https://github.com/openfheorg/openfhe-development/blob/v1.6.1/src/pke/examples/CKKS_FUNCTIONAL_BOOTSTRAPING.md">OpenFHE 实现说明</a>。</p>
+<h3 id="relu">硬 ReLU 的阶数、误差和开销<a class="headerlink" href="#relu" title="Permanent link">¶</a></h3>
+<p>以下是 OpenFHE 1.6.1、Apple M1 Pro 单线程、环维 65,536、1,024 槽的本地结果。所有测试模式自举后都保留 8 个有效层级。延迟是自举 API 的完整调用中位数，密钥生成、加解密与初始化在计时之外。新增阶数各测两次，45 和 129 阶各测三次。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Fourier 阶数</th>
+<th style="text-align: right;">延迟中位数</th>
+<th style="text-align: right;">深度预算</th>
+<th style="text-align: right;">解密槽最大绝对误差</th>
+<th style="text-align: right;">全区间明文逼近误差上确界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">普通自举</td>
+<td style="text-align: right;">10.76 s</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">11.03 s</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">0.34483</td>
+<td style="text-align: right;">0.36032</td>
+</tr>
+<tr>
+<td style="text-align: right;">45</td>
+<td style="text-align: right;">14.24 s</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">0.05712</td>
+<td style="text-align: right;">0.07206</td>
+</tr>
+<tr>
+<td style="text-align: right;">63</td>
+<td style="text-align: right;">15.94 s</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">0.03600</td>
+<td style="text-align: right;">0.05065</td>
+</tr>
+<tr>
+<td style="text-align: right;">95</td>
+<td style="text-align: right;">17.29 s</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">0.01961</td>
+<td style="text-align: right;">0.03377</td>
+</tr>
+<tr>
+<td style="text-align: right;">129</td>
+<td style="text-align: right;">20.54 s</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">0.01266</td>
+<td style="text-align: right;">0.02513</td>
+</tr>
+<tr>
+<td style="text-align: right;">257</td>
+<td style="text-align: right;">25.59 s</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">0.00633</td>
+<td style="text-align: right;">0.01262</td>
+</tr>
+<tr>
+<td style="text-align: right;">325</td>
+<td style="text-align: right;">29.11 s</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">0.00500</td>
+<td style="text-align: right;">0.00998</td>
+</tr>
+</tbody>
+</table>
+<p>硬 ReLU 在零点有折角，这组周期延拓还在右边界引入折角，令全区间误差高于槽位采样最大值。对这组系数和区间 [−8, 8)，<strong>325 阶首次使 Fourier 截断误差低于 0.01</strong>。CKKS 的数值误差要另外计算。深度则按 Paterson–Stockmeyer 档位增长，因而 257 和 325 阶的预算相同，延迟仍不同。见 <a href="https://github.com/openfheorg/openfhe-development/blob/v1.6.1/src/pke/lib/scheme/ckksrns/ckksrns-utils.cpp#L88">OpenFHE 深度实现</a>。</p>
+<p>作为数量级参考，Cerium 报告普通 CKKS 自举在单张 B200 上耗时 14.5 ms，8 张 B200 上为 7.5 ms。8 卡的单图 ResNet-20 与 128-token BERT-Base 分别是 298 ms 和 8.8 s。Cinnamon-8 对这三项的 ASIC 仿真值分别是 1.71 ms、73.85 ms 和 2.07 s。两项工作的电路、参数和输出层各有设定。见 <a href="https://www.pdl.cmu.edu/PDL-FTP/HECStorage/3830418.3843864.pdf">Cerium 表 1</a> 和 <a href="https://www.cs.cmu.edu/~dskarlat/publications/cinnamon_asplos25.pdf">Cinnamon 表 2</a>。</p>
+<h2 id="02-fhe">02 · 可验证 FHE<a class="headerlink" href="#02-fhe" title="Permanent link">¶</a></h2>
+<p>加密保证求值过程中可以保密。可验证求值增加另一项保证，检查输出是否确实由约定的密文计算产生。Zama 的 CCS 2025 原型用 Plonky2 证明经过调整的 TFHE 自举。USENIX Security 2026 的 HasteBoots 则直接证明多项式与商环关系，减少把 NTT 等运算逐步展开成通用证明电路的成本。</p>
+<table>
+<thead>
+<tr>
+<th>论文配置</th>
+<th style="text-align: right;">生成证明</th>
+<th style="text-align: right;">验证证明</th>
+<th style="text-align: right;">证明大小</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Zama / Plonky2，HasteBoots 论文复跑</td>
+<td style="text-align: right;">25 分钟</td>
+<td style="text-align: right;">4 ms</td>
+<td style="text-align: right;">0.20 MB</td>
+</tr>
+<tr>
+<td>HasteBoots / Dory，论文的 Zama 参数对照</td>
+<td style="text-align: right;">12.36 s</td>
+<td style="text-align: right;">118.12 ms</td>
+<td style="text-align: right;">0.22 MB</td>
+</tr>
+<tr>
+<td>HasteBoots / BabyBear + Dory，单次</td>
+<td style="text-align: right;">5.47 s</td>
+<td style="text-align: right;">109.35 ms</td>
+<td style="text-align: right;">0.24 MB</td>
+</tr>
+<tr>
+<td>HasteBoots / BabyBear + Dory，16 次一批</td>
+<td style="text-align: right;">60.90 s</td>
+<td style="text-align: right;">126 ms</td>
+<td style="text-align: right;">0.28 MB</td>
+</tr>
+</tbody>
+</table>
+<p>前两行的证明生成时间相差约 120 倍，验证时间相差约 30 倍，方向相反。16 次一批的数字使用 BabyBear 参数。论文测量的是 TFHE 求值证明，链上部署还需要测 verifier gas、提交数据成本和结算延迟。见 <a href="https://www.usenix.org/system/files/usenixsecurity26-liu-fengrun.pdf">HasteBoots 表 2 和表 4</a>、<a href="https://secartifacts.github.io/usenixsec2026/results">USENIX 实验材料</a> 和 <a href="https://github.com/zama-ai/verifiable-fhe-paper">Plonky2 原型代码</a>。</p>
+<h2 id="03">03 · 机密合约与链上金融<a class="headerlink" href="#03" title="Permanent link">¶</a></h2>
+<p>Zama 在 2026 年 1 月于 Ethereum 主网运行密封竞拍。报价价格公开，申报数量保密，清算价在加密数据上计算。GSR 在同年 3 月另行公布了一笔采用该协议的机密 OTC 交易。见 <a href="https://www.zama.org/post/118m-committed-for-the-first-encrypted-ico-on-ethereum">竞拍复盘</a> 和 <a href="https://www.zama.org/post/the-confidentiality-layer-bringing-institutional-trade-execution-to-ethereum-with-gsr">GSR 案例</a>。</p>
+<table>
+<thead>
+<tr>
+<th>一笔报价的阶段</th>
+<th>机制</th>
+<th>验证的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>提交</td>
+<td>客户端附输入零知识证明，协处理器验证。Solidity 侧可从 <code>FHE.fromExternal</code> 看起。</td>
+<td>输入密文是否按要求构造。</td>
+</tr>
+<tr>
+<td>求值</td>
+<td>合约发出指令，链下协处理器用 TFHE-rs 计算，Gateway 接受达到多数的一致签名。</td>
+<td>依据多数诚实假设接受计算结果。</td>
+</tr>
+<tr>
+<td>解密</td>
+<td>Gateway 检查权限，由门限 KMS 共同解密并签名。</td>
+<td>谁有权看到哪些明文，以及结果的来源。</td>
+</tr>
+</tbody>
+</table>
+<p>HasteBoots 研究的求值证明对应中间一行。主网文档描述的是多数协处理器签名路径，公开竞拍材料没有显示使用 HasteBoots 逐次证明求值。另一个主网实现 Fhenix CoFHE 的初始部署披露，密钥份额由 Fhenix 运营的基础设施托管并受 TEE 保护，独立参与方属于逐步推进的计划。见 <a href="https://docs.zama.org/protocol/protocol/overview/coprocessor">Zama 协处理器</a>、<a href="https://docs.zama.org/protocol/protocol/overview/gateway">Gateway</a>、<a href="https://docs.zama.org/protocol/protocol/overview/kms">KMS</a> 和 <a href="https://www.fhenix.io/litepaper">Fhenix 技术说明</a>。</p>
+<p>阅读实现可从 <a href="https://github.com/zama-ai/fhevm">Zama FHEVM</a> 的 <code>host-contracts/</code>、<code>coprocessor/</code> 和 <code>kms-connector/</code> 开始。<a href="https://eips.ethereum.org/EIPS/eip-7984">ERC-7984 接口草案</a> 用 <code>bytes32</code> 句柄表示保密金额，计算与解密的机制由具体实现提供。</p>
+<h2 id="_1">三个问题可以一起验收<a class="headerlink" href="#_1" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>能不能算</strong> · 给出函数语义、误差预算、剩余层级和一次完整求值的耗时。</li>
+<li><strong>能不能验</strong> · 写清验证关系，分别测生成证明、验证证明和数据大小。</li>
+<li><strong>能不能上线</strong> · 明确公开字段、解密权限、节点信任和结算时间，并标明实际部署采用的机制。</li>
+</ul></article></details><p class="site-article site-read-next"><a href="fhe-progress-2024-2026.html">Next: FHE 近两年进展 →</a></p></div>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d">7bf8e6d</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

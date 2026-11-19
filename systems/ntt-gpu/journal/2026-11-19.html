@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Both schedules passed native Ada checks, 40 sanitizer stages and 48 measurement jobs, with a verified local export and CUDA timeline.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/journal/2026-11-19.html">
+<title>Validate the expanded GPU batch on Ada · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="../vendor/katex/katex.min.css">
+<script defer src="../vendor/katex/katex.min.js"></script>
+<script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="../math-rendering.js"></script>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/sunlit-paper.css">
+<script defer src="../search-index.js"></script>
+<script defer src="../assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="../search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Plans</p><a href="../next-gpu-rental.html">Next GPU rental queue</a><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../offline-gpu-preparation.html">Before renting a GPU</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="../offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../resident-operation-chain.html">Resident operation chain</a><a href="../vscode-debugging.html">Run &amp; debug</a><a href="../basis-conversion-preparation.html">Prepare basis conversion</a></div><div class="site-nav-group"><p>Research</p><a href="../fhe-gpu-asic-inference-benchmarks.html">GPU 与 ASIC 的密态推理基准</a><a href="../fhe-three-topics.html">FHE 的三个进展</a><a href="../fhe-progress-2024-2026.html">FHE 近两年进展</a><a href="../ckks-fourier-functional-bootstrap.html">OpenFHE 的 CKKS 功能自举</a><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a><a href="../gpu-rental-market-survey.html">GPU rental market</a><a href="../first-native-analysis.html">First GPU run: analysis</a><a href="../batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="../index.html">Notebook</a><span>/</span>Daily journal</div>
+
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/docs/journal/2026-11-19.md">View source</a></div>
+    <div class="site-reading-layout site-wide">
+      <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-19">2026-11-19</time><span>Native Ada diagnostic / P2 D11</span><a href="../journal.html">← All entries</a></div><section class="site-article site-brief"><h1>Validate the expanded GPU batch on Ada</h1><p>Both schedules passed native Ada checks, 40 sanitizer stages and 48 measurement jobs, with a verified local export and CUDA timeline.</p><p>This is a dated record of work on its calendar date. Its test counts, design and next steps describe that time; use the current roadmap for today’s status.</p></section><details class="site-full-notes"><summary>Read full entry</summary><article class="site-article"><h2 id="prepare-more-work-before-renting">Prepare more work before renting<a class="headerlink" href="#prepare-more-work-before-renting" title="Permanent link">¶</a></h2>
+<h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
+<p>Added Shoup constant multiplication and a reusable coefficient-domain
+approximate basis-conversion plan. The plan preserves the unreduced CRT sum,
+prime order and canonical residues required by pinned OpenFHE.</p>
+<p>The new native probes join the NTT and resident-chain checks in the
+<a href="../next-gpu-rental.html">next rental batch</a>. At preparation time, native execution
+was pending. The <a href="#native-gpu-batch-completed">completed Ada run</a> is recorded
+below. The roadmap stays at P2/D11.</p>
+<h2 id="reasoning">Reasoning<a class="headerlink" href="#reasoning" title="Permanent link">¶</a></h2>
+<p>The M1 Pro can establish the arithmetic, parameter tables and exact expected
+arrays before provisioning. Shoup multiplication prepares each fixed
+multiplier once. Each conversion target coefficient is independent, allowing
+a simple first CUDA kernel with one output per thread.</p>
+<p>The target-product reduction retains the reference 128-bit remainder path.
+Native profiling will guide later optimization. Full resident ModUp/ModDown
+composition remains a later deliverable.</p>
+<h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h2>
+<ul>
+<li>Added canonical Shoup multiplication with a documented quotient bound and
+  host/device high-product implementations.</li>
+<li>Added immutable basis plans for disjoint prime sets with up to 40 towers,
+  source-prefix-specific constants and input validation.</li>
+<li>Added an independent Python CRT oracle and a broad OpenFHE comparison.</li>
+<li>Checked the converter inside existing Hybrid digit and ModDown-correction
+  fixtures against independent BigInteger answers.</li>
+<li>Prepared CUDA Shoup and basis-conversion tests and added both to the
+  collector's mandatory tests and four sanitizer tools.</li>
+<li>Extended compiler-only CI to link the pinned OpenFHE fixture for both
+  CUDA schedules.</li>
+<li>Updated the roadmap, backlog and rental queue. The
+  <a href="../basis-conversion-preparation.html">conversion guide</a> explains the formulas
+  and test coverage.</li>
+</ul>
+<h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
+<p>On the M1 Pro, all 29 CTests passed, including the broader conversion test's
+107,675,648 residue comparisons against pinned OpenFHE. Its matrix covers all
+five ring dimensions from 4,096 through 65,536, all four benchmark prime
+widths, source counts 1/3/40, four patterns and both conversion directions.</p>
+<p>The independent Python conversion oracle passed 334 cases, including 1,057
+coefficients that distinguish approximate conversion from canonical CRT.
+The arithmetic oracle checked 19,170 results including Shoup products.
+The Hybrid graph and standalone ModUp/ModDown tests passed with the new
+converter checked at each lift. AddressSanitizer and UndefinedBehaviorSanitizer
+also passed the host arithmetic and conversion probes. The native test callers
+passed host syntax checks. All 52 tooling tests passed, including candidate
+sanitizer failure stopping collection before timing.</p>
+<h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">¶</a></h2>
+<p>Native execution must establish agreement for CUDA's high-product intrinsic
+and the prepared conversion kernel. Compile these probes for sm_120 before
+renting. Performance and production resident composition remain open.</p>
+<h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">¶</a></h2>
+<p>Run the updated driverless CUDA build checks, then collect native exactness,
+sanitizer results, matched NTT timings and the resident profile in one
+RTX 5090 rental.</p>
+<h2 id="native-gpu-batch-completed">Native GPU batch completed<a class="headerlink" href="#native-gpu-batch-completed" title="Permanent link">¶</a></h2>
+<p>Used the supplied rental server for the prepared CUDA work. The device reported
+RTX 4080 SUPER, compute 8.9, 32,760 MiB and driver 595.71.05. CUDA was 12.8.
+CMake 3.22 could not configure CUDA C++20; installing CMake 3.31.6 resolved that
+configuration failure. Pinned OpenFHE was built as a dependency. Standalone CPU
+tests and CPU performance measurements stayed on the M1 Pro.</p>
+<p>The native source was an isolated clean snapshot, <code>0f2df64</code>, of the current
+workspace based on <code>587598a</code>. The record contains a full source bundle, the
+original workspace archive, exact dependency revision and their provenance.</p>
+<p>Both the group-twiddle and legacy builds passed all 11 selected CTests,
+including two fixture generators per build. Each build passed 20 sanitizer
+stages across memcheck, racecheck, initcheck and synccheck. The new Shoup,
+standalone conversion and resident-path checks passed. The conversion fixture
+compared 107,675,648 residues against OpenFHE in each build. Both schedules
+also compiled the CUDA targets and native probes for sm_120.</p>
+<p>The paired sweep saved 48 validated measurement jobs across N=4,096/65,536,
+K=3/40 and 30/60-bit primes. The three recorded scopes were GPU public calls,
+CUDA events and the resident interface. Each used two warmups and ten samples.
+After observing host-call variability, recorded an order-balanced resident
+repeat at N=65,536/K=3/60-bit, with five warmups and 50 samples per operation
+in each of four runs. Detailed performance interpretation remains local work.</p>
+<p>Nsight Systems captured the resident timeline and exported its statistics.
+Nsight Compute returned <code>ERR_NVGPUCTRPERM</code>; hardware counters remain unavailable
+on this provider. The timeline includes session setup, so whole-trace totals
+need care when interpreting timings that exclude setup.</p>
+<p>Downloaded the complete 3.7 MiB archive into
+<code>build/gpu-session-20261119/</code>. Verified its SHA-256, extracted it locally, then
+rechecked all measurement hashes and records, sanitizer statuses, repeat
+hashes and the timeline. The local verification record is
+<code>verified-results.json</code>. Told the user that the rental can stop after this
+verification. Further analysis and notebook checks run on the M1 Pro.</p>
+<p>P2/D11 remains open for primary RTX 5090 evidence, actual driver/context failure
+handling and hardware-counter profiling. Full resident ModUp/ModDown
+composition and GPU Hybrid key switching remain later deliverables.</p></article></details><p class="site-article site-read-next"><a href="../openfhe-integration-plan.html">Current roadmap →</a></p></div>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d">7bf8e6d</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="比较单密文 CKKS 自举和 ResNet、BERT 的推理延迟。">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/fhe-gpu-asic-inference-benchmarks.html">
+<title>GPU 与 ASIC 的密态推理基准 · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/sunlit-paper.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Plans</p><a href="next-gpu-rental.html">Next GPU rental queue</a><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="resident-operation-chain.html">Resident operation chain</a><a href="vscode-debugging.html">Run &amp; debug</a><a href="basis-conversion-preparation.html">Prepare basis conversion</a></div><div class="site-nav-group"><p>Research</p><a href="fhe-gpu-asic-inference-benchmarks.html" aria-current="page">GPU 与 ASIC 的密态推理基准</a><a href="fhe-three-topics.html">FHE 的三个进展</a><a href="fhe-progress-2024-2026.html">FHE 近两年进展</a><a href="ckks-fourier-functional-bootstrap.html">OpenFHE 的 CKKS 功能自举</a><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a><a href="batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Research</div>
+
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/docs/fhe-gpu-asic-inference-benchmarks.md">View source</a></div>
+    <div class="site-reading-layout site-wide">
+      <div class="site-page-content"><section class="site-article site-brief"><h1>GPU 与 ASIC 的密态推理基准</h1><ul><li>单次密文刷新、单请求延迟和批内摊销各有不同的计时口径。</li><li>Cinnamon 的网络延迟来自仿真，HERACLES 则提供已流片的操作吞吐。</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="gpu-asic">GPU 与 ASIC 的密态推理基准<a class="headerlink" href="#gpu-asic" title="Permanent link">¶</a></h2>
+<p><strong>截至 2026 年 11 月 18 日。</strong> 本文关注单个 CKKS 密文的自举墙钟延迟，以及以加密输入运行单次模型推理的延迟。挑选既公开数字又能核对实验口径的工作。GPU 表的结果来自物理 GPU，ASIC 表注明仿真或综合后建模，另列已流片芯片的吞吐。推理数字来自各自的论文，测试程序、参数和计时范围随工作而异。</p>
+<h2 id="benchmark-gpu">benchmark 用到的 GPU 规格<a class="headerlink" href="#benchmark-gpu" title="Permanent link">¶</a></h2>
+<p>Cerium 的三个数据中心型号按论文里的 DGX SXM 配置填写。GeForce 按 NVIDIA 公布的桌面卡规格填写。表中为单张完整 GPU 的标称规格及硬件驻留上限。</p>
+<table>
+<thead>
+<tr>
+<th>GPU</th>
+<th>架构 / CUDA CC</th>
+<th style="text-align: right;">SM</th>
+<th style="text-align: right;">每 SM 的 FP32 CUDA 核心</th>
+<th style="text-align: right;">CUDA 核心总数</th>
+<th style="text-align: right;">每 SM 最大驻留线程</th>
+<th style="text-align: right;">单 GPU 最大驻留线程</th>
+<th>显存</th>
+<th style="text-align: right;">理论显存带宽</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A100 80 GB SXM4</td>
+<td>Ampere / 8.0</td>
+<td style="text-align: right;">108</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">6,912</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: right;">221,184</td>
+<td>80 GB HBM2e</td>
+<td style="text-align: right;">2.039 TB/s</td>
+</tr>
+<tr>
+<td>H100 SXM5</td>
+<td>Hopper / 9.0</td>
+<td style="text-align: right;">132</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">16,896</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: right;">270,336</td>
+<td>80 GB HBM3</td>
+<td style="text-align: right;">3.35 TB/s</td>
+</tr>
+<tr>
+<td>B200 SXM</td>
+<td>Blackwell / 10.0</td>
+<td style="text-align: right;">148</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">18,944</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: right;">303,104</td>
+<td>180 GB HBM3e</td>
+<td style="text-align: right;">最高 8 TB/s</td>
+</tr>
+<tr>
+<td>GeForce RTX 4090</td>
+<td>Ada / 8.9</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">16,384</td>
+<td style="text-align: right;">1,536</td>
+<td style="text-align: right;">196,608</td>
+<td>24 GB GDDR6X</td>
+<td style="text-align: right;">1.008 TB/s</td>
+</tr>
+<tr>
+<td>GeForce RTX 5090</td>
+<td>Blackwell / 12.0</td>
+<td style="text-align: right;">170</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">21,760</td>
+<td style="text-align: right;">1,536</td>
+<td style="text-align: right;">261,120</td>
+<td>32 GB GDDR7</td>
+<td style="text-align: right;">1.792 TB/s</td>
+</tr>
+</tbody>
+</table>
+<p>CUDA 核心数在此指 FP32 运算通道数。驻留线程上限按 SM 数乘以每 SM 的最大驻留 warp 数，再乘以每 warp 的 32 个线程计算。实际 kernel 的驻留线程取决于每块线程数、寄存器、共享内存和块数限制。一个 CUDA block 最多有 1,024 线程，大于单卡驻留上限的 grid 可以分批调度。</p>
+<p>8 张 B200 共 1,440 GB 显存、151,552 个 CUDA 核心、2,424,832 个理论驻留线程。这些是逐卡相加的资源。单卡仍有 180 GB 本地显存，跨卡操作需要 GPU 间通信。CKKS 还要看模运算、缓存层级及数据搬运，CUDA 核心数本身无法预测延迟。</p>
+<p>规格见 <a href="https://www.nvidia.com/en-us/data-center/a100/">A100</a>、<a href="https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/">H100 架构</a>、<a href="https://docs.nvidia.com/enterprise-reference-architectures/hgx-ai-factory-h100-h200-b200/latest/components.html">HGX 显存与带宽</a>、<a href="https://developer.nvidia.com/blog/boost-gpu-memory-performance-with-no-code-changes-using-nvidia-cuda-mps/">B200 SM 数</a>、<a href="https://images.nvidia.com/aem-dam/Solutions/geforce/ada/nvidia-ada-gpu-architecture.pdf">RTX 4090 架构规格</a>、<a href="https://images.nvidia.com/aem-dam/Solutions/geforce/blackwell/nvidia-rtx-blackwell-gpu-architecture.pdf">RTX 5090 架构规格</a> 和 <a href="https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/compute-capabilities.html">CUDA 硬件限制</a>。</p>
+<h2 id="ckks">单次 CKKS 自举<a class="headerlink" href="#ckks" title="Permanent link">¶</a></h2>
+<p>“单次”是一整个密文刷新完的时间。一个密文可以包含上万槽。按槽或按批内密文切片摊销的时间可用于计算吞吐。</p>
+<table>
+<thead>
+<tr>
+<th>实现</th>
+<th>平台</th>
+<th style="text-align: right;">单密文刷新</th>
+<th>自举配置与证据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cheddar</td>
+<td>1 × RTX 5090</td>
+<td style="text-align: right;">22.1 ms</td>
+<td>作者表 2 的 scale 为 $2^{40}$。同配置 Theodosian 为 15.2 ms。</td>
+</tr>
+<tr>
+<td>Theodosian</td>
+<td>1 × RTX 5090</td>
+<td style="text-align: right;">15.2 ms</td>
+<td>同上。另一组 scale $2^{35}$ 的配置为 16.21 ms。加入算法改进后为 <strong>12.75 ms</strong>，$N=65536$、输出模数预算 575 bit、报告精度 18.70 bit。</td>
+</tr>
+<tr>
+<td>Cerium</td>
+<td>1 × B200 / 8 × B200</td>
+<td style="text-align: right;">14.5 / 7.5 ms</td>
+<td>同一密文可跨卡执行。目标 128-bit 安全性，$N=65536$，28-bit RNS，输出到 level 18，自举约 20 bit 精度。</td>
+</tr>
+<tr>
+<td>Cerium</td>
+<td>1 × H100 / 8 × H100</td>
+<td style="text-align: right;">19.5 / 9.7 ms</td>
+<td>同一论文、同一自举配置。</td>
+</tr>
+<tr>
+<td>Cerium</td>
+<td>1 × A100 80 GB / 8 × A100</td>
+<td style="text-align: right;">34.2 / 16.5 ms</td>
+<td>同一论文、同一自举配置。</td>
+</tr>
+<tr>
+<td>HEonGPU regular</td>
+<td>1 × RTX 5090 / 1 × RTX 4090</td>
+<td style="text-align: right;">63.51 / 109.28 ms</td>
+<td>官方项目表，$N=65536$、32768 槽、输出还有 9 层，精度约 18 bit。</td>
+</tr>
+</tbody>
+</table>
+<p>来源见 <a href="https://ckks.org/blog/2026/CKKS-on-GPU/">Cheddar 与 Theodosian 表 2–3</a>、<a href="https://www.pdl.cmu.edu/PDL-FTP/HECStorage/3830418.3843864.pdf">Cerium 第 6.1 节与表 1</a> 和 <a href="https://github.com/enCRYPTON-labs/HEonGPU">HEonGPU 基准</a>。上表均为普通刷新。包含 ReLU 的功能自举是另一个电路，相关比较见 <a href="ckks-fourier-functional-bootstrap.html">CKKS 功能自举笔记</a>。</p>
+<h2 id="gpu">GPU 的单请求密态网络<a class="headerlink" href="#gpu" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>实现</th>
+<th>设备</th>
+<th style="text-align: right;">ResNet-20 单图</th>
+<th style="text-align: right;">BERT-Base 单输入</th>
+<th style="text-align: right;">Llama3-8B 预填充</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cheddar</td>
+<td>1 × RTX 5090</td>
+<td style="text-align: right;">720 ms</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr>
+<td>Theodosian</td>
+<td>1 × RTX 5090</td>
+<td style="text-align: right;">467 ms</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr>
+<td>Cerium</td>
+<td>1 × A100 80 GB</td>
+<td style="text-align: right;">1,050 ms</td>
+<td style="text-align: right;">66.1 s</td>
+<td style="text-align: right;">555 s</td>
+</tr>
+<tr>
+<td>Cerium</td>
+<td>1 × H100</td>
+<td style="text-align: right;">620 ms</td>
+<td style="text-align: right;">36.1 s</td>
+<td style="text-align: right;">370 s</td>
+</tr>
+<tr>
+<td>Cerium</td>
+<td>1 × B200</td>
+<td style="text-align: right;">456 ms</td>
+<td style="text-align: right;">28.3 s</td>
+<td style="text-align: right;">241 s</td>
+</tr>
+<tr>
+<td>Cerium</td>
+<td>8 × H100</td>
+<td style="text-align: right;">386 ms</td>
+<td style="text-align: right;">10.6 s</td>
+<td style="text-align: right;">62 s</td>
+</tr>
+<tr>
+<td>Cerium</td>
+<td>8 × B200</td>
+<td style="text-align: right;"><strong>298 ms</strong></td>
+<td style="text-align: right;"><strong>8.8 s</strong></td>
+<td style="text-align: right;"><strong>43 s</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Cerium 的 ResNet-20 对一张 32 × 32 CIFAR-10 图像分类，准确率 91.4%。BERT-Base 输入 128 token，GLUE RTE 准确率 69.3%，电路有 997 次自举。两者报告的明文和密文准确率相同。Llama3-8B 用 128 token 提示词，43 秒为论文定义的首 token 时间。评估密钥、明文权重编码及图的准备在计时范围外。Cerium 同代 B200 从 1 卡扩至 8 卡时，自举、ResNet-20、BERT 加速分别约 <strong>1.93×、1.53×、3.22×</strong>。不同网络可并行的工作量不同，多卡通信会影响延迟。见 <a href="https://www.pdl.cmu.edu/PDL-FTP/HECStorage/3830418.3843864.pdf">Cerium 表 1 与表 2</a> 和 <a href="https://ckks.org/blog/2026/CKKS-on-GPU/">Theodosian 表 2</a>。</p>
+<p>BERT 可参考 Cerium 同表列出的 THOR 约 602 秒（单 A100），并保留论文间的模型和计时边界。图像侧也要核对模型与数据集。WPC 的单 A100 ImageNet 表给出 ResNet-18 的 3.68 秒（Hermite 激活）或 10.23 秒（PolyReLU），ResNet-50 的 24.47 秒（PolyReLU）。WPC 的数据集和网络配置与 CIFAR-10 的 32 × 32 ResNet-20 不同。见 <a href="https://www.pdl.cmu.edu/PDL-FTP/HECStorage/3830418.3843864.pdf">Cerium 表 1</a> 和 <a href="https://www.thu-haslab.org/publication/2025-wpc/3719027.3765022.pdf">WPC 表 7</a>。</p>
+<h3 id="_1">批量吞吐的例子<a class="headerlink" href="#_1" title="Permanent link">¶</a></h3>
+<p>Terrazzo 使用 Gentry–Lee（GL）矩阵同态方案。它在 1 张 RTX 5090 上刷新整个 GL 密文耗时 <strong>1.458 s</strong>，论文按 128 个 RLWE 切片折算为 <strong>11.39 ms/切片</strong>。128 token 的 BERT-Base 一批承载 256 个独立输入，满批墙钟约 <strong>1,802 s</strong>，摊销 <strong>7.04 s/输入</strong>，约 <strong>0.142 输入/s</strong>。论文指出，同一个 batch 仅填 1 个输入也要执行整个电路。因此这些数字衡量批处理效率，交互延迟应看整批墙钟。见 <a href="https://eprint.iacr.org/2026/1870">Terrazzo 预印本，表 1–3</a>。</p>
+<h2 id="asic">ASIC 设计与流片结果<a class="headerlink" href="#asic" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>设计</th>
+<th>设备规模</th>
+<th style="text-align: right;">单密文自举</th>
+<th style="text-align: right;">ResNet-20 单图</th>
+<th style="text-align: right;">BERT-Base / 128 token</th>
+<th>证据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cinnamon-M</td>
+<td>1 个大单片设计</td>
+<td style="text-align: right;">1.87 ms</td>
+<td style="text-align: right;">105.94 ms</td>
+<td style="text-align: right;">3.83 s</td>
+<td>综合 RTL 后的周期级仿真</td>
+</tr>
+<tr>
+<td>Cinnamon-4</td>
+<td>4 个芯片</td>
+<td style="text-align: right;">1.98 ms</td>
+<td style="text-align: right;">94.52 ms</td>
+<td style="text-align: right;">3.83 s</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>Cinnamon-8</td>
+<td>8 个芯片</td>
+<td style="text-align: right;">1.71 ms</td>
+<td style="text-align: right;">73.85 ms</td>
+<td style="text-align: right;">2.07 s</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>Cinnamon-12</td>
+<td>12 个芯片</td>
+<td style="text-align: right;">1.63 ms</td>
+<td style="text-align: right;">70.57 ms</td>
+<td style="text-align: right;">1.67 s</td>
+<td>同上，使用交换互连</td>
+</tr>
+<tr>
+<td>ARK</td>
+<td>ASIC 设计</td>
+<td style="text-align: right;">3.50 ms</td>
+<td style="text-align: right;">125 ms</td>
+<td style="text-align: right;">—</td>
+<td>Cinnamon 表 2 引用的仿真</td>
+</tr>
+<tr>
+<td>CraterLake</td>
+<td>ASIC 设计</td>
+<td style="text-align: right;">6.33 ms</td>
+<td style="text-align: right;">321.26 ms</td>
+<td style="text-align: right;">—</td>
+<td>Cinnamon 表 2 引用的仿真</td>
+</tr>
+<tr>
+<td>Intel HERACLES</td>
+<td>Intel 3 实测 SoC</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td>公开指标包括 <strong>3.27 次/s</strong> 的自举加缩放吞吐和 <strong>4.17 Tb/s</strong> 的 NTT 比特吞吐</td>
+</tr>
+</tbody>
+</table>
+<p>Cinnamon 自举基准报告 128-bit 安全性，$N=65536$，输出留 13 个有效应用层。它的 BERT 是单个 128 token 输入的完整网络，论文描述的自举调用数约 1,400 次。自举算法、输出层和应用电路均会影响比较。HERACLES 是已流片证据，3.27 次/s 是复合操作吞吐；其倒数是该吞吐下每完成一次操作的平均时间间隔。这里没有可用于和上表对齐的 HERACLES 独立单次 CKKS 延迟或 ResNet/BERT 结果。见 <a href="https://www.cs.cmu.edu/~dskarlat/publications/cinnamon_asplos25.pdf">Cinnamon 第 6 节及表 2</a> 和 <a href="https://doi.org/10.1109/JSSC.2026.3737700">HERACLES JSSC</a>。</p>
+<h2 id="gpu-asic_1">如何读 GPU 和 ASIC 的差距<a class="headerlink" href="#gpu-asic_1" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>同为八个设备的配置下，Cinnamon 的仿真延迟更低。</strong> 8 张 B200 的 Cerium 对比仿真的 Cinnamon-8，自举为 7.5 对 1.71 ms，ResNet-20 为 298 对 73.85 ms，BERT-Base 为 8.8 对 2.07 s。三个延迟比分别约 <strong>4.4×、4.0×、4.3×</strong>。这里是公开配置的数值之比。Cerium 自举输出到 level 18，Cinnamon 保留 13 个有效应用层，两个网络电路也分别实现。</li>
+<li><strong>与较早的 CraterLake 仿真数值重叠。</strong> 同一张对照表中，8 B200 的 7.5 ms 自举略慢于 CraterLake 的 6.33 ms，ResNet-20 的 298 ms 则略快于 321.26 ms。竞争关系取决于 ASIC 代际、工作负载和设备规模。</li>
+<li><strong>复现实验时锁定语义。</strong> 自举至少固定 $N$、槽数、输入与输出模数链、精度、安全参数和失败概率，注明单密文或批量。网络至少固定数据集、准确率、模型版本、token 数或图像大小、批量、在线计时边界、密钥与编码权重的驻留方式。HomomorphicEncryption.org 的 BERT 工作负载使用 GLUE MRPC，可用作公共比较基准。Cerium 表中的准确率来自 GLUE RTE。见 <a href="https://fhe-benchmarking.github.io/">标准化 benchmark</a> 和 <a href="https://github.com/fhe-benchmarking/BERT">BERT 基准代码</a>。</li>
+</ul>
+<p>来源说明见 <a href="https://www.pdl.cmu.edu/PDL-FTP/HECStorage/3830418.3843864.pdf">Cerium 图 10</a> 和 <a href="https://www.cs.cmu.edu/~dskarlat/publications/cinnamon_asplos25.pdf">Cinnamon 表 2</a>。本次调研引用公开结果。</p></article></details><p class="site-article site-read-next"><a href="ckks-fourier-functional-bootstrap.html">Next: OpenFHE 的 CKKS 功能自举 →</a></p></div>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d">7bf8e6d</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>

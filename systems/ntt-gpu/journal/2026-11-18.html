@@ -23,7 +23,7 @@
   <a class="site-brand" href="../index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
     <span>ntt-gpu<small>Engineering notebook</small></span></a>
   <div class="site-nav-label">Documentation <span>Index</span></div>
-  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Plans</p><a href="../next-gpu-rental.html">Next GPU rental queue</a><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../offline-gpu-preparation.html">Before renting a GPU</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="../offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../resident-operation-chain.html">Resident operation chain</a><a href="../vscode-debugging.html">Run &amp; debug</a></div><div class="site-nav-group"><p>Research</p><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a><a href="../gpu-rental-market-survey.html">GPU rental market</a><a href="../first-native-analysis.html">First GPU run: analysis</a><a href="../batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="../index.html">Overview</a><a href="../project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="../journal.html" aria-current="page">All entries</a></div><div class="site-nav-group"><p>Plans</p><a href="../next-gpu-rental.html">Next GPU rental queue</a><a href="../openfhe-integration-plan.html">Integration roadmap</a><a href="../architecture-decision.html">Architecture decision</a><a href="../implementation-backlog.html">Implementation backlog</a><a href="../offline-gpu-preparation.html">Before renting a GPU</a><a href="../benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="../offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Learn</p><a href="../butterfly-explained.html">NTT &amp; butterflies</a><a href="../gpu-ntt-explained.html">From CPU to CUDA</a><a href="../ntt-65536-work-distribution.html">65536: work distribution</a><a href="../cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="../modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="../openfhe-representation-contract.html">OpenFHE representation</a><a href="../openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="../device-backend-contract.html">Device backend contract</a><a href="../resident-operation-chain.html">Resident operation chain</a><a href="../vscode-debugging.html">Run &amp; debug</a><a href="../basis-conversion-preparation.html">Prepare basis conversion</a></div><div class="site-nav-group"><p>Research</p><a href="../fhe-gpu-asic-inference-benchmarks.html">GPU 与 ASIC 的密态推理基准</a><a href="../fhe-three-topics.html">FHE 的三个进展</a><a href="../fhe-progress-2024-2026.html">FHE 近两年进展</a><a href="../ckks-fourier-functional-bootstrap.html">OpenFHE 的 CKKS 功能自举</a><a href="../gpu-ntt-survey.html">GPU NTT implementations</a><a href="../gpu-selection-survey.html">Choosing the GPU</a><a href="../gpu-rental-market-survey.html">GPU rental market</a><a href="../first-native-analysis.html">First GPU run: analysis</a><a href="../batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Contribute</p><a href="../contributing-docs.html">Writing &amp; publishing</a></div></nav>
   <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
     <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
 </aside>
@@ -35,7 +35,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/587598a848b4b715b018ee45bcccbf40027ea064/docs/journal/2026-11-18.md">View source</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/docs/journal/2026-11-18.md">View source</a></div>
     <div class="site-reading-layout site-wide">
       <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-18">2026-11-18</time><span>Documentation maintenance / P2 unchanged</span><a href="../journal.html">← All entries</a></div><section class="site-article site-brief"><h1>Explain NTT concepts in plain English</h1><p>Explained NTT formulas, prime-tower data and butterfly merges, then reviewed all 40 notebook pages and rewrote unclear passages for beginners.</p><p>This is a dated record of work on its calendar date. Its test counts, design and next steps describe that time; use the current roadmap for today’s status.</p></section><details class="site-full-notes"><summary>Read full entry</summary><article class="site-article"><h2 id="read-the-ntt-evaluation-and-inverse-formulas">Read the NTT evaluation and inverse formulas<a class="headerlink" href="#read-the-ntt-evaluation-and-inverse-formulas" title="Permanent link">¶</a></h2>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
@@ -171,11 +171,171 @@ portfolio photo/painting controls work. No script or HTTP errors or page-wide
 overflow were observed. Another 28 checks cover the final overview/setup
 wording, introductory lessons and all three standalone lessons at the same
 four widths. Desktop and phone screenshots were inspected. Source CI and
-live deployment are verified separately after pushing.</p></article></details><p class="site-article site-read-next"><a href="../openfhe-integration-plan.html">Current roadmap →</a></p></div>
+live deployment are verified separately after pushing.</p>
+<h2 id="review-two-years-of-fhe-progress">Review two years of FHE progress<a class="headerlink" href="#review-two-years-of-fhe-progress" title="Permanent link">¶</a></h2>
+<h3 id="outcome_1">Outcome<a class="headerlink" href="#outcome_1" title="Permanent link">¶</a></h3>
+<p>Added a <a href="../fhe-progress-2024-2026.html">two-year FHE survey</a> covering CKKS
+functional bootstrapping, compilers, GPU systems, specialized hardware,
+production examples and standardization. The project remains at P2/D11.</p>
+<h3 id="reasoning_1">Reasoning<a class="headerlink" href="#reasoning_1" title="Permanent link">¶</a></h3>
+<p>Cerium's 43-second result covers Llama3-8B prefill for a 128-token prompt on
+eight B200 GPUs, with weights and evaluation keys prepared offline. Cheddar
+provides a single RTX 5090 reference under its own 32-bit RNS configuration.
+Theodosian's L2 bandwidth result motivates profiling. Its applicability to
+the pinned OpenFHE arithmetic and workloads remains unverified.</p>
+<h3 id="changes_1">Changes<a class="headerlink" href="#changes_1" title="Permanent link">¶</a></h3>
+<p>Added the report and registered it in the Research section of the notebook.
+The report connects the literature to device-resident measurements and
+complete Hybrid key switching under the OpenFHE 1.6.1 compatibility contract.</p>
+<h3 id="verification_1">Verification<a class="headerlink" href="#verification_1" title="Permanent link">¶</a></h3>
+<p>Checked the cited paper tables and official software and deployment
+announcements. The survey cites externally reported measurements.
+With Markdown 3.7 in the isolated environment, all 27 documentation tests
+passed. The site build validated local links and fragments across 41 HTML
+pages, including 14 journal entries. No new hardware benchmark was performed.</p>
+<h3 id="open-questions_1">Open questions<a class="headerlink" href="#open-questions_1" title="Permanent link">¶</a></h3>
+<p>On the project's RTX 5090 workloads, how much time and traffic comes from
+kernel arithmetic, device memory, evaluation key reads and host transfers?</p>
+<h3 id="next-step_1">Next step<a class="headerlink" href="#next-step_1" title="Permanent link">¶</a></h3>
+<p>Run the <a href="../next-gpu-rental.html">queued RTX 5090 session</a>. Use native exactness
+and matched resident-chain timings as evidence for the open P2 gate.</p>
+<h3 id="ckks-fourier-extension-functional-bootstrapping">CKKS Fourier-extension functional bootstrapping<a class="headerlink" href="#ckks-fourier-extension-functional-bootstrapping" title="Permanent link">¶</a></h3>
+<p>Reviewed the tagged OpenFHE 1.6.1 implementation and the EUROCRYPT 2026
+abstract. In the slots-to-coefficients-first path, a complex exponential
+cancels integer overflows from modulus raising. The Fourier polynomial then
+evaluates a function of each real input slot. The single-call API accepts
+coefficients for ReLU as well as smooth functions. A finite series rounds
+the corner of hard ReLU.</p>
+<p>Added <a href="../ckks-fourier-functional-bootstrap.html">the implementation study</a>
+to Research. It records APIs, admissible functions, ReLU coefficients and
+the local CPU comparison against ordinary bootstrapping. The comparison
+times whole calls and excludes context setup, key generation and decryption.</p>
+<p>On a single-threaded M1 Pro with 1,024 slots, all six modes left eight
+effective levels. The median ordinary bootstrap was 10.76 s. The three
+official smooth-function examples took 13.46–17.59 s, while 45- and
+129-degree ReLU took 14.24 s and 20.54 s. The corresponding ReLU maximum
+absolute errors were 0.0571 and 0.0127 over the tested grid, matching the
+plaintext Fourier evaluation at the displayed precision. These are
+diagnostic timings under one parameter set, with three measured samples
+per mode and without an independent security estimate.
+All 27 documentation tests passed, and the site build checked 42 pages.</p>
+<p>Next research comparison, if measuring the savings from fusion, is ordinary
+bootstrapping followed by a separate evaluator for the same function at
+matched error and output level count.</p>
+<h3 id="hard-relu-degree-sweep">Hard ReLU degree sweep<a class="headerlink" href="#hard-relu-degree-sweep" title="Permanent link">¶</a></h3>
+<p>Extended the functional bootstrap comparison to eight Fourier degrees from
+9 to 325 under the same single-threaded OpenFHE 1.6.1 configuration.
+Reused the three-sample results for degrees 45 and 129. Each new degree
+used one warm-up and two measured calls. Every result retained eight
+effective output levels.</p>
+<p>The depth budget rose from 19 to 24. Degrees 257 and 325 both used
+24 levels and took 25.59 s and 29.11 s, respectively. The ciphertext
+results matched the same-grid plaintext error summaries to within 1e-7.
+Deriving the exact plaintext Fourier tail and checking a 32,769-point grid
+showed that the original 1,024 slots miss the error peak at the upper
+boundary. Degree 129 has a slot maximum of 0.01266 and an interval
+supremum of 0.02513. With this extension on [-8, 8), degree 325 is the
+first to put the approximation supremum below 0.01. The ciphertext
+numerical error is a separate contribution.</p>
+<p>Added the sweep, raw timings, exact error formula and depth thresholds to
+<a href="../ckks-fourier-functional-bootstrap.html">the implementation study</a>. A
+follow-up at the same error budget could measure how changing the extension
+outside the target interval affects the required degree and latency.</p>
+<h3 id="programmable-ckks-history-and-additional-fhe-developments">Programmable CKKS history and additional FHE developments<a class="headerlink" href="#programmable-ckks-history-and-additional-fhe-developments" title="Permanent link">¶</a></h3>
+<p>Checked the original papers, OpenFHE's release notes and integration records.
+The Alexandru–Kim–Polyakov integer lookup-table method entered in the v1.4.0
+development tag. Fourier-extension functional bootstrapping for real inputs
+entered in the v1.6.0 development tag. Added both citations and release links
+to the dedicated <a href="../ckks-fourier-functional-bootstrap.html">functional bootstrapping study</a>
+and <a href="../fhe-progress-2024-2026.html">two-year survey</a>.</p>
+<p>Expanded the survey with larger integer LUTs, ordinary CKKS bootstrapping
+improvements, native matrix arithmetic, multi-key FHE, HEIR and the ISO/IEC
+28033 draft status. Performance figures retain the authors' comparison
+boundaries. For future ReLU research, the unresolved comparison is a matched
+end-to-end benchmark between quantized integer evaluation and real-slot
+Fourier evaluation at an explicit output error target.</p>
+<h3 id="gpu-and-asic-inference-benchmark-survey">GPU and ASIC inference benchmark survey<a class="headerlink" href="#gpu-and-asic-inference-benchmark-survey" title="Permanent link">¶</a></h3>
+<p>Added the <a href="../fhe-gpu-asic-inference-benchmarks.html">GPU and ASIC inference benchmark survey</a>
+to Research and linked it from the two-year survey. Checked Cerium's
+methodology and Table 1 against Cinnamon's original Table 2, the authors'
+Theodosian measurements, the HERACLES silicon report, and the Terrazzo
+preprint. Recorded concrete ResNet and BERT workloads, device counts,
+deployment evidence, and ciphertext refresh and inference timing boundaries.</p>
+<p>Cerium's physical eight-B200 run gives 7.5 ms per full CKKS refresh, 298 ms
+for one CIFAR-10 ResNet-20 image, and 8.8 s for 128-token BERT-Base. The
+Cinnamon-8 estimates of 1.71 ms, 73.85 ms, and 2.07 s come from RTL-backed
+simulation. HERACLES reports 3.27 bootstrap-plus-scaling operations per second
+from silicon. Terrazzo's 7.04 s per BERT input is amortized across 256
+inputs with a 1,802 s batch wall time. These are published results and
+no new hardware run was performed.</p>
+<p>The open comparison is a public matched-workload evaluation across measured
+silicon and GPU platforms. A comparable benchmark should keep the ciphertext
+parameters, model, acceptance accuracy and timing boundaries fixed.</p>
+<h3 id="gpu-specifications-for-the-inference-survey">GPU specifications for the inference survey<a class="headerlink" href="#gpu-specifications-for-the-inference-survey" title="Permanent link">¶</a></h3>
+<p>Added the per-device specifications for A100 80 GB SXM4, H100 SXM5,
+B200 SXM, RTX 4090 and RTX 5090. Checked NVIDIA's architecture and
+product references. Calculated theoretical resident threads from
+SM count, resident warps per SM, and warp size. B200 and RTX 5090
+have different residency limits despite sharing the Blackwell name.
+The table records nominal bandwidth and capacity. No occupancy,
+sustained-bandwidth or kernel-performance measurements were made.</p>
+<h3 id="remaining-fhe-research-priorities">Remaining FHE research priorities<a class="headerlink" href="#remaining-fhe-research-priorities" title="Permanent link">¶</a></h3>
+<p>Extended the two-year survey with CKKS protocol and output privacy,
+request-level failure bounds, AES transciphering, autoregressive decoding
+and reproducible application benchmarks. Checked the primary ePrint
+abstracts and the ROSETTA evaluation. Kept ROSETTA's module-based
+one-token estimate separate from observed prefill wall time and the AES
+primitive results separate from a complete client-server application.
+A next comparison could hold application inputs and target error fixed
+while measuring ciphertext transmission, conversion and online evaluation.</p>
+<h3 id="fhe-landscape-team-briefing">FHE landscape team briefing<a class="headerlink" href="#fhe-landscape-team-briefing" title="Permanent link">¶</a></h3>
+<p>Added a 25-minute team briefing with
+an application map, a two-year timeline, scheme selection, the stack from
+algorithms to deployment, and discussion prompts. Checked Apple's private
+query documentation, Zama's mainnet and auction records, the synthetic-data
+threshold CKKS survival-analysis study, the Hermes research prototype,
+and the ISO and NIST status pages. The briefing labels released capabilities,
+research results, and draft standards by their evidence.</p>
+<h3 id="team-sharing-scope-revised">Team sharing scope revised<a class="headerlink" href="#team-sharing-scope-revised" title="Permanent link">¶</a></h3>
+<p>Removed the standalone briefing and its catalog entry after the user
+chose to review topics individually. The first approved topic is
+programmable bootstrapping and its benchmark data. Additional topics
+remain proposals for review. The existing research notes retain their
+supporting evidence.</p>
+<h3 id="candidate-topics-on-verifiable-fhe-and-confidential-finance">Candidate topics on verifiable FHE and confidential finance<a class="headerlink" href="#candidate-topics-on-verifiable-fhe-and-confidential-finance" title="Permanent link">¶</a></h3>
+<p>Reviewed the <a href="https://www.usenix.org/system/files/usenixsecurity26-liu-fengrun.pdf">HasteBoots final paper</a>
+and the earlier <a href="https://github.com/zama-ai/verifiable-fhe-paper">Plonky2 prototype</a>.
+HasteBoots Table 2 reports 25 minutes, 4 ms, and 0.20 MB for the reproduced
+baseline and 12.36 s, 118.12 ms, and 0.22 MB for its Dory comparison row.
+Table 4 reports 60.90 s, 126 ms, and 0.28 MB for a batch of 16 in its
+BabyBear configuration. These figures measure proving and verification,
+not deployed transaction throughput.</p>
+<p>Checked the <a href="https://docs.zama.org/protocol/protocol/overview/coprocessor">Zama coprocessor</a>,
+<a href="https://docs.zama.org/protocol/protocol/overview/gateway">Gateway</a>, and
+<a href="https://docs.zama.org/protocol/protocol/overview/kms">KMS</a> descriptions,
+the January auction account, and the GSR OTC announcement. The documented
+mainnet path distinguishes proof of encrypted input well-formedness,
+majority coprocessor attestations, and authorized threshold decryption.
+Also reviewed <a href="https://eips.ethereum.org/EIPS/eip-7984">ERC-7984</a> and
+the Fhenix launch trust model as a comparison. Both topics remain
+candidates for the user's review.</p>
+<h3 id="three-topic-fhe-article">Three-topic FHE article<a class="headerlink" href="#three-topic-fhe-article" title="Permanent link">¶</a></h3>
+<p>Consolidated the approved topics into <a href="../fhe-three-topics.html">the three-topic article</a>.
+It records programmable bootstrapping and measured ReLU results, verifiable
+TFHE proving and verification costs, and the mainnet confidential auction's
+input, evaluation, and decryption controls. It includes source links and
+distinguishes local measurements, published benchmarks, simulations, and
+documented deployments.</p>
+<p>Built the self-contained HTML, checked all section anchors and table
+markup, and passed 27 documentation tests, 14 JavaScript tests, and
+the notebook build. The personal website's GitHub repository opened
+in Chrome at its current remote state. Publishing awaits a signed-in
+repository writer because GitHub is unreachable from the command-line
+environment and Chrome showed the sign-in page.</p></article></details><p class="site-article site-read-next"><a href="../openfhe-integration-plan.html">Current roadmap →</a></p></div>
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/587598a848b4b715b018ee45bcccbf40027ea064">587598a</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d">7bf8e6d</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

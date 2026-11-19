@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Check approximate CRT conversion and constant multiplication before the GPU session.">
+<link rel="canonical" href="https://minnow54426.github.io/systems/ntt-gpu/basis-conversion-preparation.html">
+<title>Prepare basis conversion · ntt-gpu</title>
+
+
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<script defer src="math-rendering.js"></script>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/sunlit-paper.css">
+<script defer src="search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</head>
+<body class="site-body" data-search-index="search-index.json">
+<a class="site-skip" href="#site-main">Skip to content</a>
+<aside class="site-sidebar" id="site-sidebar">
+  <a class="site-brand" href="index.html"><span class="site-mark" aria-hidden="true">N<span>×</span></span>
+    <span>ntt-gpu<small>Engineering notebook</small></span></a>
+  <div class="site-nav-label">Documentation <span>Index</span></div>
+  <nav class="site-navigation" aria-label="Documentation"><div class="site-nav-group"><p>Start here</p><a href="index.html">Overview</a><a href="project.html">Project &amp; setup</a></div><div class="site-nav-group"><p>Daily journal</p><a href="journal.html">All entries</a></div><div class="site-nav-group"><p>Plans</p><a href="next-gpu-rental.html">Next GPU rental queue</a><a href="openfhe-integration-plan.html">Integration roadmap</a><a href="architecture-decision.html">Architecture decision</a><a href="implementation-backlog.html">Implementation backlog</a><a href="offline-gpu-preparation.html">Before renting a GPU</a><a href="benchmark-tuning-plan.html">Benchmarks &amp; tuning</a><a href="offline-test-tooling.html">Offline test tooling</a></div><div class="site-nav-group"><p>Learn</p><a href="butterfly-explained.html">NTT &amp; butterflies</a><a href="gpu-ntt-explained.html">From CPU to CUDA</a><a href="ntt-65536-work-distribution.html">65536: work distribution</a><a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a><a href="modular-arithmetic-contract.html">Arithmetic bounds &amp; tests</a><a href="openfhe-representation-contract.html">OpenFHE representation</a><a href="openfhe-hybrid-operation-graph.html">Hybrid operation graph</a><a href="device-backend-contract.html">Device backend contract</a><a href="resident-operation-chain.html">Resident operation chain</a><a href="vscode-debugging.html">Run &amp; debug</a><a href="basis-conversion-preparation.html" aria-current="page">Prepare basis conversion</a></div><div class="site-nav-group"><p>Research</p><a href="fhe-gpu-asic-inference-benchmarks.html">GPU 与 ASIC 的密态推理基准</a><a href="fhe-three-topics.html">FHE 的三个进展</a><a href="fhe-progress-2024-2026.html">FHE 近两年进展</a><a href="ckks-fourier-functional-bootstrap.html">OpenFHE 的 CKKS 功能自举</a><a href="gpu-ntt-survey.html">GPU NTT implementations</a><a href="gpu-selection-survey.html">Choosing the GPU</a><a href="gpu-rental-market-survey.html">GPU rental market</a><a href="first-native-analysis.html">First GPU run: analysis</a><a href="batch40-native-analysis.html">Full GPU matrix: analysis</a></div><div class="site-nav-group"><p>Contribute</p><a href="contributing-docs.html">Writing &amp; publishing</a></div></nav>
+  <div class="site-sidebar-bottom"><a class="site-personal-home" style="margin:0 0 14px" href="../../index.html#code">← Systems from Scratch</a><span class="site-status-dot"></span> Building in the open
+    <a href="https://github.com/minnow54426/ntt-gpu">GitHub repository</a></div>
+</aside>
+<div class="site-workspace">
+  <header class="site-topbar">
+    <button class="site-menu-button" type="button" aria-controls="site-sidebar" aria-expanded="false">☰ <span>Menu</span></button>
+    <div class="site-breadcrumb"><a href="index.html">Notebook</a><span>/</span>Learn</div>
+
+    <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
+  </header>
+  <main id="site-main" class="site-main">
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d/docs/basis-conversion-preparation.md">View source</a></div>
+    <div class="site-reading-layout site-wide">
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Prepare basis conversion</h1><ul><li>Preserve OpenFHE&#x27;s unreduced CRT sum and source-tower order when constructing conversion plans.</li><li>The Shoup and conversion probes passed the November 19 native Ada batch and compiled for sm_120.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="prepare-basis-conversion-before-the-next-gpu-rental">Prepare basis conversion before the next GPU rental<a class="headerlink" href="#prepare-basis-conversion-before-the-next-gpu-rental" title="Permanent link">¶</a></h2>
+<p>We can prepare conversion arithmetic and reference answers on the M1 Pro.
+The November 19 run checked the CUDA implementation on compute 8.9.
+The RTX 5090 hardware check remains in the next combined session.</p>
+<h2 id="what-the-converter-computes">What the converter computes<a class="headerlink" href="#what-the-converter-computes" title="Permanent link">¶</a></h2>
+<p>A polynomial has N coefficients. For each source prime q_i, a tower holds
+N residues. Towers occupy consecutive sections of the array. A conversion
+changes the primes under which these coefficients are represented.</p>
+<p>Let Q be the product of all active source primes, and let p_j be one target
+prime. The coefficient at position k is converted with</p>
+<p><span class="site-math">\[
+\widehat Q_i = Q/q_i, \qquad
+u_i(k) = a_i(k)\widehat Q_i^{-1}\bmod q_i,
+\]</span>
+<span class="site-math">\[
+b_j(k) =
+\left(\sum_i u_i(k)(\widehat Q_i\bmod p_j)\right)\bmod p_j.
+\]</span></p>
+<p>Here a_i(k) is the input residue under q_i. The inverse of the product of the
+other source primes scales that residue. Multiplying by the reduced product
+and summing gives the target residue b_j(k).</p>
+<p>The sum follows OpenFHE's approximate CRT convention. Reducing the complete
+sum modulo Q first can change b_j(k). Independent tests include inputs that
+detect this change.</p>
+<p>The plan snapshots the source and target primes in their given order.
+Shortening the active source prefix or a Hybrid digit requires a new plan.
+Its constants depend on that complete source product.</p>
+<h2 id="shoup-multiplication">Shoup multiplication<a class="headerlink" href="#shoup-multiplication" title="Permanent link">¶</a></h2>
+<p>The source scaling uses a precomputed constant w. Store</p>
+<p><span class="site-math">\[
+w&#x27; = \left\lfloor\frac{w2^{64}}q\right\rfloor,\qquad
+h = \left\lfloor\frac{xw&#x27;}{2^{64}}\right\rfloor,\qquad
+r = xw-hq.
+\]</span></p>
+<p>x is the input residue, w is the inverse above, and q is its source prime.
+For canonical x and w with q below 2^63, h underestimates the exact quotient
+by at most one. Therefore r lies between zero and 2q, and one conditional
+subtraction produces a residue below q.</p>
+<p>The host computes the high product with a 128-bit integer. CUDA uses
+<code>__umul64hi</code>. The per-coefficient Shoup operation uses multiplication and
+subtraction. The general target-product operation currently retains the
+reference 128-bit remainder calculation. Performance selection follows
+native measurements.</p>
+<h2 id="local-checks-and-the-rental-batch">Local checks and the rental batch<a class="headerlink" href="#local-checks-and-the-rental-batch" title="Permanent link">¶</a></h2>
+<p>The independent Python oracle computes the unreduced sums with arbitrary-size
+integers. It covers 30/50/55/60/63-bit primes, source counts through 40, both
+directions, boundary values, and rejected input shapes or parameters.</p>
+<p>The OpenFHE comparison covers N=4,096 through 65,536, 30/50/55/60-bit primes,
+and source counts 1, 3 and 40. It checks every coefficient in both directions
+using zero, q−1, monomial and deterministic dense inputs. Source towers are
+deliberately unsorted. The Hybrid fixtures also compare the reusable converter
+against their independent CRT answers, including shortened digits and the
+P-to-Q correction used by ModDown.</p>
+<pre><code class="language-sh">ctest --test-dir build/openfhe-compat/ntt-build \
+  -R 'basis|arithmetic_bigint|openfhe_hybrid' --output-on-failure
+</code></pre>
+<p>The prepared native tests are <code>cuda_shoup_exact</code> and <code>cuda_basis_exact</code>.
+The collector requires both and runs their sanitizer checks before timing.
+The CUDA probe assigns one target coefficient to each thread and loops over
+the source primes. Its OpenFHE fixture supplies exact expected arrays.</p>
+<p>On November 19, both schedules compiled for sm_120, and the native probes
+passed on a server reporting RTX 4080 SUPER / compute 8.9. The conversion
+test compared 107,675,648 residues against pinned OpenFHE in each build.
+All four sanitizer tools passed the selected scopes. The
+<a href="next-gpu-rental.html">RTX 5090 session</a> remains the primary-device check. Full resident ModUp/ModDown composition,
+GPU Hybrid key switching, and tuned arithmetic remain later deliverables.</p></article></details><p class="site-article site-read-next"><a href="next-gpu-rental.html">Next: Next GPU rental queue →</a></p></div>
+    </div>
+  </main>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/7bf8e6d78bab348b8717aadd2d76ebc0dc850f5d">7bf8e6d</a> · See journal for changes in this build</span></footer>
+</div>
+<dialog class="site-search-dialog" aria-labelledby="site-search-title">
+  <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc</button></div>
+  <label class="site-visually-hidden" for="site-search-input">Search documentation</label>
+  <input id="site-search-input" type="search" placeholder="Try “twiddle”, “Hybrid”, or “2026-11-07”…" autocomplete="off">
+  <p class="site-search-status" role="status">Search articles, plans, and daily entries.</p>
+  <div class="site-search-results"></div>
+</dialog>
+</body>
+</html>
