@@ -35,7 +35,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/52b87ace8bbdf90e639f6892abea98840cf369db/docs/resident-operation-chain.md">View source</a></div>
+    <div class="site-page-meta"><span>Learn</span><a href="https://github.com/minnow54426/ntt-gpu/blob/06d49ec3c39e401af2bf05a3a04b368f115126fb/docs/resident-operation-chain.md">View source</a></div>
     <div class="site-reading-layout site-wide">
       <div class="site-page-content"><section class="site-article site-brief"><h1>Resident operation chain</h1><ul><li>Upload two polynomials, transform both, multiply matching evaluations, inverse-transform, then download only the final result.</li><li>The prototype preserves inputs and retains queued buffers. Native OpenFHE and sanitizer checks passed on compute 8.9 on November 19.</li></ul></section><details class="site-full-notes"><summary>Read full notes</summary><article class="site-article"><h2 id="keep-the-ntt-chain-on-the-device">Keep the NTT chain on the device<a class="headerlink" href="#keep-the-ntt-chain-on-the-device" title="Permanent link">¶</a></h2>
 <p>Upload two inputs, compose their operations on the GPU and download the final
@@ -53,6 +53,10 @@ reporting RTX 4080 SUPER / compute 8.9. Both schedules also compiled for sm_120.
 The <a href="journal/2026-11-19.html#native-gpu-batch-completed">daily record</a> contains the
 measurement and export results. B06 preparation continues with production
 ownership requirements, driver/context failure handling and RTX 5090 acceptance.</p>
+<p>November 20 preparation adds resident approximate basis conversion and
+ModUp/ModDown composition. Its new host checks and CUDA compilation are
+recorded separately in the <a href="basis-conversion-preparation.html#keep-modup-and-moddown-in-the-resident-chain">conversion guide</a>.
+This new path still requires native execution after the November 19 source.</p>
 <h2 id="what-is-implemented">What is implemented<a class="headerlink" href="#what-is-implemented" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -64,23 +68,23 @@ ownership requirements, driver/context failure handling and RTX 5090 acceptance.
 <tbody>
 <tr>
 <td>Public prototype</td>
-<td><a href="https://github.com/minnow54426/ntt-gpu/blob/52b87ace8bbdf90e639f6892abea98840cf369db/include/ntt/resident.hpp"><code>resident.hpp</code></a>: sessions, immutable polynomial handles, completions and owned host results</td>
+<td><a href="https://github.com/minnow54426/ntt-gpu/blob/06d49ec3c39e401af2bf05a3a04b368f115126fb/include/ntt/resident.hpp"><code>resident.hpp</code></a>: sessions, immutable polynomial handles, completions and owned host results</td>
 </tr>
 <tr>
 <td>Runtime and registry</td>
-<td><a href="https://github.com/minnow54426/ntt-gpu/blob/52b87ace8bbdf90e639f6892abea98840cf369db/src/resident.cpp"><code>resident.cpp</code></a>: private allocation provenance, dependencies, memory reservations, operation journal and cleanup</td>
+<td><a href="https://github.com/minnow54426/ntt-gpu/blob/06d49ec3c39e401af2bf05a3a04b368f115126fb/src/resident.cpp"><code>resident.cpp</code></a>: private allocation provenance, dependencies, memory reservations, operation journal and cleanup</td>
 </tr>
 <tr>
 <td>Transport boundary</td>
-<td><a href="https://github.com/minnow54426/ntt-gpu/blob/52b87ace8bbdf90e639f6892abea98840cf369db/include/ntt/resident_driver.hpp"><code>resident_driver.hpp</code></a>: device buffers/events and a single-stream command interface</td>
+<td><a href="https://github.com/minnow54426/ntt-gpu/blob/06d49ec3c39e401af2bf05a3a04b368f115126fb/include/ntt/resident_driver.hpp"><code>resident_driver.hpp</code></a>: device buffers/events and a single-stream command interface</td>
 </tr>
 <tr>
 <td>CUDA adapter</td>
-<td><a href="https://github.com/minnow54426/ntt-gpu/blob/52b87ace8bbdf90e639f6892abea98840cf369db/src/cuda/resident_adapter.inc"><code>resident_adapter.inc</code></a>, included by <a href="https://github.com/minnow54426/ntt-gpu/blob/52b87ace8bbdf90e639f6892abea98840cf369db/src/cuda/ntt_kernels.cu"><code>ntt_kernels.cu</code></a>, reuses the existing kernels</td>
+<td><a href="https://github.com/minnow54426/ntt-gpu/blob/06d49ec3c39e401af2bf05a3a04b368f115126fb/src/cuda/resident_adapter.inc"><code>resident_adapter.inc</code></a>, included by <a href="https://github.com/minnow54426/ntt-gpu/blob/06d49ec3c39e401af2bf05a3a04b368f115126fb/src/cuda/ntt_kernels.cu"><code>ntt_kernels.cu</code></a>, reuses the existing kernels</td>
 </tr>
 <tr>
 <td>Deferred host transport</td>
-<td><a href="https://github.com/minnow54426/ntt-gpu/blob/52b87ace8bbdf90e639f6892abea98840cf369db/tests/support/resident_host_driver.hpp"><code>resident_host_driver.hpp</code></a>: queues CPU work for ownership/failure tests; never represents GPU execution</td>
+<td><a href="https://github.com/minnow54426/ntt-gpu/blob/06d49ec3c39e401af2bf05a3a04b368f115126fb/tests/support/resident_host_driver.hpp"><code>resident_host_driver.hpp</code></a>: queues CPU work for ownership/failure tests; never represents GPU execution</td>
 </tr>
 </tbody>
 </table>
@@ -92,9 +96,14 @@ residue. A subview selects whole prime towers from an existing buffer; it
 keeps that buffer and its completion information alive. Transforms allocate
 new outputs instead of overwriting their inputs.</p>
 <p>Use one host thread per session, including handle access and destruction.
-The API is separate from the abstract <a href="https://github.com/minnow54426/ntt-gpu/blob/52b87ace8bbdf90e639f6892abea98840cf369db/include/ntt/backend_api.hpp">proposed Backend</a>.
+The API is separate from the abstract <a href="https://github.com/minnow54426/ntt-gpu/blob/06d49ec3c39e401af2bf05a3a04b368f115126fb/include/ntt/backend_api.hpp">proposed Backend</a>.
 It supplies no production OpenFHE adapter, cache, CPU fallback, cross-device
 operation or multi-stream execution.</p>
+<p>For conversion, an explicit-layout <code>upload(layout, values)</code> can select a
+contiguous whole-tower subset of the session's basis. Coefficients use natural
+order; an explicitly declared evaluation layout uses bit-reversed order.
+The runtime validates parameter equality, tower order, length and every
+uploaded residue before queuing the copy.</p>
 <h2 id="compose-a-product">Compose a product<a class="headerlink" href="#compose-a-product" title="Permanent link">¶</a></h2>
 <p>On a real GPU, after creating the validated coefficient layout from the
 <a href="device-backend-contract.html">D9 contract</a>:</p>
@@ -232,26 +241,35 @@ Start a new session for another batch. These are prototype session limits, not a
 cache or a replacement for <a href="implementation-backlog.html#b07-cache-and-memory-admission">B07 admission/cache work</a>.</p>
 <h2 id="observed-checks">Observed checks<a class="headerlink" href="#observed-checks" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>293 host control checks</strong> cover independent negacyclic convolution,
+<li><strong>450 host control checks</strong> cover independent negacyclic convolution,
   immutable inputs, owned uploads, explicit/implicit dependencies, nested views,
   foreign/closed handles, budgets, every synchronous transport step, failures
-  after enqueue, asynchronous errors, abandoned outputs and quarantine recovery.</li>
+  after enqueue, asynchronous errors, abandoned outputs and quarantine recovery.
+  The conversion additions check every transport failure point, every failure
+  after an enqueue, parameter-table budgets and retention through a failed drain.</li>
 <li>The same control tests pass <strong>AddressSanitizer, UndefinedBehaviorSanitizer
   and leak detection</strong> on Linux.</li>
-<li>The deferred host transport matches pinned OpenFHE on <strong>4,456,448 residues</strong>
+<li>The original NTT/product fixture matches pinned OpenFHE on <strong>4,456,448 residues</strong>
   at N=65536 with an unsorted 55/50/60-bit basis. Cases cover zero, bounds,
   monomials and dense values, forward, independent inverse, roundtrip, product,
   input immutability and tower views.</li>
+<li>The extended <a href="https://github.com/minnow54426/ntt-gpu/blob/06d49ec3c39e401af2bf05a3a04b368f115126fb/tests/support/resident_conversion_cases.hpp">conversion fixture</a>
+  checks both ModUp input formats, an independently generated ModDown input,
+  composed operations, unchanged inputs and nonzero-offset tower views. It
+  covers N=64/4096/65536, five active Q levels, mixed 30/50/55/60-bit primes,
+  four coefficient patterns and an additional 40-Q/three-P dense case.</li>
 <li>Stock CUDA 13 compiles the adapter and the prepared native test for
   <strong>sm_89 and sm_120</strong>. Five invalid CUDA-linked factory inputs reject without
   requiring a driver. These checks execute no device arithmetic.</li>
 </ul>
-<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/52b87ace8bbdf90e639f6892abea98840cf369db/tests/resident_openfhe_tests.cpp">exact fixture</a> uses real OpenFHE
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/06d49ec3c39e401af2bf05a3a04b368f115126fb/tests/resident_openfhe_tests.cpp">exact fixture</a> uses real OpenFHE
 <code>NativePoly</code> format conversion and multiplication. Its transform path reaches
 <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/poly-impl.h#L454-L474"><code>NativePoly::SwitchFormat</code></a>
 through the format API. Root/modulus selection comes from the pinned OpenFHE
 implementation; complete arrays are compared, not approximate CKKS decryptions.
-The CUDA variant passed this fixture on reported compute 8.9 on November 19.</p>
+The CUDA variant passed the earlier NTT/product fixture on reported compute
+8.9 on November 19. The new conversion cases compile in both CUDA schedules
+for sm_89/sm_120; executing those cases on a GPU is still pending.</p>
 <h2 id="reproduce-and-verify-next">Reproduce and verify next<a class="headerlink" href="#reproduce-and-verify-next" title="Permanent link">¶</a></h2>
 <p>With the pinned OpenFHE install available, on the CPU workspace:</p>
 <pre><code class="language-sh">cmake -S . -B build/native-cpu -DCMAKE_BUILD_TYPE=Release \
@@ -274,7 +292,7 @@ driver/context failure handling and hardware-counter profiling.</p></article></d
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/52b87ace8bbdf90e639f6892abea98840cf369db">52b87ac</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/06d49ec3c39e401af2bf05a3a04b368f115126fb">06d49ec</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
