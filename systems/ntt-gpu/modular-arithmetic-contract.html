@@ -35,7 +35,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>CUDA runtime</span><a href="https://github.com/minnow54426/ntt-gpu/blob/193c62d9b3d130999812f3dff40ee1b3c4a8f292/docs/modular-arithmetic-contract.md">View source</a></div>
+    <div class="site-page-meta"><span>CUDA runtime</span><a href="https://github.com/minnow54426/ntt-gpu/blob/53b2a9273e014272447672f9523359cd9c5638d3/docs/modular-arithmetic-contract.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><section class="site-article site-brief"><h1>Arithmetic bounds &amp; tests</h1><p class="site-summary">Learn why stored values and temporary products need different integer widths.</p><h2 id="site-overview">At a glance</h2><ul><li>Canonical residues are integers from 0 to q−1. Each butterfly reduces its results back into that range.</li><li>A 60-bit value fits in a 64-bit word, but two such values can produce a 120-bit product. Independent calculations check that the code preserves it.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Understand modular addition and the two outputs of a butterfly. Read <a href="butterfly-explained.html">NTT &amp; butterflies</a> first.</p></section><details class="site-full-notes" open><summary>Detailed guide</summary><article class="site-article"><div id="modular-arithmetic-bounds-and-exactness-gates" aria-hidden="true"></div>
 
@@ -48,8 +48,8 @@ value uses <code>uint64_t</code>, an unsigned 64-bit integer. One 60-bit value f
 but the product of two can need 120 bits. This page
 explains the temporary widths, input assumptions and independent checks.
 Read the <a href="cuda-buffer-dataflow.html">buffer map</a> for where arrays live.
-Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/193c62d9b3d130999812f3dff40ee1b3c4a8f292/include/ntt/mod_arith.hpp">mod_arith.hpp</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/193c62d9b3d130999812f3dff40ee1b3c4a8f292/include/ntt/ntt.hpp">ntt.hpp</a> and <a href="https://github.com/minnow54426/ntt-gpu/blob/193c62d9b3d130999812f3dff40ee1b3c4a8f292/include/ntt/dev_core.hpp">dev_core.hpp</a>.</p>
+Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/53b2a9273e014272447672f9523359cd9c5638d3/include/ntt/mod_arith.hpp">mod_arith.hpp</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/53b2a9273e014272447672f9523359cd9c5638d3/include/ntt/ntt.hpp">ntt.hpp</a> and <a href="https://github.com/minnow54426/ntt-gpu/blob/53b2a9273e014272447672f9523359cd9c5638d3/include/ntt/dev_core.hpp">dev_core.hpp</a>.</p>
 <h2 id="1-what-callers-must-supply">1. What callers must supply<a class="headerlink" href="#1-what-callers-must-supply" title="Permanent link">¶</a></h2>
 <p>The notation <span class="site-math">\([0,q)\)</span> includes 0 and excludes q: it means integers
 0, 1, …, q−1. These small arithmetic functions run inside the main loops,
@@ -168,7 +168,7 @@ x^{2d}-\beta=(x^d-\alpha)(x^d+\alpha).
 <span class="site-math">\(U-\alpha V\)</span>. This is the <strong>meaning invariant</strong>: each block is still the
 original polynomial reduced modulo its current factor. At d=1, each factor
 is linear, <span class="site-math">\(x-z\)</span>, and its remainder is exactly <span class="site-math">\(a(z)\)</span>.</p>
-<p>For the default <a href="https://github.com/minnow54426/ntt-gpu/blob/193c62d9b3d130999812f3dff40ee1b3c4a8f292/include/ntt/transform_stage.hpp">shared CPU/CUDA stage helper</a>,
+<p>For the default <a href="https://github.com/minnow54426/ntt-gpu/blob/53b2a9273e014272447672f9523359cd9c5638d3/include/ntt/transform_stage.hpp">shared CPU/CUDA stage helper</a>,
 let <span class="site-math">\(m=N/(2d)\)</span> be the number of groups, <span class="site-math">\(g\in[0,m)\)</span> the group index,
 and <span class="site-math">\(\operatorname{rev}_L\)</span> reverse L bits, where <span class="site-math">\(L=\log_2N\)</span>. Its group twiddle is</p>
 <p><span class="site-math">\[
@@ -242,7 +242,7 @@ of ψ in bit-reversed order. N=4 only makes the arithmetic visible; the project
 workload remains N=65536.</p>
 <details>
 <summary>How the CPU reference folds the same negacyclic twist into its butterflies</summary>
-<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/193c62d9b3d130999812f3dff40ee1b3c4a8f292/include/ntt/ntt.hpp">CPU reference</a> and optional legacy CUDA build use
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/53b2a9273e014272447672f9523359cd9c5638d3/include/ntt/ntt.hpp">CPU reference</a> and optional legacy CUDA build use
 a different intermediate layout. Write <span class="site-math">\(b_i=\psi^i a_i\)</span> and
 <span class="site-math">\(\omega=\psi^2\)</span>. The negacyclic evaluation sum becomes a cyclic sum:</p>
 <p><span class="site-math">\[
@@ -335,8 +335,8 @@ cmake --build build -j 8
 ctest --test-dir build --output-on-failure
 ctest --test-dir build -R 'arithmetic_' -V
 </code></pre>
-<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/193c62d9b3d130999812f3dff40ee1b3c4a8f292/tests/arithmetic_contract_tests.cpp">C++ probe and full-size tests</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/193c62d9b3d130999812f3dff40ee1b3c4a8f292/tests/oracle/test_arithmetic.py">independent primitive oracle</a>.</p>
+<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/53b2a9273e014272447672f9523359cd9c5638d3/tests/arithmetic_contract_tests.cpp">C++ probe and full-size tests</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/53b2a9273e014272447672f9523359cd9c5638d3/tests/oracle/test_arithmetic.py">independent primitive oracle</a>.</p>
 <h2 id="5-exactness-ladder-do-not-substitute-one-gate-for-another">5. Exactness ladder: do not substitute one gate for another<a class="headerlink" href="#5-exactness-ladder-do-not-substitute-one-gate-for-another" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -419,7 +419,7 @@ and implementation are tracked in the <a href="implementation-backlog.html">back
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/193c62d9b3d130999812f3dff40ee1b3c4a8f292">193c62d</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/53b2a9273e014272447672f9523359cd9c5638d3">53b2a92</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

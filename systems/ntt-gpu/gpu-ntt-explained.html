@@ -234,7 +234,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Fundamentals</span><a href="https://github.com/minnow54426/ntt-gpu/blob/193c62d9b3d130999812f3dff40ee1b3c4a8f292/docs/gpu-ntt-explained.html">View source</a></div>
+    <div class="site-page-meta"><span>Fundamentals</span><a href="https://github.com/minnow54426/ntt-gpu/blob/53b2a9273e014272447672f9523359cd9c5638d3/docs/gpu-ntt-explained.html">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><section class="site-article site-brief"><h1>From CPU to CUDA</h1><p class="site-summary">Learn how GPU threads cooperate to run the NTT.</p><h2 id="site-overview">At a glance</h2><ul><li>A thread computes assigned pairs. A block is a team of threads that reuses a loaded group in shared memory across several stages.</li><li>At N=65536, columns handle far-apart pairs and rows handle nearby pairs. Threads wait at barriers between stages; kernel order separates the passes.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Understand one butterfly and why a transform has several stages. Read <a href="butterfly-explained.html">NTT &amp; butterflies</a> first.</p></section><details class="site-full-notes" open><summary>Interactive lesson</summary><div class="site-legacy">
 <div class="page">
@@ -601,7 +601,7 @@ choose:           256 values  (= 2 KB of the 48) — and 65,536 = 256 × 256</pr
     <section id="s6" class="reveal">
       <div class="sec-head"><div class="sec-num">06</div><h2 id="map-the-design-to-code">Map the design to code</h2></div>
       <p>For the current arithmetic and a worked CUDA table lookup, see <a href="ntt-65536-work-distribution.html#column-proof">Why these inputs and twiddles?</a>.</p>
-      <p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/193c62d9b3d130999812f3dff40ee1b3c4a8f292/include/ntt/transform_stage.hpp">shared stage helper</a> assigns disjoint pairs to threads. Here is the forward arithmetic with names shortened. A window maps local position u to global position origin + stride × u.</p>
+      <p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/53b2a9273e014272447672f9523359cd9c5638d3/include/ntt/transform_stage.hpp">shared stage helper</a> assigns disjoint pairs to threads. Here is the forward arithmetic with names shortened. A window maps local position u to global position origin + stride × u.</p>
       <pre class="code">for (p = threadIdx.x; p &lt; window_length / 2; p += blockDim.x) {
   u = p + (p / local_distance) * local_distance;
   v = u + local_distance;
@@ -882,7 +882,7 @@ forward_contiguous_tile_kernel&lt;&lt;&lt;<span class="f">dim3</span>(n/<span cl
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/193c62d9b3d130999812f3dff40ee1b3c4a8f292">193c62d</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/53b2a9273e014272447672f9523359cd9c5638d3">53b2a92</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
