@@ -7,8 +7,8 @@ A personal portfolio website hosted on GitHub Pages, featuring photography, bloc
 - **Photography Gallery**: 15 photo collections with 247 images from travels across China
 - **Code & Cryptography**: [blockchain_from_scratch](https://github.com/minnow54426/blockchain_from_scratch) — a blockchain built in Rust from first principles
 - **Creative Works**: Music projects and watercolor video gallery
-- **NTT-GPU**: [CKKS From Scratch](systems/ntt-gpu/index.html) — interactive
-  explanations, implementation surveys, plans, and a daily engineering journal.
+- **NTT-GPU**: [GPU NTT beginner guide](systems/ntt-gpu/index.html) — four
+  interactive lessons and the latest GPU results.
 
 ## Live Site
 
@@ -33,9 +33,9 @@ python -m http.server 8001
 
 ### NTT-GPU HTML documentation
 
-The **Systems from Scratch** section opens the explicit HTML entry page
-`systems/ntt-gpu/index.html`. It can also be opened directly as a local file;
-its navigation, search, and math assets are bundled alongside it.
+The **Systems from Scratch** section opens the guide at
+`systems/ntt-gpu/index.html`. The guide links to the full engineering notebook
+and daily journal in the source repository.
 
 Four beginner explorers explain butterflies, thread addresses, prime towers
 and CPU–GPU copies. Each has an optional, locally bundled Three.js view.
