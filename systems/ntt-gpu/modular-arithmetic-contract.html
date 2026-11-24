@@ -14,6 +14,8 @@
 <script defer src="math-rendering.js"></script>
 <link rel="stylesheet" href="assets/site.css">
 <link rel="stylesheet" href="assets/sunlit-paper.css">
+<link rel="stylesheet" href="assets/visual-lessons.css">
+<script type="module" src="assets/visual-lessons.mjs"></script>
 <script defer src="search-index.js"></script>
 <script defer src="assets/site.js"></script>
 </head>
@@ -35,9 +37,18 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>CUDA runtime</span><a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/docs/modular-arithmetic-contract.md">View source</a></div>
+    <div class="site-page-meta"><span>CUDA runtime</span><a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/docs/modular-arithmetic-contract.md">View source</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>Arithmetic bounds &amp; tests</h1><p class="site-summary">Learn why stored values and temporary products need different integer widths.</p><h2 id="site-overview">At a glance</h2><ul><li>Canonical residues are integers from 0 to q−1. Each butterfly reduces its results back into that range.</li><li>A 60-bit value fits in a 64-bit word, but two such values can produce a 120-bit product. Independent calculations check that the code preserves it.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Understand modular addition and the two outputs of a butterfly. Read <a href="butterfly-explained.html">NTT &amp; butterflies</a> first.</p></section><details class="site-full-notes" open><summary>Detailed guide</summary><article class="site-article"><div id="modular-arithmetic-bounds-and-exactness-gates" aria-hidden="true"></div>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Arithmetic bounds &amp; tests</h1><p class="site-summary">Learn why stored values and temporary products need different integer widths.</p><h2 id="site-overview">At a glance</h2><ul><li>Canonical residues are integers from 0 to q−1. Each butterfly reduces its results back into that range.</li><li>A 60-bit value fits in a 64-bit word, but two such values can produce a 120-bit product. Independent calculations check that the code preserves it.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Understand modular addition and the two outputs of a butterfly. Read <a href="butterfly-explained.html">NTT &amp; butterflies</a> first.</p></section><section class="site-visual site-article" id="visual-butterfly" data-visual="butterfly" aria-labelledby="visual-butterfly-title">
+<p class="visual-eyebrow">Explore the idea</p><h2 id="visual-butterfly-title">Watch a butterfly share its work</h2><p>Eight coefficients become eight evaluations, one stage at a time. N=8, q=17, ψ=3: a small exact example of the default group-twiddle schedule. The project uses N=65,536. Positions stay fixed while their values change.</p>
+<div class="visual-controls" data-visual-controls hidden><label>Stage<select data-field="step"><option value="0">Input coefficients</option><option value="1">Stage 1 · distance 4</option><option value="2">Stage 2 · distance 2</option><option value="3">Stage 3 · distance 1</option></select></label><label>Pair<select data-field="pair"><option value="0">Pair 1</option><option value="1">Pair 2</option><option value="2">Pair 3</option><option value="3">Pair 4</option></select></label><div class="visual-step-buttons"><button type="button" data-previous>Previous step</button><button type="button" data-next>Next step</button></div></div>
+<figure class="visual-figure"><div class="visual-viewport" tabindex="0" role="region" aria-label="Scrollable teaching diagram"><svg data-visual-svg viewBox="0 0 720 350" role="img" aria-label="Watch a butterfly share its work"><path d="M130 170 H590" stroke="#6b593f" stroke-width="2"/><rect x="30" y="125" width="180" height="90" rx="6" fill="#e3d4b3" stroke="#1f5d3e"/><text x="120" y="178" text-anchor="middle" fill="#2b1d10" font-size="16">8 coefficients</text><rect x="270" y="125" width="180" height="90" rx="6" fill="#e3d4b3" stroke="#1f5d3e"/><text x="360" y="178" text-anchor="middle" fill="#2b1d10" font-size="16">3 butterfly stages</text><rect x="510" y="125" width="180" height="90" rx="6" fill="#e3d4b3" stroke="#1f5d3e"/><text x="600" y="178" text-anchor="middle" fill="#2b1d10" font-size="16">8 evaluations</text></svg><div data-visual-webgl hidden></div></div><p class="visual-scroll-hint">Scroll sideways inside the frame to read the whole diagram.</p><figcaption data-visual-caption>The diagram is a teaching model. Read the exact explanation below.</figcaption></figure>
+<div class="visual-view-controls" data-visual-controls hidden><button type="button" data-3d aria-pressed="false">Open 3D view</button><label data-camera-control hidden>Rotate view<input type="range" min="-60" max="60" value="25" data-camera></label><button type="button" data-reset>Reset example</button></div>
+<p class="visual-renderer-status" data-renderer-status role="status">The diagram and explanation remain available without 3D support. Enable JavaScript to explore the steps.</p>
+<div class="visual-explanation" data-visual-explanation aria-live="polite" aria-atomic="true"><p>Start with coefficients [1, 2, 3, 4, 5, 6, 7, 8]. Each stage handles four disjoint pairs. Advance to Stage 1, then choose a pair to see its modular multiplication and two outputs.</p></div>
+<details class="visual-details"><summary>Read the values as text</summary><div data-visual-values><p>Start with coefficients [1, 2, 3, 4, 5, 6, 7, 8]. Each stage handles four disjoint pairs. Advance to Stage 1, then choose a pair to see its modular multiplication and two outputs.</p></div></details>
+<p class="visual-prompt" data-visual-prompt>Try changing one control, then explain what changed before moving on.</p>
+</section><details class="site-full-notes" open><summary>Detailed guide</summary><article class="site-article"><div id="modular-arithmetic-bounds-and-exactness-gates" aria-hidden="true"></div>
 
 <div id="keep-every-modular-operation-exact" class="site-title-anchor" aria-hidden="true"></div>
 <p>For a prime q, a <strong>canonical residue</strong> is an integer from 0 to q−1. For example,
@@ -48,8 +59,8 @@ value uses <code>uint64_t</code>, an unsigned 64-bit integer. One 60-bit value f
 but the product of two can need 120 bits. This page
 explains the temporary widths, input assumptions and independent checks.
 Read the <a href="cuda-buffer-dataflow.html">buffer map</a> for where arrays live.
-Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/include/ntt/mod_arith.hpp">mod_arith.hpp</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/include/ntt/ntt.hpp">ntt.hpp</a> and <a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/include/ntt/dev_core.hpp">dev_core.hpp</a>.</p>
+Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/include/ntt/mod_arith.hpp">mod_arith.hpp</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/include/ntt/ntt.hpp">ntt.hpp</a> and <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/include/ntt/dev_core.hpp">dev_core.hpp</a>.</p>
 <h2 id="1-what-callers-must-supply">1. What callers must supply<a class="headerlink" href="#1-what-callers-must-supply" title="Permanent link">¶</a></h2>
 <p>The notation <span class="site-math">\([0,q)\)</span> includes 0 and excludes q: it means integers
 0, 1, …, q−1. These small arithmetic functions run inside the main loops,
@@ -168,7 +179,7 @@ x^{2d}-\beta=(x^d-\alpha)(x^d+\alpha).
 <span class="site-math">\(U-\alpha V\)</span>. This is the <strong>meaning invariant</strong>: each block is still the
 original polynomial reduced modulo its current factor. At d=1, each factor
 is linear, <span class="site-math">\(x-z\)</span>, and its remainder is exactly <span class="site-math">\(a(z)\)</span>.</p>
-<p>For the default <a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/include/ntt/transform_stage.hpp">shared CPU/CUDA stage helper</a>,
+<p>For the default <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/include/ntt/transform_stage.hpp">shared CPU/CUDA stage helper</a>,
 let <span class="site-math">\(m=N/(2d)\)</span> be the number of groups, <span class="site-math">\(g\in[0,m)\)</span> the group index,
 and <span class="site-math">\(\operatorname{rev}_L\)</span> reverse L bits, where <span class="site-math">\(L=\log_2N\)</span>. Its group twiddle is</p>
 <p><span class="site-math">\[
@@ -242,7 +253,7 @@ of ψ in bit-reversed order. N=4 only makes the arithmetic visible; the project
 workload remains N=65536.</p>
 <details>
 <summary>How the CPU reference folds the same negacyclic twist into its butterflies</summary>
-<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/include/ntt/ntt.hpp">CPU reference</a> and optional legacy CUDA build use
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/include/ntt/ntt.hpp">CPU reference</a> and optional legacy CUDA build use
 a different intermediate layout. Write <span class="site-math">\(b_i=\psi^i a_i\)</span> and
 <span class="site-math">\(\omega=\psi^2\)</span>. The negacyclic evaluation sum becomes a cyclic sum:</p>
 <p><span class="site-math">\[
@@ -290,7 +301,7 @@ expression does not imply one hardware division instruction.</p>
 <h2 id="barrett-candidate-for-changing-operands">Barrett candidate for changing operands<a class="headerlink" href="#barrett-candidate-for-changing-operands" title="Permanent link">¶</a></h2>
 <p>Shoup multiplication precomputes information about one fixed multiplier.
 Pointwise products have two changing inputs. The
-<a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/include/ntt/barrett.hpp">Barrett candidate</a> instead precomputes information
+<a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/include/ntt/barrett.hpp">Barrett candidate</a> instead precomputes information
 about the modulus q. It supports canonical inputs a, b in <span class="site-math">\([0,q)\)</span>, with
 <span class="site-math">\(1&lt;q&lt;2^{63}\)</span>. Reduction also works for even or composite q; NTT parameter
 selection still requires its compatible prime and primitive root.</p>
@@ -334,11 +345,11 @@ arithmetic. Generated PTX for sm_89 and sm_120 contains four <code>mul.hi.u64</c
 instructions and no division, remainder or helper calls in its Barrett kernel.
 This establishes a compiler property, not GPU correctness or speed. The
 reference NTT and resident dispatch retain their existing arithmetic.</p>
-<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/tests/oracle/test_arithmetic.py">bigint oracle</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/tests/support/barrett_transform.hpp">independent transform fixture</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/tests/openfhe_compat_tests.cpp">OpenFHE comparison</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/tests/basis_cuda.cu">CUDA probe</a>, and
-<a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/tests/tooling/check_barrett_ptx.py">PTX check</a>. Native execution and all
+<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/tests/oracle/test_arithmetic.py">bigint oracle</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/tests/support/barrett_transform.hpp">independent transform fixture</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/tests/openfhe_compat_tests.cpp">OpenFHE comparison</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/tests/basis_cuda.cu">CUDA probe</a>, and
+<a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/tests/tooling/check_barrett_ptx.py">PTX check</a>. Native execution and all
 four sanitizer tools are queued in the <a href="next-gpu-rental.html">later GPU batch</a>.</p>
 <h2 id="4-executable-adversarial-coverage">4. Executable adversarial coverage<a class="headerlink" href="#4-executable-adversarial-coverage" title="Permanent link">¶</a></h2>
 <p>Two required checks, called gates, run in the ordinary CPU CTest suite.
@@ -388,8 +399,8 @@ cmake --build build -j 8
 ctest --test-dir build --output-on-failure
 ctest --test-dir build -R 'arithmetic_' -V
 </code></pre>
-<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/tests/arithmetic_contract_tests.cpp">C++ probe and full-size tests</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/tests/oracle/test_arithmetic.py">independent primitive oracle</a>.</p>
+<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/tests/arithmetic_contract_tests.cpp">C++ probe and full-size tests</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/tests/oracle/test_arithmetic.py">independent primitive oracle</a>.</p>
 <h2 id="5-exactness-ladder-do-not-substitute-one-gate-for-another">5. Exactness ladder: do not substitute one gate for another<a class="headerlink" href="#5-exactness-ladder-do-not-substitute-one-gate-for-another" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -468,11 +479,11 @@ of a hardened production API or GPU/OpenFHE integration. The
 <a href="openfhe-hybrid-operation-graph.html">D8 Hybrid graph</a> and
 <a href="device-backend-contract.html">D9 buffer/stream/cache contract</a> are complete.
 <a href="architecture-decision.html">D10's ADR</a> closes P1's design gate; native hardening
-and implementation are tracked in the <a href="implementation-backlog.html">backlog</a>.</p></article></details><nav class="site-article site-read-next" aria-label="Continue reading"><h2 id="site-continue">Continue reading</h2><a href="openfhe-representation-contract.html">Next: OpenFHE representation</a></nav></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#site-overview">At a glance</a></li><li><a href="#1-what-callers-must-supply">1. What callers must supply</a></li><li><a href="#2-why-intermediates-fit">2. Why intermediates fit</a></li><li><a href="#3-the-invariant-through-every-butterfly">3. The invariant through every butterfly</a></li><li><a href="#barrett-candidate-for-changing-operands">Barrett candidate for changing operands</a></li><li><a href="#4-executable-adversarial-coverage">4. Executable adversarial coverage</a></li><li><a href="#5-exactness-ladder-do-not-substitute-one-gate-for-another">5. Exactness ladder: do not substitute one gate for another</a></li><li><a href="#6-deferred-adversarial-checks-and-unsafe-inputs">6. Deferred adversarial checks and unsafe inputs</a></li><li><a href="#site-continue">Continue reading</a></li></ol></nav></aside>
+and implementation are tracked in the <a href="implementation-backlog.html">backlog</a>.</p></article></details><nav class="site-article site-read-next" aria-label="Continue reading"><h2 id="site-continue">Continue reading</h2><a href="openfhe-representation-contract.html">Next: OpenFHE representation</a></nav></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#site-overview">At a glance</a></li><li><a href="#visual-butterfly-title">Watch a butterfly share its work</a></li><li><a href="#1-what-callers-must-supply">1. What callers must supply</a></li><li><a href="#2-why-intermediates-fit">2. Why intermediates fit</a></li><li><a href="#3-the-invariant-through-every-butterfly">3. The invariant through every butterfly</a></li><li><a href="#barrett-candidate-for-changing-operands">Barrett candidate for changing operands</a></li><li><a href="#4-executable-adversarial-coverage">4. Executable adversarial coverage</a></li><li><a href="#5-exactness-ladder-do-not-substitute-one-gate-for-another">5. Exactness ladder: do not substitute one gate for another</a></li><li><a href="#6-deferred-adversarial-checks-and-unsafe-inputs">6. Deferred adversarial checks and unsafe inputs</a></li><li><a href="#site-continue">Continue reading</a></li></ol></nav></aside>
     </div>
   </main>
-  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/3cee862d6b6ea46212acd95d55e3d48b3314462d">3cee862</a> · See journal for changes in this build</span></footer>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE · <a href="index.html#visual-guides">Beginner visual guides</a></span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef">12851dc</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

@@ -14,6 +14,8 @@
 <script defer src="math-rendering.js"></script>
 <link rel="stylesheet" href="assets/site.css">
 <link rel="stylesheet" href="assets/sunlit-paper.css">
+<link rel="stylesheet" href="assets/visual-lessons.css">
+
 <script defer src="search-index.js"></script>
 <script defer src="assets/site.js"></script>
 </head>
@@ -35,9 +37,9 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>OpenFHE</span><a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/docs/basis-conversion-preparation.md">View source</a></div>
+    <div class="site-page-meta"><span>OpenFHE</span><a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/docs/basis-conversion-preparation.md">View source</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>Prepare basis conversion</h1><p class="site-summary">Understand approximate CRT and compose basis conversion with resident NTT operations.</p><h2 id="site-overview">At a glance</h2><ul><li>Preserve OpenFHE&#x27;s unreduced CRT sum and source-tower order when constructing conversion plans.</li><li>Standalone probes passed the November 19 Ada run. The newer resident ModUp/ModDown chain passes CPU tests and CUDA compilation; its GPU run is pending.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Understand a prime tower and the difference between coefficients and evaluations. Read <a href="openfhe-representation-contract.html">OpenFHE representation</a> first.</p></section><details class="site-full-notes" open><summary>Detailed guide</summary><article class="site-article"><div id="prepare-basis-conversion-before-the-next-gpu-rental" class="site-title-anchor" aria-hidden="true"></div>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Prepare basis conversion</h1><p class="site-summary">Understand approximate CRT and compose basis conversion with resident NTT operations.</p><h2 id="site-overview">At a glance</h2><ul><li>Preserve OpenFHE&#x27;s unreduced CRT sum and source-tower order when constructing conversion plans.</li><li>Standalone probes passed the November 19 Ada run. The newer resident ModUp/ModDown chain passes CPU tests and CUDA compilation; its GPU run is pending.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Understand a prime tower and the difference between coefficients and evaluations. Read <a href="openfhe-representation-contract.html">OpenFHE representation</a> first.</p><p class="site-visual-related">Need a picture first? <a href="cuda-buffer-dataflow.html#visual-towers">See what a prime tower contains</a>.</p></section><details class="site-full-notes" open><summary>Detailed guide</summary><article class="site-article"><div id="prepare-basis-conversion-before-the-next-gpu-rental" class="site-title-anchor" aria-hidden="true"></div>
 <p>We can prepare conversion arithmetic and reference answers on the M1 Pro.
 The November 19 run checked the CUDA implementation on compute 8.9.
 The RTX 5090 hardware check remains in the next combined session.</p>
@@ -130,9 +132,9 @@ session when that active prefix changes.</p>
   subtracts it from the original Q evaluations, and multiplies by P-inverse.
   The output contains Q evaluations.</li>
 </ul>
-<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/include/ntt/resident.hpp">public API</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/src/resident.cpp">queue implementation</a>, and
-<a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/include/ntt/resident_conversion.hpp">shared arithmetic helpers</a> show the
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/include/ntt/resident.hpp">public API</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/src/resident.cpp">queue implementation</a>, and
+<a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/include/ntt/resident_conversion.hpp">shared arithmetic helpers</a> show the
 actual implementation. Compare OpenFHE's pinned
 <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/dcrtpoly-impl.h#L987-L1017"><code>ApproxModUp</code></a>
 and <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/dcrtpoly-impl.h#L1020-L1055"><code>ApproxModDown</code></a>.
@@ -189,8 +191,8 @@ is claimed here. The next native <code>resident_cuda_exact</code> run and its sa
 smoke will execute those prepared cases on the selected GPU.</p></article></details><nav class="site-article site-read-next" aria-label="Continue reading"><h2 id="site-continue">Continue reading</h2><a href="next-gpu-rental.html">Next: Next GPU rental queue</a></nav></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#site-overview">At a glance</a></li><li><a href="#what-the-converter-computes">What the converter computes</a></li><li><a href="#shoup-multiplication">Shoup multiplication</a></li><li><a href="#local-checks-and-the-rental-batch">Local checks and the rental batch</a></li><li><a href="#keep-modup-and-moddown-in-the-resident-chain">Keep ModUp and ModDown in the resident chain</a></li><li><a href="#site-continue">Continue reading</a></li></ol></nav></aside>
     </div>
   </main>
-  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/3cee862d6b6ea46212acd95d55e3d48b3314462d">3cee862</a> · See journal for changes in this build</span></footer>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE · <a href="index.html#visual-guides">Beginner visual guides</a></span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef">12851dc</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

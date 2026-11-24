@@ -14,6 +14,8 @@
 <script defer src="math-rendering.js"></script>
 <link rel="stylesheet" href="assets/site.css">
 <link rel="stylesheet" href="assets/sunlit-paper.css">
+<link rel="stylesheet" href="assets/visual-lessons.css">
+
 <script defer src="search-index.js"></script>
 <script defer src="assets/site.js"></script>
 </head>
@@ -35,9 +37,9 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/docs/cuda-kernel-optimization-survey.md">View source</a></div>
+    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/docs/cuda-kernel-optimization-survey.md">View source</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>CUDA kernel optimization</h1><p class="site-summary">Profile CUDA kernel bottlenecks and prioritize experiments for the RTX 5090 NTT.</p><h2 id="site-overview">At a glance</h2><ul><li>Separate individual kernel timings, GPU operation timings and host-visible latency.</li><li>Use the baseline profile to order tests of fixed-twiddle reduction, coalesced loading and inverse normalization fusion.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Read the measured baseline before choosing an optimization hypothesis. Read <a href="paired-ntt-native-analysis.html">Paired Ada NTT results</a> first.</p></section><details class="site-full-notes" open><summary>Detailed guide</summary><article class="site-article"><div id="cuda-kernel-performance-optimization" class="site-title-anchor" aria-hidden="true"></div>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>CUDA kernel optimization</h1><p class="site-summary">Profile CUDA kernel bottlenecks and prioritize experiments for the RTX 5090 NTT.</p><h2 id="site-overview">At a glance</h2><ul><li>Separate individual kernel timings, GPU operation timings and host-visible latency.</li><li>Use the baseline profile to order tests of fixed-twiddle reduction, coalesced loading and inverse normalization fusion.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Read the measured baseline before choosing an optimization hypothesis. Read <a href="paired-ntt-native-analysis.html">Paired Ada NTT results</a> first.</p><p class="site-visual-related">Need a picture first? <a href="ntt-65536-work-distribution.html#visual-memory">Find a thread's two values</a>.</p></section><details class="site-full-notes" open><summary>Detailed guide</summary><article class="site-article"><div id="cuda-kernel-performance-optimization" class="site-title-anchor" aria-hidden="true"></div>
 <p>Start with a timeline to find where the application spends time, then profile the
 kernel that dominates that workload. For this project's CUDA number-theoretic
 transform (NTT), the first two kernel experiments are <strong>fixed-twiddle modular
@@ -148,7 +150,7 @@ the instruction savings. A full 64-bit quotient alongside every twiddle
 would roughly double table storage and add about 20 MiB <strong>per direction</strong>
 at N=65,536 with 40 prime towers. Benchmark Barrett reduction separately for
 pointwise products, where both operands vary. Keep the first A/B comparison
-on canonical residues before testing lazy reduction between stages. <a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/include/ntt/transform_stage.hpp">Butterfly code</a> · <a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/include/ntt/shoup.hpp">Shoup helper</a> · <a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/include/ntt/mod_arith.hpp">Reference arithmetic</a></p>
+on canonical residues before testing lazy reduction between stages. <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/include/ntt/transform_stage.hpp">Butterfly code</a> · <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/include/ntt/shoup.hpp">Shoup helper</a> · <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/include/ntt/mod_arith.hpp">Reference arithmetic</a></p>
 <h3 id="coalesce-the-strided-pass">Coalesce the strided pass<a class="headerlink" href="#coalesce-the-strided-pass" title="Permanent link">¶</a></h3>
 <p>The two-pass schedule groups nearby butterflies in shared memory. In the
 strided pass, adjacent lanes load coefficients <strong>2,048 bytes apart</strong> because
@@ -159,7 +161,7 @@ This is an address calculation. Cache reuse between blocks and write behavior
 determine how much traffic reaches DRAM. A block that loads several adjacent
 columns cooperatively can improve global access, but the shared-memory layout
 also needs to serve the butterfly accesses. Record sector counts and conflict
-metrics for loads and stores, then time the complete transform. <a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/src/cuda/ntt_kernels.cu">CUDA kernels</a> · <a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html">CUDA Best Practices Guide</a></p>
+metrics for loads and stores, then time the complete transform. <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/src/cuda/ntt_kernels.cu">CUDA kernels</a> · <a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html">CUDA Best Practices Guide</a></p>
 <h3 id="match-the-launch-shape-to-the-amount-of-work">Match the launch shape to the amount of work<a class="headerlink" href="#match-the-launch-shape-to-the-amount-of-work" title="Permanent link">¶</a></h3>
 <p>The current launch uses 256 threads per block. At N=4,096 the far group has
 16 coefficients and eight butterflies per stage. In the contiguous pass
@@ -185,7 +187,7 @@ cache effects. The scale arithmetic remains, so measure register use and
 inverse time in both versions. Try asynchronous global-to-shared copies once
 there is a coalesced access pattern and useful independent work to overlap.
 Double buffering raises shared-memory usage and can reduce residency.
-<a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/src/cuda/ntt_kernels.cu">CUDA kernels</a> · <a href="https://docs.nvidia.com/cuda/cuda-programming-guide/03-advanced/advanced-kernel-programming.html">CUDA asynchronous copies</a></p>
+<a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/src/cuda/ntt_kernels.cu">CUDA kernels</a> · <a href="https://docs.nvidia.com/cuda/cuda-programming-guide/03-advanced/advanced-kernel-programming.html">CUDA asynchronous copies</a></p>
 <h2 id="what-published-results-establish">What published results establish<a class="headerlink" href="#what-published-results-establish" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>Kim et al.</strong> identified a main-memory bandwidth problem at large
@@ -225,8 +227,8 @@ Double buffering raises shared-memory usage and can reduce residency.
 </ol></article></details><nav class="site-article site-read-next" aria-label="Continue reading"><h2 id="site-continue">Continue reading</h2><a href="benchmark-tuning-plan.html">Next: Benchmarks &amp; tuning</a></nav></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#site-overview">At a glance</a></li><li><a href="#start-with-the-right-timing">Start with the right timing</a></li><li><a href="#diagnose-the-limit-before-tuning">Diagnose the limit before tuning</a></li><li><a href="#what-the-current-ntt-gives-us-to-test">What the current NTT gives us to test</a></li><li><a href="#what-published-results-establish">What published results establish</a></li><li><a href="#first-rtx-5090-session">First RTX 5090 session</a></li><li><a href="#site-continue">Continue reading</a></li></ol></nav></aside>
     </div>
   </main>
-  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/3cee862d6b6ea46212acd95d55e3d48b3314462d">3cee862</a> · See journal for changes in this build</span></footer>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE · <a href="index.html#visual-guides">Beginner visual guides</a></span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef">12851dc</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

@@ -37,6 +37,11 @@ The **Systems from Scratch** section opens the explicit HTML entry page
 `systems/ntt-gpu/index.html`. It can also be opened directly as a local file;
 its navigation, search, and math assets are bundled alongside it.
 
+Four beginner explorers explain butterflies, thread addresses, prime towers
+and CPU–GPU copies. Each has an optional, locally bundled Three.js view.
+Serve the website over HTTP to enable their module-based controls; initial
+diagrams and explanations remain available without JavaScript or WebGL.
+
 The pages are generated from the separate NTT-GPU repository. To refresh them,
 run from that repository:
 

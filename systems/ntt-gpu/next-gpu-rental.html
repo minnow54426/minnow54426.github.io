@@ -14,6 +14,8 @@
 <script defer src="math-rendering.js"></script>
 <link rel="stylesheet" href="assets/site.css">
 <link rel="stylesheet" href="assets/sunlit-paper.css">
+<link rel="stylesheet" href="assets/visual-lessons.css">
+
 <script defer src="search-index.js"></script>
 <script defer src="assets/site.js"></script>
 </head>
@@ -35,9 +37,9 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/docs/next-gpu-rental.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/docs/next-gpu-rental.md">View source</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>Next GPU rental queue</h1><p class="site-summary">Run the prepared RTX 5090 checks, measurements and evidence export as one bounded batch.</p><h2 id="site-overview">At a glance</h2><ul><li>Both NTT versions passed the November 19 native Ada checks and compiled for sm_120.</li><li>The new batch prepares 64 measurement jobs and 56 sanitizer commands, followed by ordered repeats, profiles and a verified archive. RTX 5090 acceptance remains open.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Finish offline preparation and use fresh directories for the next hardware run. Read <a href="offline-gpu-preparation.html">Before renting a GPU</a> first.</p></section><details class="site-full-notes" open><summary>Detailed guide</summary><article class="site-article"><div id="bundle-the-next-rtx-5090-session" class="site-title-anchor" aria-hidden="true"></div>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Next GPU rental queue</h1><p class="site-summary">Run the prepared RTX 5090 checks, measurements and evidence export as one bounded batch.</p><h2 id="site-overview">At a glance</h2><ul><li>Both NTT versions passed the November 19 native Ada checks and compiled for sm_120.</li><li>The new batch prepares 64 measurement jobs and 56 sanitizer commands, followed by ordered repeats, profiles and a verified archive. RTX 5090 acceptance remains open.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Finish offline preparation and use fresh directories for the next hardware run. Read <a href="offline-gpu-preparation.html">Before renting a GPU</a> first.</p><p class="site-visual-related">Need a picture first? <a href="resident-operation-chain.html#visual-transfers">Follow the CPU–GPU copies</a>.</p></section><details class="site-full-notes" open><summary>Detailed guide</summary><article class="site-article"><div id="bundle-the-next-rtx-5090-session" class="site-title-anchor" aria-hidden="true"></div>
 <p><strong>Status: the expanded batch passed on November 19 on a server reporting
 RTX 4080 SUPER / compute 8.9.</strong> Both schedules also compiled for sm_120.
 The results and CUDA timeline were copied to the M1 Pro and verified.
@@ -137,7 +139,7 @@ this early access check. No new rental or GPU test is requested now.</p>
 </tbody>
 </table>
 <h2 id="run-the-queue-as-one-batch">Run the queue as one batch<a class="headerlink" href="#run-the-queue-as-one-batch" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/scripts/gpu_rental_batch.py"><code>gpu_rental_batch.py</code></a> combines the queue
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/scripts/gpu_rental_batch.py"><code>gpu_rental_batch.py</code></a> combines the queue
 into one command. Preview its plan on any CPU machine; this prints JSON and
 does not build, contact a provider or run GPU work:</p>
 <pre><code class="language-sh">python3 scripts/gpu_rental_batch.py --mode plan
@@ -332,8 +334,8 @@ conversion. See <a href="offline-test-tooling.html">collector details</a> and th
 <a href="openfhe-integration-plan.html">integration roadmap</a>.</p></article></details><nav class="site-article site-read-next" aria-label="Continue reading"><h2 id="site-continue">Continue reading</h2><a href="offline-test-tooling.html">Next: Offline test tooling</a></nav></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#site-overview">At a glance</a></li><li><a href="#todo-verify-autodl-profiling-access-at-the-next-rental">TODO: verify AutoDL profiling access at the next rental</a></li><li><a href="#one-rental-ordered-gpu-work">One rental, ordered GPU work</a></li><li><a href="#run-the-queue-as-one-batch">Run the queue as one batch</a></li><li><a href="#when-to-rent-and-when-to-stop">When to rent, and when to stop</a></li><li><a href="#site-continue">Continue reading</a></li></ol></nav></aside>
     </div>
   </main>
-  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/3cee862d6b6ea46212acd95d55e3d48b3314462d">3cee862</a> · See journal for changes in this build</span></footer>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE · <a href="index.html#visual-guides">Beginner visual guides</a></span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef">12851dc</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

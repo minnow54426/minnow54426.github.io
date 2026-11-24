@@ -14,6 +14,8 @@
 <script defer src="math-rendering.js"></script>
 <link rel="stylesheet" href="assets/site.css">
 <link rel="stylesheet" href="assets/sunlit-paper.css">
+<link rel="stylesheet" href="assets/visual-lessons.css">
+
 <script defer src="search-index.js"></script>
 <script defer src="assets/site.js"></script>
 </head>
@@ -35,9 +37,9 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/docs/offline-gpu-preparation.md">View source</a></div>
+    <div class="site-page-meta"><span>Plans</span><a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/docs/offline-gpu-preparation.md">View source</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>Before renting a GPU</h1><p class="site-summary">Finish builds and CPU checks before paying for GPU time.</p><h2 id="site-overview">At a glance</h2><ul><li>Use a CPU machine to install dependencies, compile code and prepare tests. Rent a GPU to run device checks and collect measurements.</li><li>Earlier Ada results apply to their recorded revision. The later resident ModUp/ModDown composition still needs its own native GPU checks.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Have a working CPU build. Hardware is only needed for the native checks. Read <a href="project.html">Project &amp; setup</a> first.</p></section><details class="site-full-notes" open><summary>Detailed guide</summary><article class="site-article"><div id="before-renting-a-gpu" class="site-title-anchor" aria-hidden="true"></div>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Before renting a GPU</h1><p class="site-summary">Finish builds and CPU checks before paying for GPU time.</p><h2 id="site-overview">At a glance</h2><ul><li>Use a CPU machine to install dependencies, compile code and prepare tests. Rent a GPU to run device checks and collect measurements.</li><li>Earlier Ada results apply to their recorded revision. The later resident ModUp/ModDown composition still needs its own native GPU checks.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Have a working CPU build. Hardware is only needed for the native checks. Read <a href="project.html">Project &amp; setup</a> first.</p><p class="site-visual-related">Need a picture first? <a href="resident-operation-chain.html#visual-transfers">Follow the CPU–GPU copies</a>.</p></section><details class="site-full-notes" open><summary>Detailed guide</summary><article class="site-article"><div id="before-renting-a-gpu" class="site-title-anchor" aria-hidden="true"></div>
 <h2 id="prepare-profiles-without-renting">Prepare profiles without renting<a class="headerlink" href="#prepare-profiles-without-renting" title="Permanent link">¶</a></h2>
 <p>The resident NTT and ModUp/ModDown experiments have separate profiling
 executables. NVTX is NVIDIA's timeline-labeling interface. These executables
@@ -91,10 +93,10 @@ The batch selects the profiling binaries for Nsight, fingerprints them
 separately, and filters counters to the <code>ntt.sample</code> range. A whole-process
 timeline still includes setup and verification: inspect the labeled sample
 and operation before attributing costs.</p>
-<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/include/ntt/benchmark_profile.hpp">range helper</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/src/resident_benchmark_common.hpp">measurement boundary</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/tests/benchmark_profile_tests.cpp">range test</a>,
-<a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/third_party/nvtx/README.md">NVTX provenance and license</a>, and
+<p>Sources: <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/include/ntt/benchmark_profile.hpp">range helper</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/src/resident_benchmark_common.hpp">measurement boundary</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/tests/benchmark_profile_tests.cpp">range test</a>,
+<a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/third_party/nvtx/README.md">NVTX provenance and license</a>, and
 <a href="https://docs.nvidia.com/nsight-compute/NsightComputeCli/index.html#nvtx-filtering">Nsight Compute NVTX filtering</a>.</p>
 <p>Do the builds, host tests and documentation on a CPU machine. Rent a GPU when
 ready to run native CUDA checks and collect measurements. The main target is
@@ -161,7 +163,7 @@ python3 scripts/gpu_session.py --mode offline \
 and deliberately builds CPU reference tests with CUDA disabled. Its parallelism
 defaults to two jobs; set <code>NTT_BUILD_JOBS</code> if the machine supports more.
 The session runner selects project-local CMake/CTest from <code>.venv/bin</code> when present.</p>
-<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/scripts/cuda-toolkit-lock.json">toolkit lock</a> pins NVIDIA components
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/scripts/cuda-toolkit-lock.json">toolkit lock</a> pins NVIDIA components
 and SHA-256 values. CUDA 13.0.2 contains compiler version 13.0.88. Matching
 installs are reused; incomplete installs or checksum mismatches fail.</p>
 <details>
@@ -193,7 +195,7 @@ destructor cannot report cleanup errors to its caller.</p>
 cache or transactional OpenFHE adapter. The separate
 <a href="resident-operation-chain.html">resident prototype</a> has its own scope and limits.</p>
 <h2 id="4-prepared-native-exactness-matrix">4. Prepared native exactness matrix<a class="headerlink" href="#4-prepared-native-exactness-matrix" title="Permanent link">¶</a></h2>
-<p><a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/tests/cuda_openfhe_tests.cpp">The CUDA/OpenFHE test source</a> is registered as
+<p><a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/tests/cuda_openfhe_tests.cpp">The CUDA/OpenFHE test source</a> is registered as
 <code>cuda_openfhe_exact</code>. It compares the CUDA wrapper with the independent CPU reference
 and actual OpenFHE <a href="https://github.com/openfheorg/openfhe-development/blob/b59e1f291965f14fbee5172cd83a20f5b856204f/src/core/include/lattice/hal/default/poly-impl.h#L454-L474"><code>NativePoly transforms</code></a>/products at N=65536. Its prepared cases
 include:</p>
@@ -286,8 +288,8 @@ D11, B02, B03, D14 or P2. The <a href="implementation-backlog.html">backlog</a> 
 acceptance criteria.</p></article></details><nav class="site-article site-read-next" aria-label="Continue reading"><h2 id="site-continue">Continue reading</h2><a href="offline-test-tooling.html">Next: Offline test tooling</a></nav></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#site-overview">At a glance</a></li><li><a href="#prepare-profiles-without-renting">Prepare profiles without renting</a></li><li><a href="#1-what-is-ready">1. What is ready</a></li><li><a href="#2-reproduce-the-offline-preparation">2. Reproduce the offline preparation</a></li><li><a href="#3-fixes-made-before-rental">3. Fixes made before rental</a></li><li><a href="#4-prepared-native-exactness-matrix">4. Prepared native exactness matrix</a></li><li><a href="#5-first-session-on-real-hardware">5. First session on real hardware</a></li><li><a href="#6-when-to-stop-the-rental">6. When to stop the rental</a></li><li><a href="#site-continue">Continue reading</a></li></ol></nav></aside>
     </div>
   </main>
-  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/3cee862d6b6ea46212acd95d55e3d48b3314462d">3cee862</a> · See journal for changes in this build</span></footer>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE · <a href="index.html#visual-guides">Beginner visual guides</a></span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef">12851dc</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>

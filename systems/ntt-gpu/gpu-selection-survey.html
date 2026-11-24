@@ -14,6 +14,8 @@
 <script defer src="math-rendering.js"></script>
 <link rel="stylesheet" href="assets/site.css">
 <link rel="stylesheet" href="assets/sunlit-paper.css">
+<link rel="stylesheet" href="assets/visual-lessons.css">
+
 <script defer src="search-index.js"></script>
 <script defer src="assets/site.js"></script>
 </head>
@@ -35,9 +37,9 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/3cee862d6b6ea46212acd95d55e3d48b3314462d/docs/gpu-selection-survey.md">View source</a></div>
+    <div class="site-page-meta"><span>Research</span><a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/docs/gpu-selection-survey.md">View source</a></div>
     <div class="site-reading-layout">
-      <div class="site-page-content"><section class="site-article site-brief"><h1>Choosing the GPU</h1><p class="site-summary">Choose a GPU by measuring this integer workload and its memory needs.</p><h2 id="site-overview">At a glance</h2><ul><li>RTX 5090 is the development target; RTX 4090 is the planned comparison device. Consider larger cards when measured memory use or speed justifies them.</li><li>Published bandwidth and Tensor Core scores do not predict exact modular arithmetic speed. Compare complete operations with matching inputs.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Understand the integer workload and how its memory sizes are calculated. Read <a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a> first.</p></section><details class="site-full-notes" open><summary>Detailed guide</summary><article class="site-article"><div id="choosing-a-gpu-for-ckks" class="site-title-anchor" aria-hidden="true"></div>
+      <div class="site-page-content"><section class="site-article site-brief"><h1>Choosing the GPU</h1><p class="site-summary">Choose a GPU by measuring this integer workload and its memory needs.</p><h2 id="site-overview">At a glance</h2><ul><li>RTX 5090 is the development target; RTX 4090 is the planned comparison device. Consider larger cards when measured memory use or speed justifies them.</li><li>Published bandwidth and Tensor Core scores do not predict exact modular arithmetic speed. Compare complete operations with matching inputs.</li></ul><p class="site-prerequisite"><strong>Before you start:</strong> Understand the integer workload and how its memory sizes are calculated. Read <a href="cuda-buffer-dataflow.html">CUDA buffers &amp; dataflow</a> first.</p><p class="site-visual-related">Need a picture first? <a href="ntt-65536-work-distribution.html#visual-memory">Find a thread's two values</a>.</p></section><details class="site-full-notes" open><summary>Detailed guide</summary><article class="site-article"><div id="choosing-a-gpu-for-ckks" class="site-title-anchor" aria-hidden="true"></div>
 <p>This hardware assessment was recorded on November 6, 2026. RTX 5090 is the
 development choice; choosing production hardware still requires the tests
 below. The working set is all the arrays, keys and temporary buffers that
@@ -309,8 +311,8 @@ measuring the complete workload, memory footprint and cost. Tensor throughput
 alone cannot rank exact modular arithmetic.</p></article></details><nav class="site-article site-read-next" aria-label="Continue reading"><h2 id="site-continue">Continue reading</h2><a href="gpu-rental-market-survey.html">Next: GPU rental market</a></nav></div><aside class="site-on-this-page" id="site-section-nav" aria-label="On this page"><div class="site-contents-heading"><p>On this page</p><button type="button" class="site-contents-close" aria-label="Close sections">×</button></div><nav class="site-section-links" aria-label="Page sections"><ol><li><a href="#site-overview">At a glance</a></li><li><a href="#decision">Decision</a></li><li><a href="#measure-integer-arithmetic-and-memory">Measure integer arithmetic and memory</a></li><li><a href="#official-specification-comparison">Official specification comparison</a></li><li><a href="#cost-and-availability-snapshot">Cost and availability snapshot</a></li><li><a href="#interpretation-for-this-project">Interpretation for this project</a></li><li><a href="#recommended-acquisition-strategy">Recommended acquisition strategy</a></li><li><a href="#mandatory-cross-gpu-benchmark-gate">Mandatory cross-GPU benchmark gate</a></li><li><a href="#decision-to-revisit">Decision to revisit</a></li><li><a href="#site-continue">Continue reading</a></li></ol></nav></aside>
     </div>
   </main>
-  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE</span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/3cee862d6b6ea46212acd95d55e3d48b3314462d">3cee862</a> · See journal for changes in this build</span></footer>
+  <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE · <a href="index.html#visual-guides">Beginner visual guides</a></span>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef">12851dc</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
