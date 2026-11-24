@@ -37,7 +37,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/docs/journal/2026-11-24.md">View source</a></div>
+    <div class="site-page-meta"><span>Daily journal</span><a href="https://github.com/minnow54426/ntt-gpu/blob/35e4c436c0c5bb766da0f916d3b737ac57ffcba8/docs/journal/2026-11-24.md">View source</a></div>
     <div class="site-reading-layout">
       <div class="site-page-content"><div class="site-journal-banner"><time datetime="2026-11-24">2026-11-24</time><span>Rental preparation / P2 D11</span><a href="../journal.html">← All entries</a></div><section class="site-article site-brief"><h1>AutoDL rental checklist and beginner visual guides</h1><p class="site-summary">Recorded the next-rental Nsight access check, reviewed all 52 notebook pages, and added exact beginner explorers with optional Three.js views.</p><h2 id="site-overview">At a glance</h2><p>Recorded the next-rental Nsight access check, reviewed all 52 notebook pages, and added exact beginner explorers with optional Three.js views.</p><p>This is a dated record of work on its calendar date. Its test counts, design and next steps describe that time; use the current roadmap for today’s status.</p><p class="site-prerequisite"><strong>Before you start:</strong> No earlier journal entry is required. For current priorities, read the roadmap linked below.</p></section><details class="site-full-notes"><summary>Dated work record</summary><article class="site-article"><div id="check-autodl-profiling-access-at-the-next-rental" class="site-title-anchor" aria-hidden="true"></div>
 <h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">¶</a></h2>
@@ -65,13 +65,13 @@ CUDA/NVTX trace, an actual SM/L2/DRAM counter capture, and retained commands,
 logs and reports. The rental procedure links to that TODO, and AGENTS.md
 requires future rental work to follow it. The batch's later operation
 profiles remain separate from this early manual access check.</p>
-<p>The new <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/docs/site-assets/visual-models.mjs">teaching models</a> cover an eight-value
+<p>The new <a href="https://github.com/minnow54426/ntt-gpu/blob/35e4c436c0c5bb766da0f916d3b737ac57ffcba8/docs/site-assets/visual-models.mjs">teaching models</a> cover an eight-value
 group-twiddle negacyclic NTT, all sixteen forward stages of the 65,536-position
 thread layout, a four-value RNS polynomial and full-size byte accounting, and
 resident versus separate-call transfers. Small examples are explicitly
 distinguished from full-size arrays. The models do not implement Hybrid key
 switching, approximate basis conversion or native CUDA execution.</p>
-<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/docs/site-assets/visual-lessons.mjs">presentation module</a> starts with an
+<p>The <a href="https://github.com/minnow54426/ntt-gpu/blob/35e4c436c0c5bb766da0f916d3b737ac57ffcba8/docs/site-assets/visual-lessons.mjs">presentation module</a> starts with an
 interactive SVG diagram and exact text values. A reader can request a local
 Three.js 0.160.1 view and rotate it using a labelled keyboard-accessible slider.
 There is no animation loop or runtime CDN request. Controls remain usable
@@ -79,10 +79,16 @@ without WebGL; context loss returns to the diagram. Without JavaScript, the
 initial static diagram and explanation remain. Wide diagrams scroll inside
 their frames so phone labels retain a readable size.</p>
 <p>Kept Three.js's MIT license and download provenance beside the pinned library.
-The <a href="https://github.com/minnow54426/ntt-gpu/blob/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef/docs/reviews/2026-11-24-beginner-visual-review.json">page-by-page review</a>
+The <a href="https://github.com/minnow54426/ntt-gpu/blob/35e4c436c0c5bb766da0f916d3b737ac57ffcba8/docs/reviews/2026-11-24-beginner-visual-review.json">page-by-page review</a>
 records why each page gets an explorer, a prerequisite link, or shared visual
 navigation. Existing proofs, OpenFHE citations, lesson controls and historical
 records remain available.</p>
+<p>During publication, Pages again reported no <code>github-pages</code> artifact immediately
+after a successful upload, while the run's artifact was visible through the
+GitHub API afterward. This repeats the earlier same-day deployment failure.
+Split the website workflow into an upload job and a dependent deploy job so
+deployment starts after upload-job completion. The observed failure is an
+artifact-visibility issue; the exact GitHub service timing remains unverified.</p>
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
 <p>Checked the checklist against the existing rental procedure and batch order.
 All 30 documentation tests passed. The builder validated 52 notebook pages
@@ -123,7 +129,7 @@ then inspect <a href="../ntt-65536-work-distribution.html#visual-memory">thread 
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE · <a href="../index.html#visual-guides">Beginner visual guides</a></span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/12851dc2c9ed5fd0a8b9cbf422113a788943b1ef">12851dc</a> · See journal for changes in this build</span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/35e4c436c0c5bb766da0f916d3b737ac57ffcba8">35e4c43</a> · See journal for changes in this build</span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
