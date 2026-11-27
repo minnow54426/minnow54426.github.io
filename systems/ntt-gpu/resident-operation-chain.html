@@ -33,7 +33,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Start here</span><a href="https://github.com/minnow54426/ntt-gpu/blob/43946e8ac9880ed863ee8fe4fc54638a0d13cd3b/docs/resident-operation-chain.md">Detailed notes</a></div>
+    <div class="site-page-meta"><span>Start here</span><a href="https://github.com/minnow54426/ntt-gpu/blob/6c9cc848eebb1e8c11bb58de9d244feb0789549a/docs/resident-operation-chain.md">Detailed notes</a></div>
     <div class="site-reading-layout site-wide">
       <div class="site-page-content"><article class="site-article"><h1>4. Keep intermediate values on the GPU</h1><p>The <strong>host</strong> is the CPU and its memory. The <strong>device</strong> is the GPU and its memory. A resident operation keeps its working arrays on the device. For polynomial multiplication, the GPU can run both forward transforms, the pointwise product and the inverse transform after a single upload of each input. Only the final result needs to come back.</p>
 <p>Step through the same multiplication with both patterns below. Count how many full polynomials cross the boundary. Moving fewer bytes can help latency, which the benchmark measures separately.</p></article><section class="site-visual site-article" id="visual-transfers" data-visual="transfers" aria-labelledby="visual-transfers-title">
@@ -49,7 +49,7 @@
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE · <a href="index.html#visual-guides">Beginner visual guides</a></span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/43946e8ac9880ed863ee8fe4fc54638a0d13cd3b">43946e8</a></span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/6c9cc848eebb1e8c11bb58de9d244feb0789549a">6c9cc84</a></span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
