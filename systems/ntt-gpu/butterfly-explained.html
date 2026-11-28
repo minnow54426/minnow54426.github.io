@@ -33,7 +33,7 @@
     <button class="site-search-button" type="button" aria-haspopup="dialog"><span>⌕</span> Search documentation <kbd>⌘ K</kbd></button>
   </header>
   <main id="site-main" class="site-main">
-    <div class="site-page-meta"><span>Start here</span><a href="https://github.com/minnow54426/ntt-gpu/blob/4fb89d77546bb82b87d451471b8abe12b88232c4/docs/butterfly-explained.html">Detailed notes</a></div>
+    <div class="site-page-meta"><span>Start here</span><a href="https://github.com/minnow54426/ntt-gpu/blob/4a9adabdaad29b6c5a18eaf12008c613145e14a7/docs/butterfly-explained.html">Detailed notes</a></div>
     <div class="site-reading-layout site-wide">
       <div class="site-page-content"><article class="site-article"><h1>1. NTT and butterflies</h1><p>The number-theoretic transform (NTT) evaluates a polynomial at special points. All calculations wrap around a prime, so the results stay exact. To multiply two polynomials, transform both, multiply the matching evaluations, then run the inverse transform.</p>
 <p>A <strong>butterfly</strong> updates two values. Multiply one input by the stage’s fixed factor, called a <em>twiddle</em>. Add that product to the other input for one output and subtract it for the other. For example, with inputs 1 and 5, a twiddle of 13 and modulus 17, the shared product is 14 after reduction. The outputs are 15 and 4. Try stage 1, pair 1 below.</p></article><section class="site-visual site-article" id="visual-butterfly" data-visual="butterfly" aria-labelledby="visual-butterfly-title">
@@ -49,7 +49,7 @@
     </div>
   </main>
   <footer class="site-footer"><span>ntt-gpu · CKKS / CUDA / OpenFHE · <a href="index.html#visual-guides">Beginner visual guides</a></span>
-    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/4fb89d77546bb82b87d451471b8abe12b88232c4">4fb89d7</a></span></footer>
+    <span>Source revision <a href="https://github.com/minnow54426/ntt-gpu/tree/4a9adabdaad29b6c5a18eaf12008c613145e14a7">4a9adab</a></span></footer>
 </div>
 <dialog class="site-search-dialog" aria-labelledby="site-search-title">
   <div class="site-search-heading"><h2 id="site-search-title">Search the notebook</h2>
